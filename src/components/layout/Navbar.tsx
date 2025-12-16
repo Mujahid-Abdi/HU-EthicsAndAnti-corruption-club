@@ -9,6 +9,7 @@ const navLinks = [
   { name: "Report", path: "/report" },
   { name: "Resources", path: "/resources" },
   { name: "Events", path: "/events" },
+  { name: "Contact", path: "/contact" },
 ];
 
 export function Navbar() {
