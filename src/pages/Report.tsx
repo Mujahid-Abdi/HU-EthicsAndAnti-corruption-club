@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { ReportForm } from "@/components/report/ReportForm";
 import { 
   Shield, 
   Lock, 
@@ -8,10 +9,9 @@ import {
   Eye, 
   MessageSquare,
   CheckCircle,
-  AlertTriangle,
   HelpCircle,
-  ArrowRight,
-  ExternalLink
+  ExternalLink,
+  ArrowRight
 } from "lucide-react";
 import {
   Accordion,
@@ -25,19 +25,19 @@ const steps = [
     number: "01",
     icon: FileCheck,
     title: "Preparation",
-    description: "Gather all relevant information about the incident. Document dates, times, locations, individuals involved, and any supporting evidence. The more detail you provide, the better we can investigate.",
+    description: "Gather all relevant information about the incident. Document dates, times, locations, individuals involved, and any supporting evidence.",
   },
   {
     number: "02",
     icon: MessageSquare,
     title: "Submission",
-    description: "Use our secure, encrypted reporting form to submit your concern. You do not need to provide your identity. All submissions are encrypted and stored on protected servers.",
+    description: "Use our secure, encrypted form below. You do not need to provide your identity. All submissions are encrypted and stored on protected servers.",
   },
   {
     number: "03",
     icon: Eye,
     title: "Follow-Up",
-    description: "Your report will be reviewed by our confidential review committee. If you provided a secure contact method, we may reach out for additional information while protecting your identity.",
+    description: "Your report will be reviewed by our confidential committee. If you provided contact info, we may reach out while protecting your identity.",
   },
 ];
 
@@ -113,8 +113,7 @@ export default function ReportPage() {
                     </p>
                     <p className="leading-relaxed">
                       <strong className="text-gold">Reviewed by Trained Professionals.</strong> Your report will be 
-                      handled by a dedicated committee trained in confidential investigation procedures. We take every 
-                      report seriously and act with discretion to address concerns appropriately.
+                      handled by a dedicated committee trained in confidential investigation procedures.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4 mt-6">
@@ -139,9 +138,9 @@ export default function ReportPage() {
       </section>
 
       {/* 3-Step Process */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               How to Report
             </h2>
@@ -150,48 +149,51 @@ export default function ReportPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {steps.map((step, index) => (
               <div key={index} className="relative">
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-gold to-transparent -translate-x-8 z-0" />
+                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-gold to-transparent -translate-x-8 z-0" />
                 )}
-                <div className="relative bg-card rounded-2xl p-8 shadow-card border border-border hover:border-gold/50 transition-colors z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className="text-5xl font-display font-bold text-gold/30">{step.number}</span>
-                    <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
-                      <step.icon className="w-7 h-7 text-gold" />
+                <div className="relative bg-card rounded-xl p-6 shadow-card border border-border hover:border-gold/50 transition-colors z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-4xl font-display font-bold text-gold/30">{step.number}</span>
+                    <div className="w-12 h-12 rounded-xl bg-gradient-hero flex items-center justify-center">
+                      <step.icon className="w-6 h-6 text-gold" />
                     </div>
                   </div>
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Report CTA */}
-          <div className="text-center mt-16">
-            <Link to="/report/submit">
-              <Button variant="alert" size="xl" className="gap-3">
-                <AlertTriangle className="w-5 h-5" />
-                Submit Your Report Now
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </Link>
-            <p className="text-sm text-muted-foreground mt-4">
-              You will be redirected to our secure reporting form
-            </p>
+      {/* Report Form Section */}
+      <section id="submit-form" className="py-20 bg-cream-dark">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Submit Your Report
+              </h2>
+              <p className="text-muted-foreground">
+                Complete the secure form below. All fields marked with * are required.
+              </p>
+            </div>
+            <ReportForm />
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-cream-dark">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -228,7 +230,7 @@ export default function ReportPage() {
       </section>
 
       {/* Additional Resources */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-cream">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h3 className="font-display text-xl font-semibold text-foreground mb-6">

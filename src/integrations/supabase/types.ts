@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      anonymous_reports: {
+        Row: {
+          contact_info: string | null
+          contact_method: string | null
+          created_at: string
+          description: string
+          evidence_urls: string[] | null
+          id: string
+          incident_date: string | null
+          location: string | null
+          report_type: string
+          status: string
+        }
+        Insert: {
+          contact_info?: string | null
+          contact_method?: string | null
+          created_at?: string
+          description: string
+          evidence_urls?: string[] | null
+          id?: string
+          incident_date?: string | null
+          location?: string | null
+          report_type: string
+          status?: string
+        }
+        Update: {
+          contact_info?: string | null
+          contact_method?: string | null
+          created_at?: string
+          description?: string
+          evidence_urls?: string[] | null
+          id?: string
+          incident_date?: string | null
+          location?: string | null
+          report_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
