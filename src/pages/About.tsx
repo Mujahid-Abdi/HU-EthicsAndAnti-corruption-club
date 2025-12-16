@@ -1,0 +1,218 @@
+import { Layout } from "@/components/layout/Layout";
+import { 
+  Shield, 
+  Target, 
+  Eye, 
+  BookOpen, 
+  Scale, 
+  Users,
+  Award,
+  Heart,
+  Lightbulb
+} from "lucide-react";
+
+const pillars = [
+  {
+    icon: BookOpen,
+    title: "Education",
+    description: "We conduct workshops, seminars, and awareness campaigns to educate students about ethical conduct, anti-corruption laws, and the importance of integrity in academic and professional life.",
+  },
+  {
+    icon: Scale,
+    title: "Policy Advocacy",
+    description: "We work closely with university administration to review, strengthen, and implement policies that promote transparency, accountability, and ethical governance.",
+  },
+  {
+    icon: Users,
+    title: "Support & Reporting",
+    description: "We provide a safe, confidential channel for students and staff to report concerns about unethical behavior, and offer support throughout the process.",
+  },
+];
+
+const values = [
+  { icon: Shield, title: "Integrity", description: "Upholding honesty and moral principles in all actions" },
+  { icon: Eye, title: "Transparency", description: "Promoting openness in institutional processes" },
+  { icon: Heart, title: "Accountability", description: "Taking responsibility for our actions and decisions" },
+  { icon: Lightbulb, title: "Education", description: "Continuous learning about ethical standards" },
+];
+
+const leadership = [
+  { role: "President", name: "To Be Announced", placeholder: true },
+  { role: "Vice President", name: "To Be Announced", placeholder: true },
+  { role: "Secretary", name: "To Be Announced", placeholder: true },
+  { role: "Faculty Advisor", name: "To Be Announced", placeholder: true },
+];
+
+export default function AboutPage() {
+  return (
+    <Layout>
+      {/* Hero Section */}
+      <section className="py-20 bg-gradient-hero">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-6">
+              <Award className="w-4 h-4 text-gold" />
+              <span className="text-sm text-primary-foreground/80">Established for Integrity</span>
+            </div>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
+              About Our Club
+            </h1>
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+              Learn about our mission, vision, and the dedicated team working to build 
+              a more transparent and ethical university community.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Vision & Mission */}
+      <section className="py-20 bg-cream">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center mb-6">
+                <Eye className="w-7 h-7 text-gold" />
+              </div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Vision</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                To establish Haramaya University as a beacon of ethical excellence in higher education, 
+                where integrity is the foundation of all academic, administrative, and social interactions, 
+                inspiring a generation of principled leaders committed to building a corruption-free society.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center mb-6">
+                <Target className="w-7 h-7 text-gold" />
+              </div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Mission</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                To cultivate a culture of integrity by educating students about ethical conduct, 
+                advocating for transparent policies, providing secure channels for reporting concerns, 
+                and collaborating with all stakeholders to prevent and address corruption within our university.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* History & Founding */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8 text-center">
+              Our History & Founding Principles
+            </h2>
+            <div className="prose prose-lg mx-auto text-muted-foreground">
+              <p className="leading-relaxed mb-6">
+                The Haramaya University Ethics and Anti-Corruption Club was founded by a group of 
+                dedicated students who recognized the vital importance of ethical conduct in academic 
+                settings. Inspired by national and international efforts to combat corruption, the 
+                club was established to serve as a student-led initiative promoting integrity.
+              </p>
+              <p className="leading-relaxed mb-6">
+                Our founding principles are rooted in the belief that education is not only about 
+                academic excellence but also about character development. We believe that every 
+                student has the right to learn in an environment free from corruption and unethical 
+                practices.
+              </p>
+              <p className="leading-relaxed">
+                Since our establishment, we have worked tirelessly to raise awareness, provide 
+                educational resources, and create safe spaces for dialogue about ethical challenges 
+                facing our community. Our commitment remains unwavering as we continue to grow and 
+                expand our impact.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Three Pillars */}
+      <section className="py-20 bg-cream-dark">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Three Pillars of Action
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our work is built on three foundational pillars that guide all our initiatives and activities
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {pillars.map((pillar, index) => (
+              <div
+                key={index}
+                className="bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
+              >
+                <div className="w-16 h-16 rounded-xl bg-gradient-hero flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <pillar.icon className="w-8 h-8 text-gold" />
+                </div>
+                <h3 className="font-display text-xl font-semibold text-foreground mb-4">
+                  {pillar.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {pillar.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Core Values */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Our Core Values
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {values.map((value, index) => (
+              <div key={index} className="text-center group">
+                <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-gold/20 transition-colors">
+                  <value.icon className="w-8 h-8 text-forest" />
+                </div>
+                <h3 className="font-display font-semibold text-foreground mb-2">{value.title}</h3>
+                <p className="text-sm text-muted-foreground">{value.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Leadership */}
+      <section className="py-20 bg-gradient-hero">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+              Our Leadership
+            </h2>
+            <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+              Meet the dedicated individuals guiding our mission
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {leadership.map((member, index) => (
+              <div
+                key={index}
+                className="bg-primary-foreground/10 backdrop-blur-sm rounded-xl p-6 text-center border border-primary-foreground/20"
+              >
+                <div className="w-20 h-20 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-10 h-10 text-gold" />
+                </div>
+                <p className="text-gold font-medium text-sm mb-1">{member.role}</p>
+                <p className={`text-primary-foreground ${member.placeholder ? 'text-sm opacity-60' : 'font-semibold'}`}>
+                  {member.name}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
