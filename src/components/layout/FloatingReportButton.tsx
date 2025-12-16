@@ -10,7 +10,7 @@ export function FloatingReportButton() {
 
   return (
     <Link
-      to="/report"
+      to="/report#submit-form"
       className="fixed bottom-6 right-6 z-50 animate-float"
     >
       <Button
