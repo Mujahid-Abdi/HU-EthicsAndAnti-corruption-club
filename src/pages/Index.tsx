@@ -53,6 +53,13 @@ export default function HomePage() {
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center bg-gradient-hero overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/haramaya-gate.jpg)' }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/80 to-primary/70" />
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-gold blur-3xl" />
