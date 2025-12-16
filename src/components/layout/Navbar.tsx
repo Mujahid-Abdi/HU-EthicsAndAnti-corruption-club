@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Shield, AlertTriangle } from "lucide-react";
+import { Menu, X, Shield, AlertTriangle, LogIn, LogOut, Settings } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -15,8 +17,16 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, signOut } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
@@ -50,6 +60,21 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive("/admin")
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <span className="flex items-center gap-1">
+                  <Settings className="w-4 h-4" />
+                  Admin
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* CTA Buttons */}
@@ -60,11 +85,19 @@ export function Navbar() {
                 Report Anonymously
               </Button>
             </Link>
-            <Link to="/join">
-              <Button variant="gold" size="default">
-                Join the Club
+            {user ? (
+              <Button variant="outline" size="default" onClick={handleSignOut} className="gap-2">
+                <LogOut className="w-4 h-4" />
+                Sign Out
               </Button>
-            </Link>
+            ) : (
+              <Link to="/auth">
+                <Button variant="gold" size="default" className="gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,6 +127,20 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive("/admin")
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  Admin Dashboard
+                </Link>
+              )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border mt-2">
                 <Link to="/report" onClick={() => setIsOpen(false)}>
                   <Button variant="alert" className="w-full gap-2">
@@ -101,11 +148,19 @@ export function Navbar() {
                     Report Anonymously
                   </Button>
                 </Link>
-                <Link to="/join" onClick={() => setIsOpen(false)}>
-                  <Button variant="gold" className="w-full">
-                    Join the Club
+                {user ? (
+                  <Button variant="outline" className="w-full gap-2" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
                   </Button>
-                </Link>
+                ) : (
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Button variant="gold" className="w-full gap-2">
+                      <LogIn className="w-4 h-4" />
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -1,0 +1,307 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { Plus, Pencil, Trash2, Loader2, BookOpen, Lock, Globe } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+
+interface Resource {
+  id: string;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  category: string | null;
+  is_member_only: boolean | null;
+  created_at: string | null;
+}
+
+const categories = [
+  'Policy Documents',
+  'Training Materials',
+  'Research Papers',
+  'Guidelines',
+  'Templates',
+  'Other',
+];
+
+export default function ResourcesTab() {
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    file_url: '',
+    category: '',
+    is_member_only: false,
+  });
+
+  useEffect(() => {
+    fetchResources();
+  }, []);
+
+  const fetchResources = async () => {
+    const { data, error } = await supabase
+      .from('resources')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Failed to fetch resources');
+    } else {
+      setResources(data || []);
+    }
+    setIsLoading(false);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      file_url: '',
+      category: '',
+      is_member_only: false,
+    });
+    setEditingResource(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (resource: Resource) => {
+    setEditingResource(resource);
+    setFormData({
+      title: resource.title,
+      description: resource.description || '',
+      file_url: resource.file_url || '',
+      category: resource.category || '',
+      is_member_only: resource.is_member_only || false,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.title) {
+      toast.error('Title is required');
+      return;
+    }
+
+    setIsSaving(true);
+    const resourceData = {
+      title: formData.title,
+      description: formData.description || null,
+      file_url: formData.file_url || null,
+      category: formData.category || null,
+      is_member_only: formData.is_member_only,
+      created_by: user?.id,
+    };
+
+    if (editingResource) {
+      const { error } = await supabase
+        .from('resources')
+        .update(resourceData)
+        .eq('id', editingResource.id);
+
+      if (error) {
+        toast.error('Failed to update resource');
+      } else {
+        toast.success('Resource updated successfully');
+        setIsDialogOpen(false);
+        fetchResources();
+      }
+    } else {
+      const { error } = await supabase.from('resources').insert(resourceData);
+
+      if (error) {
+        toast.error('Failed to create resource');
+      } else {
+        toast.success('Resource created successfully');
+        setIsDialogOpen(false);
+        fetchResources();
+      }
+    }
+    setIsSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this resource?')) return;
+
+    const { error } = await supabase.from('resources').delete().eq('id', id);
+
+    if (error) {
+      toast.error('Failed to delete resource');
+    } else {
+      toast.success('Resource deleted successfully');
+      fetchResources();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Resources Management</h2>
+        <Button onClick={openCreateDialog}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Resource
+        </Button>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingResource ? 'Edit Resource' : 'Create Resource'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="file_url">File URL</Label>
+              <Input
+                id="file_url"
+                value={formData.file_url}
+                onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="is_member_only">Members Only</Label>
+                <p className="text-xs text-muted-foreground">
+                  Restrict access to approved members
+                </p>
+              </div>
+              <Switch
+                id="is_member_only"
+                checked={formData.is_member_only}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_member_only: checked })}
+              />
+            </div>
+            <Button onClick={handleSave} disabled={isSaving} className="w-full">
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Resource'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {resources.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No resources yet</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {resources.map((resource) => (
+            <Card key={resource.id}>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{resource.title}</CardTitle>
+                    {resource.category && (
+                      <Badge variant="outline" className="mt-1">
+                        {resource.category}
+                      </Badge>
+                    )}
+                  </div>
+                  <Badge variant={resource.is_member_only ? 'secondary' : 'default'}>
+                    {resource.is_member_only ? (
+                      <span className="flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        Members
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Globe className="h-3 w-3" />
+                        Public
+                      </span>
+                    )}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {resource.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    {resource.description}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => openEditDialog(resource)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(resource.id)}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
