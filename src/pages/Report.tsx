@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ReportForm } from "@/components/report/ReportForm";
-import { 
-  Shield, 
-  Lock, 
-  FileCheck, 
-  Eye, 
+import {
+  Shield,
+  Lock,
+  FileCheck,
+  Eye,
   MessageSquare,
   CheckCircle,
   HelpCircle,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
 import {
   Accordion,
@@ -25,42 +25,50 @@ const steps = [
     number: "01",
     icon: FileCheck,
     title: "Preparation",
-    description: "Gather all relevant information about the incident. Document dates, times, locations, individuals involved, and any supporting evidence.",
+    description:
+      "Gather all relevant information about the incident. Document dates, times, locations, individuals involved, and any supporting evidence.",
   },
   {
     number: "02",
     icon: MessageSquare,
     title: "Submission",
-    description: "Use our secure, encrypted form below. You do not need to provide your identity. All submissions are encrypted and stored on protected servers.",
+    description:
+      "Use our secure, encrypted form below. You do not need to provide your identity. All submissions are encrypted and stored on protected servers.",
   },
   {
     number: "03",
     icon: Eye,
     title: "Follow-Up",
-    description: "Your report will be reviewed by our confidential committee. If you provided contact info, we may reach out while protecting your identity.",
+    description:
+      "Your report will be reviewed by our confidential committee. If you provided contact info, we may reach out while protecting your identity.",
   },
 ];
 
 const faqs = [
   {
     question: "Is my identity really protected?",
-    answer: "Absolutely. Our reporting system is designed to allow completely anonymous submissions. We do not collect IP addresses, browser information, or any identifying data unless you voluntarily provide it. Even our review committee cannot identify you unless you choose to reveal yourself.",
+    answer:
+      "Absolutely. Our reporting system is designed to allow completely anonymous submissions. We do not collect IP addresses, browser information, or any identifying data unless you voluntarily provide it. Even our review committee cannot identify you unless you choose to reveal yourself.",
   },
   {
     question: "What happens after I submit a report?",
-    answer: "Your report is immediately encrypted and securely stored. Within 48-72 hours, it will be reviewed by our confidential committee. Depending on the nature and severity of the report, appropriate action will be taken, which may include internal investigation or referral to university administration.",
+    answer:
+      "Your report is immediately encrypted and securely stored. Within 48-72 hours, it will be reviewed by our confidential committee. Depending on the nature and severity of the report, appropriate action will be taken, which may include internal investigation or referral to university administration.",
   },
   {
     question: "Can I face retaliation for reporting?",
-    answer: "Ethiopian law and university policy strictly prohibit retaliation against whistleblowers. Anyone who reports in good faith is protected. If you experience any form of retaliation, please report it immediately—this itself is a serious violation that will be addressed.",
+    answer:
+      "Ethiopian law and university policy strictly prohibit retaliation against whistleblowers. Anyone who reports in good faith is protected. If you experience any form of retaliation, please report it immediately—this itself is a serious violation that will be addressed.",
   },
   {
     question: "What types of incidents should I report?",
-    answer: "You can report any form of unethical conduct, including academic dishonesty, bribery, favoritism, harassment, misuse of university resources, conflicts of interest, or any other behavior that violates ethical standards or university policies.",
+    answer:
+      "You can report any form of unethical conduct, including academic dishonesty, bribery, favoritism, harassment, misuse of university resources, conflicts of interest, or any other behavior that violates ethical standards or university policies.",
   },
   {
     question: "What if I'm not sure something is worth reporting?",
-    answer: "When in doubt, report it. Our committee will assess the situation professionally. It's better to report a concern that turns out to be minor than to ignore something that could be serious. All reports are treated with equal importance.",
+    answer:
+      "When in doubt, report it. Our committee will assess the situation professionally. It's better to report a concern that turns out to be minor than to ignore something that could be serious. All reports are treated with equal importance.",
   },
 ];
 
@@ -68,60 +76,81 @@ export default function ReportPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-6">
-              <Lock className="w-4 h-4 text-gold" />
-              <span className="text-sm text-primary-foreground/80">100% Confidential & Secure</span>
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1920')] bg-cover bg-center opacity-30" />
+        </div>
+
+        {/* Decorative Orange Shapes */}
+        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
+        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
+
+        <div className="container mx-auto px-4 py-16 relative z-20">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
+              <Lock className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground font-medium">
+                100% Confidential & Secure
+              </span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
-              Report an Incident
+
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
+              Report an <span className="text-primary">Incident</span>
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Your voice matters. Report concerns safely and anonymously. 
-              We are committed to protecting your identity and addressing all reports seriously.
+
+            <p className="text-lg md:text-xl text-background/90 mb-10 mx-auto max-w-2xl leading-relaxed">
+              Your voice matters. Report concerns safely and anonymously. We are
+              committed to protecting your identity and addressing all reports
+              seriously.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Security Disclaimer */}
-      <section className="py-16 bg-cream">
+      {/* Security Assurance */}
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-forest rounded-2xl p-8 md:p-12 shadow-lg border-2 border-gold/30">
-              <div className="flex items-start gap-6">
-                <div className="hidden md:flex w-20 h-20 rounded-full bg-gold/20 items-center justify-center flex-shrink-0">
-                  <Shield className="w-10 h-10 text-gold" />
-                </div>
-                <div className="text-primary-foreground">
-                  <h2 className="font-display text-2xl md:text-3xl font-bold mb-4 flex items-center gap-3">
-                    <Shield className="w-8 h-8 text-gold md:hidden" />
-                    Your Security is Our Priority
-                  </h2>
-                  <div className="space-y-4 text-primary-foreground/90">
-                    <p className="leading-relaxed">
-                      <strong className="text-gold">100% Confidentiality Guaranteed.</strong> Our reporting system employs 
-                      industry-standard encryption to protect your submission from the moment you begin typing until it 
-                      reaches our secure servers. We do not track, log, or store any information that could identify you.
-                    </p>
-                    <p className="leading-relaxed">
-                      <strong className="text-gold">Protected by Law.</strong> Ethiopian whistleblower protection laws 
-                      safeguard anyone who reports concerns in good faith. Retaliation against reporters is strictly 
-                      prohibited and will be treated as a serious offense.
-                    </p>
-                    <p className="leading-relaxed">
-                      <strong className="text-gold">Reviewed by Trained Professionals.</strong> Your report will be 
-                      handled by a dedicated committee trained in confidential investigation procedures.
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-8 md:p-12 shadow-xl overflow-hidden relative">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="w-24 h-24 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 shadow-inner border border-white/20">
+                    <Shield className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="text-center md:text-left">
+                    <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
+                      Your Security is Our Priority
+                    </h2>
+                    <p className="text-lg text-white/90 max-w-3xl">
+                      We take every measure to ensure your report remains
+                      confidential and secure.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-4 mt-6">
-                    <div className="flex items-center gap-2 text-gold">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="text-sm">End-to-End Encryption</span>
+                </div>
+
+                <div className="mt-12 grid md:grid-cols-3 gap-8">
+                  <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
+                    <div className="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
+                      <Lock className="w-6 h-6 text-gold" />
                     </div>
-                    <div className="flex items-center gap-2 text-gold">
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      100% Confidential
+                    </h3>
+                    <p className="text-white/80">
+                      Your identity is protected with end-to-end encryption. We
+                      don't track or store any identifying information.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
+                    <div className="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
+                      <Shield className="w-6 h-6 text-gold" />
                       <CheckCircle className="w-5 h-5" />
                       <span className="text-sm">No IP Tracking</span>
                     </div>
@@ -157,7 +186,9 @@ export default function ReportPage() {
                 )}
                 <div className="relative bg-card rounded-xl p-6 shadow-card border border-border hover:border-gold/50 transition-colors z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-4xl font-display font-bold text-gold/30">{step.number}</span>
+                    <span className="text-4xl font-display font-bold text-gold/30">
+                      {step.number}
+                    </span>
                     <div className="w-12 h-12 rounded-xl bg-gradient-hero flex items-center justify-center">
                       <step.icon className="w-6 h-6 text-gold" />
                     </div>
@@ -184,7 +215,8 @@ export default function ReportPage() {
                 Submit Your Report
               </h2>
               <p className="text-muted-foreground">
-                Complete the secure form below. All fields marked with * are required.
+                Complete the secure form below. All fields marked with * are
+                required.
               </p>
             </div>
             <ReportForm />
@@ -199,13 +231,16 @@ export default function ReportPage() {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest/10 mb-4">
                 <HelpCircle className="w-4 h-4 text-forest" />
-                <span className="text-sm text-forest font-medium">Frequently Asked Questions</span>
+                <span className="text-sm text-forest font-medium">
+                  Frequently Asked Questions
+                </span>
               </div>
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Common Concerns About Reporting
               </h2>
               <p className="text-muted-foreground">
-                We understand you may have questions. Here are answers to the most common concerns.
+                We understand you may have questions. Here are answers to the
+                most common concerns.
               </p>
             </div>
 

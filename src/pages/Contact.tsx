@@ -50,7 +50,7 @@ const Contact = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
@@ -61,20 +61,20 @@ const Contact = () => {
         <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
         <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
 
-        <div className="container mx-auto px-4 py-24 relative z-20">
+        <div className="container mx-auto px-4 py-16 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
               <Send className="w-4 h-4 text-primary" />
               <span className="text-sm text-foreground font-medium">
                 Get in Touch
               </span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
               Contact <span className="text-primary">Us</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-background/90 mb-10 mx-auto max-w-2xl leading-relaxed">
+            <p className="text-base md:text-lg text-background/90 mb-8 mx-auto max-w-2xl leading-relaxed">
               Have questions about our programs, want to report an issue, or
               interested in collaboration? We're here to help and would love to
               hear from you.

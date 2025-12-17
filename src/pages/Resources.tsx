@@ -139,7 +139,7 @@ export default function ResourcesPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
@@ -150,25 +150,25 @@ export default function ResourcesPage() {
         <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
         <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
 
-        <div className="container mx-auto px-4 py-24 relative z-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+        <div className="container mx-auto px-4 py-16 relative z-20">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
               <BookOpen className="w-4 h-4 text-primary" />
               <span className="text-sm text-foreground font-medium">
                 Knowledge Center
               </span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
               Resources & <span className="text-primary">Materials</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl leading-relaxed">
+            <p className="text-base md:text-lg text-background/90 mb-10 max-w-2xl mx-auto leading-relaxed">
               Access our comprehensive collection of documents, policies, and
               educational materials on ethics and anti-corruption.
             </p>
 
-            <div className="relative max-w-xl">
+            <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="search"

@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
-import { 
-  Shield, 
-  AlertTriangle, 
-  BookOpen, 
-  Scale, 
-  ArrowRight, 
+import {
+  Shield,
+  AlertTriangle,
+  BookOpen,
+  Scale,
+  ArrowRight,
   Calendar,
   Users,
   Lock,
@@ -14,27 +14,30 @@ import {
   MessageSquare,
   Mail,
   Phone,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 
 const services = [
   {
     icon: Lock,
     title: "Secure Reporting",
-    description: "Submit concerns anonymously through our encrypted, confidential reporting system.",
-    link: "/report"
+    description:
+      "Submit concerns anonymously through our encrypted, confidential reporting system.",
+    link: "/report",
   },
   {
     icon: BookOpen,
     title: "Ethics Education",
-    description: "Workshops and seminars to foster a culture of integrity and ethical decision-making.",
-    link: "/resources"
+    description:
+      "Workshops and seminars to foster a culture of integrity and ethical decision-making.",
+    link: "/resources",
   },
   {
     icon: Scale,
     title: "Policy Advocacy",
-    description: "Working with administration to strengthen anti-corruption policies.",
-    link: "/about"
+    description:
+      "Working with administration to strengthen anti-corruption policies.",
+    link: "/about",
   },
 ];
 
@@ -54,10 +57,12 @@ export default function HomePage() {
         <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
 
         <div className="container mx-auto px-4 py-24 relative z-20">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
               <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">Haramaya University Ethics Club</span>
+              <span className="text-sm text-foreground font-medium">
+                Haramaya University Ethics Club
+              </span>
             </div>
 
             <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight animate-slide-up">
@@ -65,20 +70,37 @@ export default function HomePage() {
               <span className="text-primary">Integrity</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl animate-slide-up leading-relaxed" style={{ animationDelay: "0.1s" }}>
-              We are committed to promoting ethical conduct, combating corruption, and fostering 
-              accountability within our university community through education, advocacy, and action.
+            <p
+              className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl animate-slide-up leading-relaxed"
+              style={{ animationDelay: "0.1s" }}
+            >
+              We are committed to promoting ethical conduct, combating
+              corruption, and fostering accountability within our university
+              community through education, advocacy, and action.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-              <Link to="/report">
-                <Button size="lg" className="gap-3 w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-orange">
+            <div
+              className="flex flex-col sm:flex-row gap-4 animate-slide-up justify-center"
+              style={{ animationDelay: "0.2s" }}
+            >
+              <Link
+                to="/report"
+                className="flex justify-center sm:justify-start"
+              >
+                <Button
+                  size="lg"
+                  className="gap-3 w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-orange"
+                >
                   <AlertTriangle className="w-5 h-5" />
                   Report Anonymously
                 </Button>
               </Link>
               <Link to="/about">
-                <Button variant="outline" size="lg" className="gap-2 w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                >
                   Learn More
                   <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -93,14 +115,16 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
-              <span className="text-sm text-primary font-semibold uppercase tracking-wider">Our Services</span>
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Our Services
+              </span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               Committed to Your Ethical Success
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              We provide comprehensive support to ensure a culture of integrity and transparency 
-              throughout our university community.
+              We provide comprehensive support to ensure a culture of integrity
+              and transparency throughout our university community.
             </p>
           </div>
 
@@ -116,14 +140,14 @@ export default function HomePage() {
                     <service.icon className="w-8 h-8 text-primary" />
                   </div>
                 </div>
-                
+
                 <h3 className="font-display text-xl font-semibold text-foreground mb-3">
                   {service.title}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed mb-4">
                   {service.description}
                 </p>
-                
+
                 <div className="flex items-center gap-2 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                   Learn More <ChevronRight className="w-4 h-4" />
                 </div>
@@ -142,9 +166,9 @@ export default function HomePage() {
               <div className="absolute -top-6 -left-6 w-32 h-32 bg-primary/20 rounded-[40%] -z-10" />
               <div className="absolute -bottom-6 -right-6 w-40 h-40 bg-primary/10 rounded-[50%] -z-10" />
               <div className="relative rounded-3xl overflow-hidden shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800" 
-                  alt="Team collaboration" 
+                <img
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800"
+                  alt="Team collaboration"
                   className="w-full h-[400px] object-cover"
                 />
               </div>
@@ -154,18 +178,23 @@ export default function HomePage() {
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-6">
                 <MessageSquare className="w-4 h-4 text-primary" />
-                <span className="text-sm text-primary font-semibold">Our Mission</span>
+                <span className="text-sm text-primary font-semibold">
+                  Our Mission
+                </span>
               </div>
-              
+
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">
                 Committed to Your{" "}
-                <span className="text-gradient-orange">Ethical Success and Security</span>
+                <span className="text-gradient-orange">
+                  Ethical Success and Security
+                </span>
               </h2>
-              
+
               <p className="text-muted-foreground leading-relaxed mb-6">
-                The Haramaya University Ethics and Anti-Corruption Club empowers students to stand 
-                against corruption, promote ethical leadership, and work collaboratively with 
-                administration to build transparent institutional practices.
+                The Haramaya University Ethics and Anti-Corruption Club empowers
+                students to stand against corruption, promote ethical
+                leadership, and work collaboratively with administration to
+                build transparent institutional practices.
               </p>
 
               <ul className="space-y-3 mb-8">
@@ -173,7 +202,7 @@ export default function HomePage() {
                   "100% Confidential Reporting",
                   "Expert Guidance and Support",
                   "Active Student Community",
-                  "Transparent Processes"
+                  "Transparent Processes",
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
@@ -203,9 +232,16 @@ export default function HomePage() {
               { number: "50+", label: "Events Hosted" },
               { number: "24/7", label: "Support Available" },
             ].map((stat, index) => (
-              <div key={index} className="bg-card rounded-2xl p-8 text-center shadow-card border border-border">
-                <div className="text-4xl font-display font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <div
+                key={index}
+                className="bg-card rounded-2xl p-8 text-center shadow-card border border-border"
+              >
+                <div className="text-4xl font-display font-bold text-primary mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -217,7 +253,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
-              <span className="text-sm text-primary font-semibold uppercase tracking-wider">Our Process</span>
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Our Process
+              </span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
               How We Operate
@@ -226,25 +264,26 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {[
-              { 
-                number: "1", 
-                title: "Initial Consultation", 
-                description: "Share your concerns with us through our secure platform" 
+              {
+                number: "1",
+                title: "Initial Consultation",
+                description:
+                  "Share your concerns with us through our secure platform",
               },
-              { 
-                number: "2", 
-                title: "Assessment", 
-                description: "We carefully review and assess the situation" 
+              {
+                number: "2",
+                title: "Assessment",
+                description: "We carefully review and assess the situation",
               },
-              { 
-                number: "3", 
-                title: "Action Planning", 
-                description: "Develop a strategic plan to address the issue" 
+              {
+                number: "3",
+                title: "Action Planning",
+                description: "Develop a strategic plan to address the issue",
               },
-              { 
-                number: "4", 
-                title: "Resolution", 
-                description: "Work towards a fair and transparent resolution" 
+              {
+                number: "4",
+                title: "Resolution",
+                description: "Work towards a fair and transparent resolution",
               },
             ].map((step, index) => (
               <div key={index} className="text-center">
@@ -271,7 +310,7 @@ export default function HomePage() {
           <div className="absolute top-10 right-10 w-64 h-64 bg-primary rounded-full blur-3xl" />
           <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -281,25 +320,40 @@ export default function HomePage() {
                   Schedule Your Free Consultation
                 </h2>
                 <p className="text-white/80 mb-8 leading-relaxed">
-                  Have questions or concerns? Get in touch with our team. We're here to help you 
-                  navigate ethical challenges and promote transparency.
+                  Have questions or concerns? Get in touch with our team. We're
+                  here to help you navigate ethical challenges and promote
+                  transparency.
                 </p>
 
                 <div className="space-y-4">
-                  <Link to="/contact" className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                  <Link
+                    to="/contact"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm"
+                  >
                     <Mail className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="text-white font-medium">Send us a message</div>
-                      <div className="text-sm text-white/70">We'll respond within 24 hours</div>
+                      <div className="text-white font-medium">
+                        Send us a message
+                      </div>
+                      <div className="text-sm text-white/70">
+                        We'll respond within 24 hours
+                      </div>
                     </div>
                     <ArrowRight className="w-4 h-4 text-white/70 ml-auto" />
                   </Link>
 
-                  <Link to="/report" className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                  <Link
+                    to="/report"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm"
+                  >
                     <AlertTriangle className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="text-white font-medium">Anonymous Report</div>
-                      <div className="text-sm text-white/70">100% confidential</div>
+                      <div className="text-white font-medium">
+                        Anonymous Report
+                      </div>
+                      <div className="text-sm text-white/70">
+                        100% confidential
+                      </div>
                     </div>
                     <ArrowRight className="w-4 h-4 text-white/70 ml-auto" />
                   </Link>
@@ -310,38 +364,49 @@ export default function HomePage() {
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
                 <form className="space-y-4">
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">Name</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Name
+                    </label>
+                    <input
+                      type="text"
                       className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="Your name"
                     />
                   </div>
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">Email</label>
-                    <input 
-                      type="email" 
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
                       className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="your@email.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">Subject</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
                       className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
                       placeholder="How can we help?"
                     />
                   </div>
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">Message</label>
-                    <textarea 
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Message
+                    </label>
+                    <textarea
                       rows={4}
                       className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                       placeholder="Your message..."
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white">
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                  >
                     Send Message
                   </Button>
                 </form>
