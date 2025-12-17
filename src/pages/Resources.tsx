@@ -139,23 +139,23 @@ export default function ResourcesPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1920')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920')] bg-cover bg-center opacity-30" />
         </div>
 
-        {/* Decorative Shapes */}
+        {/* Decorative Orange Shapes */}
         <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
         <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
 
         <div className="container mx-auto px-4 py-24 relative z-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
               <BookOpen className="w-4 h-4 text-primary" />
               <span className="text-sm text-foreground font-medium">
-                Knowledge Center
+                Knowledge Base
               </span>
             </div>
 
@@ -163,18 +163,32 @@ export default function ResourcesPage() {
               Resources & <span className="text-primary">Materials</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl leading-relaxed">
-              Access our comprehensive collection of documents, policies, and
-              educational materials on ethics and anti-corruption.
+            <p className="text-lg md:text-xl text-background/90 mb-10 mx-auto max-w-2xl leading-relaxed">
+              Access our collection of policies, documents, and external
+              resources to learn more about ethics, integrity, and
+              anti-corruption efforts.
             </p>
 
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search resources..."
-                className="pl-12 h-12 bg-background/80 backdrop-blur-sm border-border/50"
-              />
+            <div className="flex flex-wrap justify-center gap-4">
+              <a href="#policies" className="inline-flex">
+                <Button
+                  size="lg"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
+                >
+                  View Resources
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </a>
+              <a href="#glossary" className="inline-flex">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                >
+                  Browse Glossary
+                  <Bookmark className="w-5 h-5" />
+                </Button>
+              </a>
             </div>
           </div>
         </div>

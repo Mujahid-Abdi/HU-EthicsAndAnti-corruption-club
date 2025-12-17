@@ -3,14 +3,15 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Users, 
-  CheckCircle, 
+import {
+  Users,
+  CheckCircle,
   Star,
   Heart,
   Award,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -18,17 +19,20 @@ const benefits = [
   {
     icon: BookOpen,
     title: "Leadership Training",
-    description: "Access exclusive workshops on ethical leadership and professional development.",
+    description:
+      "Access exclusive workshops on ethical leadership and professional development.",
   },
   {
     icon: Users,
     title: "Networking",
-    description: "Connect with like-minded students and professionals committed to integrity.",
+    description:
+      "Connect with like-minded students and professionals committed to integrity.",
   },
   {
     icon: Award,
     title: "Recognition",
-    description: "Earn certificates and recognition for your contributions to ethical initiatives.",
+    description:
+      "Earn certificates and recognition for your contributions to ethical initiatives.",
   },
   {
     icon: Heart,
@@ -68,20 +72,56 @@ export default function JoinPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-6">
-              <Star className="w-4 h-4 text-gold" />
-              <span className="text-sm text-primary-foreground/80">Become a Member</span>
+      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1920')] bg-cover bg-center opacity-30" />
+        </div>
+
+        {/* Decorative Orange Shapes */}
+        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
+        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
+
+        <div className="container mx-auto px-4 py-24 relative z-20">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+              <Star className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground font-medium">
+                Become a Member
+              </span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
-              Join Our Club
+
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight">
+              Join Our <span className="text-primary">Community</span>
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Become an ambassador for integrity and help us build a more ethical 
-              and transparent university community.
+
+            <p className="text-lg md:text-xl text-background/90 mb-10 mx-auto max-w-2xl leading-relaxed">
+              Become an ambassador for integrity and help us build a more
+              ethical and transparent university community.
             </p>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              <a href="#application" className="inline-flex">
+                <Button
+                  size="lg"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
+                >
+                  Apply Now
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </a>
+              <a href="#benefits" className="inline-flex">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                >
+                  Learn More
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -95,7 +135,8 @@ export default function JoinPage() {
                 Why Join Us?
               </h2>
               <p className="text-muted-foreground">
-                Membership comes with valuable opportunities for growth and impact
+                Membership comes with valuable opportunities for growth and
+                impact
               </p>
             </div>
 
@@ -105,8 +146,12 @@ export default function JoinPage() {
                   <div className="w-16 h-16 rounded-xl bg-gradient-hero flex items-center justify-center mx-auto mb-4">
                     <benefit.icon className="w-8 h-8 text-gold" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">{benefit.title}</h3>
-                  <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {benefit.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -127,7 +172,10 @@ export default function JoinPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 shadow-card border border-border">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-card rounded-2xl p-8 shadow-card border border-border"
+            >
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -136,7 +184,9 @@ export default function JoinPage() {
                   <Input
                     required
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -147,7 +197,9 @@ export default function JoinPage() {
                   <Input
                     required
                     value={formData.studentId}
-                    onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, studentId: e.target.value })
+                    }
                     placeholder="Enter your student ID"
                   />
                 </div>
@@ -159,7 +211,9 @@ export default function JoinPage() {
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="your.email@student.edu"
                   />
                 </div>
@@ -169,7 +223,9 @@ export default function JoinPage() {
                   </label>
                   <Input
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     placeholder="+251 xxx xxx xxx"
                   />
                 </div>
@@ -180,7 +236,9 @@ export default function JoinPage() {
                   <Input
                     required
                     value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, department: e.target.value })
+                    }
                     placeholder="Your department"
                   />
                 </div>
@@ -191,7 +249,9 @@ export default function JoinPage() {
                   <Input
                     required
                     value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, year: e.target.value })
+                    }
                     placeholder="e.g., 2nd Year"
                   />
                 </div>
@@ -205,7 +265,9 @@ export default function JoinPage() {
                   required
                   rows={4}
                   value={formData.motivation}
-                  onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, motivation: e.target.value })
+                  }
                   placeholder="Tell us about your motivation for joining the club..."
                 />
               </div>
@@ -213,12 +275,18 @@ export default function JoinPage() {
               <div className="flex items-start gap-3 p-4 bg-muted rounded-lg mb-6">
                 <CheckCircle className="w-5 h-5 text-forest flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-muted-foreground">
-                  By submitting this form, you agree to uphold the club's values of integrity, 
-                  transparency, and ethical conduct in all activities.
+                  By submitting this form, you agree to uphold the club's values
+                  of integrity, transparency, and ethical conduct in all
+                  activities.
                 </p>
               </div>
 
-              <Button type="submit" variant="gold" size="lg" className="w-full gap-2">
+              <Button
+                type="submit"
+                variant="gold"
+                size="lg"
+                className="w-full gap-2"
+              >
                 Submit Application
                 <ArrowRight className="w-5 h-5" />
               </Button>
