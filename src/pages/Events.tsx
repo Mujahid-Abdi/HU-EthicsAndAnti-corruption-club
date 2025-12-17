@@ -11,7 +11,6 @@ import {
   Mail,
   Bell,
   ArrowRight,
-  Newspaper,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
@@ -58,37 +57,6 @@ const upcomingEvents = [
   },
 ];
 
-const newsArticles = [
-  {
-    title: "Club Successfully Hosts First Annual Integrity Forum",
-    date: "December 10, 2024",
-    summary:
-      "Over 300 students and faculty members participated in our inaugural Integrity Forum, featuring keynote speeches and breakout sessions on ethical leadership.",
-    category: "Event Recap",
-  },
-  {
-    title: "New Partnership with National Anti-Corruption Body",
-    date: "November 25, 2024",
-    summary:
-      "The club has formalized a partnership with the Federal Ethics and Anti-Corruption Commission to enhance our educational programs and reporting mechanisms.",
-    category: "Announcement",
-  },
-  {
-    title: "Ethics Training Program Launches for Student Leaders",
-    date: "November 15, 2024",
-    summary:
-      "A new comprehensive training program has been developed to equip student organization leaders with ethical leadership skills and integrity tools.",
-    category: "Program Launch",
-  },
-  {
-    title: "Club Recognized at National Student Conference",
-    date: "October 30, 2024",
-    summary:
-      "Our club received recognition at the National Student Leadership Conference for outstanding contributions to promoting academic integrity.",
-    category: "Achievement",
-  },
-];
-
 export default function EventsPage() {
   const [email, setEmail] = useState("");
 
@@ -97,7 +65,7 @@ export default function EventsPage() {
     if (email) {
       toast({
         title: "Successfully subscribed!",
-        description: "You'll receive updates about our events and news.",
+        description: "You'll receive updates about our events.",
       });
       setEmail("");
     }
@@ -127,35 +95,12 @@ export default function EventsPage() {
             </div>
 
             <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
-              Events & <span className="text-primary">News</span>
+              Upcoming <span className="text-primary">Events</span>
             </h1>
 
             <p className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl leading-relaxed">
-              Stay updated with our latest events, workshops, and news. Join us
-              in our mission to promote integrity and combat corruption.
+              Join us for our upcoming events, workshops, and activities. Be part of our mission to promote integrity and combat corruption.
             </p>
-
-            <div className="flex flex-wrap gap-4 justify-center">
-              <a href="#upcoming" className="inline-flex">
-                <Button
-                  size="lg"
-                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
-                >
-                  View Events
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </a>
-              <a href="#news" className="inline-flex">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
-                >
-                  Latest News
-                  <Newspaper className="w-5 h-5" />
-                </Button>
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -163,69 +108,79 @@ export default function EventsPage() {
       {/* Upcoming Events */}
       <section id="upcoming" className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
-              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
-                Get Involved
-              </span>
-            </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Upcoming Events
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join us for our upcoming events and be part of the movement for
-              integrity and transparency.
-            </p>
-          </div>
-          <div className="container mx-auto px-4">
-            <div className="max-w-5xl mx-auto">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
-                  <Calendar className="w-7 h-7 text-gold" />
-                </div>
-                <div>
-                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                    Upcoming Events
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Mark your calendar for these important activities
-                  </p>
-                </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
+                <Calendar className="w-7 h-7 text-gold" />
               </div>
               <div>
                 <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Latest News
+                  Upcoming Events
                 </h2>
                 <p className="text-muted-foreground">
-                  Recent updates and announcements from our club
+                  Mark your calendar for these important activities
                 </p>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {newsArticles.map((article, index) => (
+            <div className="grid gap-6">
+              {upcomingEvents.map((event, index) => (
                 <div
                   key={index}
-                  className="bg-card rounded-xl p-6 border border-border hover:border-forest/50 transition-all group cursor-pointer"
+                  className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="px-3 py-1 rounded-full bg-forest/10 text-forest text-xs font-medium">
-                      {article.category}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {article.date}
-                    </span>
+                  <div className="flex flex-col md:flex-row md:items-start gap-6">
+                    <div className="flex-shrink-0">
+                      <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Calendar className="w-10 h-10 text-primary" />
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                          {event.type}
+                        </span>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>{event.attendees} expected</span>
+                        </div>
+                      </div>
+
+                      <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        {event.title}
+                      </h3>
+
+                      <p className="text-muted-foreground mb-4">
+                        {event.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span>{event.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span>{event.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span>{event.location}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <Button
+                          variant="ghost"
+                          className="gap-2 text-primary hover:text-primary/80 p-0 h-auto"
+                        >
+                          Learn More
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-forest transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {article.summary}
-                  </p>
-                  <span className="text-sm text-forest font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Read More
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
                 </div>
               ))}
             </div>
