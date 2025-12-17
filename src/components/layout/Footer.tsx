@@ -3,14 +3,14 @@ import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from "lucide
 
 export function Footer() {
   return (
-    <footer className="bg-card border-t border-border">
+    <footer className="bg-muted/30 border-t border-border">
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow">
-                <Shield className="w-5 h-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-orange flex items-center justify-center shadow-orange">
+                <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
                 <p className="font-display font-bold text-lg text-foreground">HUEC</p>
@@ -74,7 +74,7 @@ export function Footer() {
                 <a
                   key={i}
                   href="#"
-                  className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all"
+                  className="w-10 h-10 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
                   <Icon className="w-5 h-5" />
                 </a>

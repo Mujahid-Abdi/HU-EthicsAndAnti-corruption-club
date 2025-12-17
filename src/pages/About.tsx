@@ -47,17 +47,17 @@ export default function AboutPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero">
+      <section className="py-20 bg-gradient-to-br from-muted/50 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-6">
-              <Award className="w-4 h-4 text-gold" />
-              <span className="text-sm text-primary-foreground/80">Established for Integrity</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+              <Award className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground font-medium">Established for Integrity</span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground mb-6">
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6">
               About Our Club
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Learn about our mission, vision, and the dedicated team working to build 
               a more transparent and ethical university community.
             </p>
@@ -66,12 +66,12 @@ export default function AboutPage() {
       </section>
 
       {/* Vision & Mission */}
-      <section className="py-20 bg-cream">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
             <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
-              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center mb-6">
-                <Eye className="w-7 h-7 text-gold" />
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                <Eye className="w-7 h-7 text-primary" />
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Vision</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -82,8 +82,8 @@ export default function AboutPage() {
             </div>
 
             <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
-              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center mb-6">
-                <Target className="w-7 h-7 text-gold" />
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                <Target className="w-7 h-7 text-primary" />
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -97,7 +97,7 @@ export default function AboutPage() {
       </section>
 
       {/* History & Founding */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8 text-center">
@@ -128,7 +128,7 @@ export default function AboutPage() {
       </section>
 
       {/* Three Pillars */}
-      <section className="py-20 bg-cream-dark">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -145,8 +145,8 @@ export default function AboutPage() {
                 key={index}
                 className="bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
               >
-                <div className="w-16 h-16 rounded-xl bg-gradient-hero flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <pillar.icon className="w-8 h-8 text-gold" />
+                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <pillar.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-foreground mb-4">
                   {pillar.title}
@@ -161,7 +161,7 @@ export default function AboutPage() {
       </section>
 
       {/* Core Values */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -172,8 +172,8 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {values.map((value, index) => (
               <div key={index} className="text-center group">
-                <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-gold/20 transition-colors">
-                  <value.icon className="w-8 h-8 text-forest" />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                  <value.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="font-display font-semibold text-foreground mb-2">{value.title}</h3>
                 <p className="text-sm text-muted-foreground">{value.description}</p>
@@ -184,13 +184,13 @@ export default function AboutPage() {
       </section>
 
       {/* Leadership */}
-      <section className="py-20 bg-gradient-hero">
+      <section className="py-20 bg-gradient-teal">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               Our Leadership
             </h2>
-            <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+            <p className="text-white/80 max-w-2xl mx-auto">
               Meet the dedicated individuals guiding our mission
             </p>
           </div>
@@ -199,13 +199,13 @@ export default function AboutPage() {
             {leadership.map((member, index) => (
               <div
                 key={index}
-                className="bg-primary-foreground/10 backdrop-blur-sm rounded-xl p-6 text-center border border-primary-foreground/20"
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20"
               >
-                <div className="w-20 h-20 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-10 h-10 text-gold" />
+                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-10 h-10 text-primary" />
                 </div>
-                <p className="text-gold font-medium text-sm mb-1">{member.role}</p>
-                <p className={`text-primary-foreground ${member.placeholder ? 'text-sm opacity-60' : 'font-semibold'}`}>
+                <p className="text-primary font-medium text-sm mb-1">{member.role}</p>
+                <p className={`text-white ${member.placeholder ? 'text-sm opacity-60' : 'font-semibold'}`}>
                   {member.name}
                 </p>
               </div>
