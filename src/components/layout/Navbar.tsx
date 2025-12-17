@@ -8,8 +8,8 @@ import { toast } from "sonner";
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },
-  { name: "Services", path: "/resources" },
-  { name: "Portfolio", path: "/events" },
+  { name: "Resources", path: "/resources" },
+  { name: "Events", path: "/events" },
   { name: "Contact", path: "/contact" },
 ];
 
@@ -79,19 +79,32 @@ export function Navbar() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <Link to="/report">
-              <Button variant="alert" size="default" className="gap-2 rounded-full">
+              <Button
+                variant="alert"
+                size="default"
+                className="gap-2 rounded-full"
+              >
                 <AlertTriangle className="w-4 h-4" />
                 Report
               </Button>
             </Link>
             {user ? (
-              <Button variant="ghost" size="default" onClick={handleSignOut} className="gap-2">
+              <Button
+                variant="ghost"
+                size="default"
+                onClick={handleSignOut}
+                className="gap-2"
+              >
                 <LogOut className="w-4 h-4" />
                 Sign Out
               </Button>
             ) : (
               <Link to="/auth">
-                <Button variant="glass" size="default" className="gap-2 rounded-full">
+                <Button
+                  variant="glass"
+                  size="default"
+                  className="gap-2 rounded-full"
+                >
                   Get started
                 </Button>
               </Link>
@@ -147,7 +160,14 @@ export function Navbar() {
                   </Button>
                 </Link>
                 {user ? (
-                  <Button variant="ghost" className="w-full gap-2" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                  <Button
+                    variant="ghost"
+                    className="w-full gap-2"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                  >
                     <LogOut className="w-4 h-4" />
                     Sign Out
                   </Button>

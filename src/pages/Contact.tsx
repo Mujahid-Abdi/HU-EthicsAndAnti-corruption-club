@@ -2,14 +2,16 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  MapPin, 
-  Clock, 
-  Mail, 
-  Phone, 
+import {
+  MapPin,
+  Clock,
+  Mail,
+  Phone,
   Send,
   Building2,
-  Calendar
+  ChevronRight,
+  MessageSquare,
+  Calendar,
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,54 +35,109 @@ const Contact = () => {
     e.preventDefault();
     toast({
       title: "Message Sent!",
-      description: "Thank you for reaching out. We'll respond within 2-3 business days.",
+      description:
+        "Thank you for reaching out. We'll respond within 2-3 business days.",
     });
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 bg-gradient-hero">
-        <div className="absolute inset-0 bg-[url('/placeholder.svg')] opacity-5" />
-        <div className="container mx-auto px-4 relative z-10">
+      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521791055366-0d553872125f?w=1920')] bg-cover bg-center opacity-30" />
+        </div>
+
+        {/* Decorative Orange Shapes */}
+        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
+        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
+
+        <div className="container mx-auto px-4 py-24 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="inline-block px-4 py-2 bg-gold/20 text-gold rounded-full text-sm font-medium mb-6">
-              Get in Touch
-            </span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-              Contact Us
+            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+              <Send className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground font-medium">
+                Get in Touch
+              </span>
+            </div>
+
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight">
+              Contact <span className="text-primary">Us</span>
             </h1>
-            <p className="text-lg text-white/80">
-              Have questions about our programs, want to report an issue, or interested in collaboration? 
-              We're here to help and would love to hear from you.
+
+            <p className="text-lg md:text-xl text-background/90 mb-10 mx-auto max-w-2xl leading-relaxed">
+              Have questions about our programs, want to report an issue, or
+              interested in collaboration? We're here to help and would love to
+              hear from you.
             </p>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              <a href="#contact-form" className="inline-flex">
+                <Button
+                  size="lg"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
+                >
+                  Send a Message
+                  <Send className="w-5 h-5" />
+                </Button>
+              </a>
+              <a href="#contact-info" className="inline-flex">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                >
+                  Contact Info
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Contact Content */}
-      <section className="py-20 bg-background">
+      <section id="contact-form" className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+              <Send className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Get in Touch
+              </span>
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Send Us a Message
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Fill out the form below for general inquiries. For anonymous
+              reports, please use our secure reporting system.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Contact Form */}
-            <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                Send Us a Message
-              </h2>
-              <p className="text-muted-foreground mb-8">
-                Fill out the form below for general inquiries. For anonymous reports, 
-                please use our <a href="/report" className="text-primary hover:underline">secure reporting system</a>.
-              </p>
+            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                <Send className="w-7 h-7 text-primary" />
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Full Name *
                     </label>
                     <Input
@@ -95,7 +152,10 @@ const Contact = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Email Address *
                     </label>
                     <Input
@@ -112,7 +172,10 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Subject *
                   </label>
                   <Input
@@ -128,7 +191,10 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
                     Message *
                   </label>
                   <Textarea
@@ -143,7 +209,12 @@ const Contact = () => {
                   />
                 </div>
 
-                <Button type="submit" variant="forest" size="lg" className="w-full gap-2">
+                <Button
+                  type="submit"
+                  variant="forest"
+                  size="lg"
+                  className="w-full gap-2"
+                >
                   <Send className="w-4 h-4" />
                   Send Message
                 </Button>
@@ -164,12 +235,20 @@ const Contact = () => {
                 </div>
                 <div className="space-y-4">
                   {officeHours.map((schedule, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="flex justify-between items-center py-3 border-b border-border last:border-0"
                     >
-                      <span className="font-medium text-foreground">{schedule.day}</span>
-                      <span className={`text-sm ${schedule.hours === "Closed" ? "text-alert" : "text-muted-foreground"}`}>
+                      <span className="font-medium text-foreground">
+                        {schedule.day}
+                      </span>
+                      <span
+                        className={`text-sm ${
+                          schedule.hours === "Closed"
+                            ? "text-alert"
+                            : "text-muted-foreground"
+                        }`}
+                      >
                         {schedule.hours}
                       </span>
                     </div>
@@ -180,20 +259,43 @@ const Contact = () => {
                 </p>
               </div>
 
-              {/* Contact Details */}
-              <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">
-                  Contact Information
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-5 h-5 text-gold" />
+              {/* Contact Info */}
+              <div id="contact-info" className="space-y-8">
+                <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-6">
+                    Contact Information
+                  </h3>
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          Office Location
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Student Center Building, Room 204
+                          <br />
+                          Haramaya University Main Campus
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">Office Location</p>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Address</p>
+                        <p className="text-sm text-muted-foreground">
+                          Haramaya University
+                          <br />
+                          P.O. Box 138, Dire Dawa, Ethiopia
+                        </p>
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        Student Center Building, Room 204<br />
+                        Student Center Building, Room 204
+                        <br />
                         Haramaya University Main Campus
                       </p>
                     </div>
@@ -205,7 +307,8 @@ const Contact = () => {
                     <div>
                       <p className="font-medium text-foreground">Address</p>
                       <p className="text-sm text-muted-foreground">
-                        Haramaya University<br />
+                        Haramaya University
+                        <br />
                         P.O. Box 138, Dire Dawa, Ethiopia
                       </p>
                     </div>
@@ -237,7 +340,9 @@ const Contact = () => {
                       <Calendar className="w-5 h-5 text-gold" />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">Response Time</p>
+                      <p className="font-medium text-foreground">
+                        Response Time
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         2-3 business days for general inquiries
                       </p>
@@ -258,11 +363,11 @@ const Contact = () => {
               Find Us on Campus
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Located in the heart of Haramaya University's main campus, our office is easily 
-              accessible from all major campus buildings.
+              Located in the heart of Haramaya University's main campus, our
+              office is easily accessible from all major campus buildings.
             </p>
           </div>
-          
+
           <div className="rounded-2xl overflow-hidden shadow-elegant border border-border">
             <iframe
               title="Haramaya University Location"
@@ -278,9 +383,9 @@ const Contact = () => {
           </div>
 
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a 
-              href="https://www.google.com/maps/dir//Haramaya+University" 
-              target="_blank" 
+            <a
+              href="https://www.google.com/maps/dir//Haramaya+University"
+              target="_blank"
               rel="noopener noreferrer"
             >
               <Button variant="forest" className="gap-2">
