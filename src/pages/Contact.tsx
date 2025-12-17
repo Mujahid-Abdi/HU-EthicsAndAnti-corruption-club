@@ -50,7 +50,7 @@ const Contact = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[400px] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
