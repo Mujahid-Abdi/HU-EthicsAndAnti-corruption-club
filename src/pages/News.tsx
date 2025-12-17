@@ -9,6 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const newsArticles = [
   {
@@ -57,6 +58,7 @@ const newsArticles = [
 
 export default function NewsPage() {
   const [email, setEmail] = useState("");
+  useScrollAnimation();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,11 +106,11 @@ export default function NewsPage() {
       </section>
 
       {/* News Articles */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
+            <div className="flex items-center gap-4 mb-8 scroll-animate">
+              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center shadow-md">
                 <Newspaper className="w-7 h-7 text-gold" />
               </div>
               <div>
@@ -125,7 +127,7 @@ export default function NewsPage() {
               {newsArticles.map((article, index) => (
                 <div
                   key={index}
-                  className="bg-card rounded-xl p-6 border border-border hover:border-forest/50 transition-all group cursor-pointer shadow-sm hover:shadow-md"
+                  className="bg-card rounded-xl p-5 border border-border hover:border-forest/50 transition-all duration-300 group cursor-pointer shadow-md hover:shadow-xl scroll-animate"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <span className="px-3 py-1 rounded-full bg-forest/10 text-forest text-xs font-medium">
@@ -153,42 +155,60 @@ export default function NewsPage() {
       </section>
 
       {/* Newsletter Signup */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-6">
-              <Bell className="w-8 h-8 text-gold" />
-            </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
-              Stay Informed
-            </h2>
-            <p className="text-lg text-primary-foreground/80 mb-8">
-              Subscribe to our newsletter to receive the latest news, updates, and announcements directly in your inbox.
-            </p>
-
-            <form
-              onSubmit={handleSubscribe}
-              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
-            >
-              <div className="flex-1 relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-12 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
-                  required
-                />
+      <section className="relative py-16 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100">
+        {/* Decorative Background Pattern */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-slow" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-light/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-200/50 scroll-animate-scale">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-orange-dark mb-6 shadow-orange">
+                  <Bell className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                  Stay Informed
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                  Subscribe to our newsletter to receive the latest news, updates, and announcements directly in your inbox.
+                </p>
               </div>
-              <Button type="submit" variant="hero" size="lg">
-                Subscribe
-              </Button>
-            </form>
 
-            <p className="text-sm text-primary-foreground/60 mt-4">
-              We respect your privacy. Unsubscribe at any time.
-            </p>
+              <form
+                onSubmit={handleSubscribe}
+                className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto"
+              >
+                <div className="flex-1 relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                  <Input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-12 h-14 bg-white border-2 border-gray-200 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all"
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  size="lg"
+                  className="h-14 px-8 bg-gradient-to-r from-primary to-orange-dark text-white hover:shadow-orange transition-all rounded-xl font-semibold"
+                >
+                  Subscribe
+                </Button>
+              </form>
+
+              <div className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span>We respect your privacy. Unsubscribe at any time.</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

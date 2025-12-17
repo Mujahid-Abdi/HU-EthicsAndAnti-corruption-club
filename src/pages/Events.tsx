@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const upcomingEvents = [
   {
@@ -59,6 +60,7 @@ const upcomingEvents = [
 
 export default function EventsPage() {
   const [email, setEmail] = useState("");
+  useScrollAnimation();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +111,7 @@ export default function EventsPage() {
       <section id="upcoming" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-10">
+            <div className="flex items-center gap-4 mb-10 scroll-animate">
               <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
                 <Calendar className="w-7 h-7 text-gold" />
               </div>
@@ -127,7 +129,7 @@ export default function EventsPage() {
               {upcomingEvents.map((event, index) => (
                 <div
                   key={index}
-                  className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md"
+                  className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md scroll-animate"
                 >
                   <div className="flex flex-col md:flex-row md:items-start gap-6">
                     <div className="flex-shrink-0">
@@ -189,16 +191,20 @@ export default function EventsPage() {
       </section>
 
       {/* Newsletter Signup */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-6">
-              <Bell className="w-8 h-8 text-gold" />
+      <section className="relative py-20 bg-gradient-to-br from-primary via-primary/95 to-orange-dark overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-2xl mx-auto text-center scroll-animate-scale">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+              <Bell className="w-8 h-8 text-white" />
             </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               Stay Updated
             </h2>
-            <p className="text-lg text-primary-foreground/80 mb-8">
+            <p className="text-lg text-white/90 mb-8">
               Subscribe to our mailing list to receive updates about upcoming
               events, workshops, and important announcements directly in your
               inbox.
@@ -209,22 +215,26 @@ export default function EventsPage() {
               className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
             >
               <div className="flex-1 relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-12 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
+                  className="pl-12 h-12 bg-white border-0 text-foreground placeholder:text-muted-foreground shadow-lg"
                   required
                 />
               </div>
-              <Button type="submit" variant="hero" size="lg">
+              <Button 
+                type="submit" 
+                size="lg"
+                className="bg-foreground text-white hover:bg-foreground/90 shadow-lg"
+              >
                 Subscribe
               </Button>
             </form>
 
-            <p className="text-sm text-primary-foreground/60 mt-4">
+            <p className="text-sm text-white/70 mt-4">
               We respect your privacy. Unsubscribe at any time.
             </p>
           </div>

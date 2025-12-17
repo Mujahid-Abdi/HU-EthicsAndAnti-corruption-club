@@ -163,25 +163,30 @@ export default function ResourcesPage() {
               Resources & <span className="text-primary">Materials</span>
             </h1>
 
-            <p className="text-base md:text-lg text-background/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-background/90 max-w-2xl mx-auto leading-relaxed">
               Access our comprehensive collection of documents, policies, and
               educational materials on ethics and anti-corruption.
             </p>
+          </div>
+        </div>
+      </section>
 
-            <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search resources..."
-                className="pl-12 h-12 bg-background/80 backdrop-blur-sm border-border/50"
-              />
-            </div>
+      {/* Search Bar Section */}
+      <section className="py-8 bg-background border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+            <Input
+              type="search"
+              placeholder="Search resources, policies, and documents..."
+              className="pl-12 h-14 bg-white border-2 border-gray-200 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all"
+            />
           </div>
         </div>
       </section>
 
       {/* University Policies */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
@@ -233,7 +238,7 @@ export default function ResourcesPage() {
       </section>
 
       {/* Glossary */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">

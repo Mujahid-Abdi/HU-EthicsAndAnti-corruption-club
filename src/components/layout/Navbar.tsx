@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, AlertTriangle, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 
 const navLinks = [
@@ -79,6 +80,7 @@ export function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link to="/report">
               <Button
                 variant="alert"
@@ -154,6 +156,10 @@ export function Navbar() {
                 </Link>
               )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border mt-2">
+                <div className="flex items-center justify-between px-4 py-2">
+                  <span className="text-sm text-muted-foreground">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <Link to="/report" onClick={() => setIsOpen(false)}>
                   <Button variant="alert" className="w-full gap-2">
                     <AlertTriangle className="w-4 h-4" />
