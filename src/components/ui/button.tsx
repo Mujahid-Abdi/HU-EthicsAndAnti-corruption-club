@@ -22,12 +22,13 @@ const buttonVariants = cva(
         link:
           "text-primary underline-offset-4 hover:underline",
         // Custom variants for Ethics Club
-        hero: "bg-gradient-to-r from-gold to-gold-dark text-forest-dark font-semibold shadow-md hover:shadow-lg hover:scale-105 transform",
+        hero: "bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-md hover:shadow-glow hover:scale-105 transform",
         alert: "bg-alert text-destructive-foreground font-bold shadow-lg hover:bg-alert-hover hover:shadow-xl",
         gold: "bg-gold text-forest-dark font-semibold hover:bg-gold-dark shadow-md",
         forest: "bg-forest text-primary-foreground hover:bg-forest-light shadow-md",
         "outline-gold": "border-2 border-gold bg-transparent text-gold hover:bg-gold hover:text-forest-dark",
         "outline-light": "border-2 border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10",
+        glass: "bg-muted/30 backdrop-blur-md border border-border text-foreground hover:bg-muted/50 hover:border-primary/50",
       },
       size: {
         default: "h-11 px-6 py-2",
