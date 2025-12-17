@@ -9,42 +9,55 @@ import {
   ArrowRight, 
   Calendar,
   Users,
-  Lock
+  Lock,
+  ChevronRight,
+  MessageSquare,
+  Mail,
+  Phone
 } from "lucide-react";
 
 const services = [
   {
     icon: Lock,
     title: "Secure Reporting",
-    description: "Submit concerns anonymously through our encrypted, confidential reporting system. Your identity is protected.",
+    description: "Submit concerns anonymously through our encrypted, confidential reporting system.",
+    link: "/report"
   },
   {
     icon: BookOpen,
     title: "Ethics Education",
-    description: "Workshops, seminars, and resources to foster a culture of integrity and ethical decision-making.",
+    description: "Workshops and seminars to foster a culture of integrity and ethical decision-making.",
+    link: "/resources"
   },
   {
     icon: Scale,
     title: "Policy Advocacy",
-    description: "Working with university administration to strengthen anti-corruption policies and accountability measures.",
+    description: "Working with administration to strengthen anti-corruption policies.",
+    link: "/about"
+  },
+  {
+    icon: Users,
+    title: "Community Building",
+    description: "Building a network of integrity ambassadors across the university.",
+    link: "/join"
   },
 ];
 
-const upcomingEvents = [
+const teamMembers = [
   {
-    title: "Ethics Week 2025",
-    date: "March 15-22, 2025",
-    description: "A week of workshops, panel discussions, and activities promoting ethical conduct.",
+    name: "Dr. Amina Tadesse",
+    role: "Faculty Advisor",
+    description: "Guiding our club with expertise in ethics and governance.",
   },
   {
-    title: "Student Recruitment Drive",
-    date: "February 1, 2025",
-    description: "Join our club and become an ambassador for integrity on campus.",
+    name: "Bekele Hailu",
+    role: "Club President",
+    description: "Leading initiatives for transparency and accountability.",
   },
   {
-    title: "Anti-Corruption Awareness Seminar",
-    date: "January 28, 2025",
-    description: "Learn about corruption prevention and your role in building transparency.",
+    name: "Fatima Mohammed",
+    role: "Vice President",
+    description: "Coordinating events and member engagement activities.",
   },
 ];
 
@@ -52,48 +65,57 @@ export default function HomePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center bg-gradient-hero overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/haramaya-gate.jpg)' }}
-        />
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/80 to-primary/70" />
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-gold blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full bg-gold blur-3xl" />
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(222,47%,12%)] via-[hsl(217,50%,20%)] to-[hsl(222,47%,8%)]" />
+        
+        {/* Floating Orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-[20%] w-72 h-72 rounded-full bg-primary/20 blur-[100px] animate-pulse-slow" />
+          <div className="absolute bottom-40 left-[10%] w-96 h-96 rounded-full bg-accent/15 blur-[120px] animate-pulse-slow" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-1/2 right-[5%] w-64 h-64 rounded-full bg-secondary/10 blur-[80px] animate-float" />
+        </div>
+
+        {/* 3D Decorative Elements */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-60 hidden lg:block">
+          <div className="relative w-full h-full">
+            {/* Abstract 3D shapes */}
+            <div className="absolute top-[20%] right-[20%] w-32 h-32 bg-gradient-to-br from-primary to-accent rounded-2xl transform rotate-12 shadow-glow animate-float" />
+            <div className="absolute top-[40%] right-[35%] w-24 h-24 bg-gradient-to-br from-secondary/50 to-primary/50 rounded-xl transform -rotate-6 shadow-lg animate-float" style={{ animationDelay: "0.5s" }} />
+            <div className="absolute top-[60%] right-[15%] w-20 h-20 bg-gradient-to-br from-accent/60 to-secondary/60 rounded-lg transform rotate-45 shadow-md animate-float" style={{ animationDelay: "1s" }} />
+            <div className="absolute top-[30%] right-[5%] w-16 h-16 bg-primary/30 rounded-full blur-sm animate-pulse-slow" />
+            <div className="absolute top-[70%] right-[40%] w-12 h-12 bg-accent/40 rounded-full blur-sm animate-pulse-slow" style={{ animationDelay: "0.7s" }} />
+          </div>
         </div>
 
         <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-8 animate-fade-in">
-              <Shield className="w-4 h-4 text-gold" />
-              <span className="text-sm text-primary-foreground/80">Haramaya University Ethics Club</span>
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 animate-fade-in">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground/80">Haramaya University Ethics Club</span>
             </div>
 
-            <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground mb-6 animate-slide-up">
-              Integrity First.{" "}
-              <span className="text-gradient-gold">Building a Transparent</span>{" "}
-              Haramaya.
+            <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight animate-slide-up">
+              Integrity.{" "}
+              <span className="text-gradient-blue">Transparency.</span>{" "}
+              Trust.
             </h1>
 
-            <p className="text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-xl animate-slide-up leading-relaxed" style={{ animationDelay: "0.1s" }}>
               Student-led initiative dedicated to promoting ethical conduct, combating corruption, 
-              and fostering a culture of accountability within our university community.
+              and fostering accountability within our university community.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: "0.2s" }}>
+            <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
               <Link to="/report">
                 <Button variant="alert" size="xl" className="gap-3 w-full sm:w-auto">
                   <AlertTriangle className="w-5 h-5" />
-                  Report Anonymously & Securely
+                  Report Anonymously
                 </Button>
               </Link>
               <Link to="/about">
-                <Button variant="outline-light" size="xl" className="gap-2 w-full sm:w-auto">
-                  Learn More
+                <Button variant="glass" size="xl" className="gap-2 w-full sm:w-auto">
+                  Explore Our Services
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
@@ -101,99 +123,133 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-8 h-12 rounded-full border-2 border-primary-foreground/30 flex items-start justify-center pt-2">
-            <div className="w-1.5 h-3 rounded-full bg-gold animate-pulse" />
+        {/* Bottom Navigation Dots */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8">
+          <div className="flex items-center gap-2">
+            {[1, 2, 3, 4].map((_, i) => (
+              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Mission Summary */}
-      <section className="py-20 bg-cream">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Our Mission
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              The Haramaya University Ethics and Anti-Corruption Club is committed to creating an environment 
-              where integrity thrives. We empower students to stand against corruption, promote ethical leadership, 
-              and work collaboratively with administration to build transparent institutional practices that 
-              benefit our entire academic community.
-            </p>
-          </div>
+      {/* Services Section */}
+      <section className="py-24 bg-background relative">
+        {/* Background glow */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-primary/5 blur-[100px]" />
         </div>
-      </section>
 
-      {/* Core Services */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              What We Do
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Three pillars of action driving positive change at Haramaya University
-            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
+              <span className="text-sm text-foreground">PRODUCTS</span>
+              <ChevronRight className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-medium">SERVICES</span>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service, index) => (
-              <div
+              <Link
                 key={index}
-                className="group bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border border-border"
+                to={service.link}
+                className="group glass-card rounded-2xl p-6 hover:shadow-glow transition-all duration-500 hover:-translate-y-2"
               >
-                <div className="w-16 h-16 rounded-xl bg-gradient-hero flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <service.icon className="w-8 h-8 text-gold" />
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Our Services</span>
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                  </div>
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-3">
+                
+                <div className="mb-6">
+                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <service.icon className="w-8 h-8 text-primary" />
+                  </div>
+                </div>
+
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                   {service.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {service.description}
                 </p>
-              </div>
+                
+                <div className="flex items-center gap-2 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn More <ChevronRight className="w-4 h-4" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Latest Events */}
-      <section className="py-20 bg-cream-dark">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+      {/* Mission Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(222,47%,10%)] to-[hsl(217,50%,15%)]" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Latest News & Events
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-alert/20 border border-alert/30 mb-6">
+                <MessageSquare className="w-4 h-4 text-alert" />
+                <span className="text-sm text-alert">Our Mission</span>
+              </div>
+              
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">
+                Building a Culture of{" "}
+                <span className="text-gradient-blue">Integrity & Transparency</span>
               </h2>
-              <p className="text-muted-foreground">
-                Stay updated with our upcoming activities and initiatives
+              
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                The Haramaya University Ethics and Anti-Corruption Club empowers students to stand against corruption, 
+                promote ethical leadership, and work collaboratively with administration to build transparent institutional 
+                practices that benefit our entire academic community.
               </p>
-            </div>
-            <Link to="/events">
-              <Button variant="outline" className="gap-2">
-                View All Events
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {upcomingEvents.map((event, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-xl p-6 border border-border hover:border-gold/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 text-gold mb-4">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm font-medium">{event.date}</span>
+              <Link to="/about">
+                <Button variant="outline" className="gap-2">
+                  Learn More About Us
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { number: "100%", label: "Confidential Reports" },
+                { number: "500+", label: "Students Reached" },
+                { number: "50+", label: "Events Hosted" },
+                { number: "24/7", label: "Support Available" },
+              ].map((stat, index) => (
+                <div key={index} className="glass-card rounded-2xl p-6 text-center">
+                  <div className="text-3xl font-display font-bold text-primary mb-2">{stat.number}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  {event.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {event.description}
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="py-24 bg-background relative">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {teamMembers.map((member, index) => (
+              <div key={index} className="glass-card rounded-2xl p-8 hover:shadow-glow transition-all duration-300">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-foreground font-bold text-xl">
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-foreground">{member.name}</h3>
+                    <p className="text-sm text-primary">{member.role}</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {member.description}
                 </p>
               </div>
             ))}
@@ -201,29 +257,52 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <Users className="w-16 h-16 text-gold mx-auto mb-6" />
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
-              Join Us in Building a Better Haramaya
-            </h2>
-            <p className="text-lg text-primary-foreground/80 mb-8">
-              Become a member of the Ethics and Anti-Corruption Club. Together, we can create 
-              lasting change and uphold the values of integrity in our academic community.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/join">
-                <Button variant="hero" size="xl">
-                  Join the Club Today
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button variant="outline-light" size="xl">
-                  Learn More About Us
-                </Button>
-              </Link>
+      {/* Contact Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(222,47%,10%)] to-[hsl(217,50%,15%)]" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="glass-card rounded-3xl p-8 md:p-12">
+              <div className="text-center mb-8">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">Contact Us</h2>
+                <p className="text-muted-foreground">Get in touch with our team for any questions or concerns</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <Link to="/contact" className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <Mail className="w-5 h-5 text-primary" />
+                  <div>
+                    <div className="text-foreground font-medium">Send us a message</div>
+                    <div className="text-sm text-muted-foreground">We'll respond within 24 hours</div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </Link>
+
+                <Link to="/report" className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <AlertTriangle className="w-5 h-5 text-alert" />
+                  <div>
+                    <div className="text-foreground font-medium">Anonymous Report</div>
+                    <div className="text-sm text-muted-foreground">100% confidential</div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link to="/join">
+                  <Button variant="default" size="lg" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    Join Our Club
+                  </Button>
+                </Link>
+                <Link to="/events">
+                  <Button variant="glass" size="lg" className="gap-2">
+                    <Calendar className="w-4 h-4" />
+                    View Events
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
