@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   Newspaper,
   Mail,
@@ -109,6 +110,12 @@ export default function NewsPage() {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
+            <Breadcrumb 
+              items={[
+                { label: "Programs", href: "/programs" },
+                { label: "News" }
+              ]} 
+            />
             <div className="flex items-center gap-4 mb-8 scroll-animate">
               <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center shadow-md">
                 <Newspaper className="w-7 h-7 text-gold" />

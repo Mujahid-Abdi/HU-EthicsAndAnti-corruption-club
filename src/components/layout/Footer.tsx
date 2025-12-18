@@ -49,9 +49,9 @@ export function Footer() {
                 { name: "Home", path: "/" },
                 { name: "About Us", path: "/about" },
                 { name: "Achievements", path: "/achievements" },
+                { name: "Programs", path: "/programs" },
                 { name: "Report Incident", path: "/report" },
-                { name: "Resources", path: "/resources" },
-                { name: "Events", path: "/events" },
+                { name: "Vote", path: "/vote" },
               ].map((link) => (
                 <li key={link.path}>
                   <Link

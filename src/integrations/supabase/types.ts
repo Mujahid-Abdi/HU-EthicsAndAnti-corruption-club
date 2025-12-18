@@ -289,6 +289,129 @@ export type Database = {
         }
         Relationships: []
       }
+      elections: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          status: Database["public"]["Enums"]["election_status"]
+          start_date: string | null
+          end_date: string | null
+          results_public: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          status?: Database["public"]["Enums"]["election_status"]
+          start_date?: string | null
+          end_date?: string | null
+          results_public?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          status?: Database["public"]["Enums"]["election_status"]
+          start_date?: string | null
+          end_date?: string | null
+          results_public?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      candidates: {
+        Row: {
+          id: string
+          election_id: string
+          full_name: string
+          position: Database["public"]["Enums"]["election_position"]
+          photo_url: string | null
+          department: string
+          batch: string
+          manifesto: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          election_id: string
+          full_name: string
+          position: Database["public"]["Enums"]["election_position"]
+          photo_url?: string | null
+          department: string
+          batch: string
+          manifesto?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          election_id?: string
+          full_name?: string
+          position?: Database["public"]["Enums"]["election_position"]
+          photo_url?: string | null
+          department?: string
+          batch?: string
+          manifesto?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          id: string
+          election_id: string
+          user_id: string
+          voter_full_name: string
+          voter_student_id: string
+          voter_department: string
+          voter_batch: string
+          president_candidate_id: string | null
+          vice_president_candidate_id: string | null
+          secretary_candidate_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          election_id: string
+          user_id: string
+          voter_full_name: string
+          voter_student_id: string
+          voter_department: string
+          voter_batch: string
+          president_candidate_id?: string | null
+          vice_president_candidate_id?: string | null
+          secretary_candidate_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          election_id?: string
+          user_id?: string
+          voter_full_name?: string
+          voter_student_id?: string
+          voter_department?: string
+          voter_batch?: string
+          president_candidate_id?: string | null
+          vice_president_candidate_id?: string | null
+          secretary_candidate_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

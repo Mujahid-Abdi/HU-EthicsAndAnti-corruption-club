@@ -9,12 +9,12 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Achievements from "./pages/Achievements";
+import Programs from "./pages/Programs";
 import Report from "./pages/Report";
-import Resources from "./pages/Resources";
-import Events from "./pages/Events";
-import News from "./pages/News";
+
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
+import Vote from "./pages/Vote";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -38,12 +38,11 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/achievements" element={<Achievements />} />
+              <Route path="/programs" element={<Programs />} />
               <Route path="/report" element={<Report />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/news" element={<News />} />
               <Route path="/join" element={<Join />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/vote" element={<Vote />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/admin"

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   Calendar,
   Clock,
@@ -111,6 +112,12 @@ export default function EventsPage() {
       <section id="upcoming" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
+            <Breadcrumb 
+              items={[
+                { label: "Programs", href: "/programs" },
+                { label: "Events" }
+              ]} 
+            />
             <div className="flex items-center gap-4 mb-10 scroll-animate">
               <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
                 <Calendar className="w-7 h-7 text-gold" />

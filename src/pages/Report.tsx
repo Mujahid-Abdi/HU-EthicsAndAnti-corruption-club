@@ -272,7 +272,7 @@ export default function ReportPage() {
               Need More Information?
             </h3>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/resources">
+              <Link to="/programs">
                 <Button variant="outline" className="gap-2">
                   <ExternalLink className="w-4 h-4" />
                   View Resources & Policies

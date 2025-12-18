@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   Card,
   CardContent,
@@ -171,9 +172,15 @@ export default function ResourcesPage() {
         </div>
       </section>
 
-      {/* Search Bar Section */}
+      {/* Breadcrumb and Search Bar Section */}
       <section className="py-8 bg-background border-b border-border">
         <div className="container mx-auto px-4">
+          <Breadcrumb 
+            items={[
+              { label: "Programs", href: "/programs" },
+              { label: "Resources" }
+            ]} 
+          />
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
             <Input
