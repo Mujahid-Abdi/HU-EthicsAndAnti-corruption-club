@@ -1,5 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { StickyEthicsPrinciples } from "@/components/layout/StickyEthicsPrinciples";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import {
   Shield,
   Target,
@@ -66,14 +68,16 @@ const leadership = [
 ];
 
 export default function AboutPage() {
+  useScrollAnimation();
+
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
         </div>
 
         {/* Decorative Orange Shapes */}
@@ -89,11 +93,11 @@ export default function AboutPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
               About Our <span className="text-primary">Club</span>
             </h1>
 
-            <p className="text-base md:text-lg text-background/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
               Learn about our mission, vision, and the dedicated team working to
               build a more transparent and ethical university community.
             </p>
@@ -112,7 +116,7 @@ export default function AboutPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 >
                   Meet the Team
                   <ChevronRight className="w-5 h-5" />
@@ -126,37 +130,46 @@ export default function AboutPage() {
       {/* Vision & Mission */}
       <section id="mission" className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-                <Eye className="w-7 h-7 text-primary" />
+          <div className="grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="scroll-fade-up bg-card rounded-2xl p-8 shadow-card border border-border">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                    <Eye className="w-7 h-7 text-primary" />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4">
+                    Our Vision
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    To establish Haramaya University as a beacon of ethical
+                    excellence in higher education, where integrity is the
+                    foundation of all academic, administrative, and social
+                    interactions, inspiring a generation of principled leaders
+                    committed to building a corruption-free society.
+                  </p>
+                </div>
+
+                <div className="scroll-fade-up-delay bg-card rounded-2xl p-8 shadow-card border border-border">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-primary" />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4">
+                    Our Mission
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    To cultivate a culture of integrity by educating students about
+                    ethical conduct, advocating for transparent policies, providing
+                    secure channels for reporting concerns, and collaborating with
+                    all stakeholders to prevent and address corruption within our
+                    university.
+                  </p>
+                </div>
               </div>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-4">
-                Our Vision
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                To establish Haramaya University as a beacon of ethical
-                excellence in higher education, where integrity is the
-                foundation of all academic, administrative, and social
-                interactions, inspiring a generation of principled leaders
-                committed to building a corruption-free society.
-              </p>
             </div>
 
-            <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-                <Target className="w-7 h-7 text-primary" />
-              </div>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-4">
-                Our Mission
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                To cultivate a culture of integrity by educating students about
-                ethical conduct, advocating for transparent policies, providing
-                secure channels for reporting concerns, and collaborating with
-                all stakeholders to prevent and address corruption within our
-                university.
-              </p>
+            {/* Sticky Ethics Principles */}
+            <div className="lg:col-span-1">
+              <StickyEthicsPrinciples />
             </div>
           </div>
         </div>
@@ -214,7 +227,7 @@ export default function AboutPage() {
       {/* Three Pillars */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 scroll-fade-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               Three Pillars of Action
             </h2>
@@ -228,7 +241,7 @@ export default function AboutPage() {
             {pillars.map((pillar, index) => (
               <div
                 key={index}
-                className="bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
+                className="scroll-fade-up bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
               >
                 <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <pillar.icon className="w-8 h-8 text-primary" />

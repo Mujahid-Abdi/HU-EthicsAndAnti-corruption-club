@@ -247,6 +247,48 @@ export type Database = {
         }
         Relationships: []
       }
+      executive_members: {
+        Row: {
+          id: string
+          full_name: string
+          position: string
+          email: string | null
+          phone: string | null
+          bio: string | null
+          image_url: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          position: string
+          email?: string | null
+          phone?: string | null
+          bio?: string | null
+          image_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          position?: string
+          email?: string | null
+          phone?: string | null
+          bio?: string | null
+          image_url?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -280,6 +322,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "member"
+      election_position: "president" | "vice_president" | "secretary"
+      election_status: "draft" | "open" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never

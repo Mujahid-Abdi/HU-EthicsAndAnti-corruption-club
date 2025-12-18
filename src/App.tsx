@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import About from "./pages/About";
+import Achievements from "./pages/Achievements";
 import Report from "./pages/Report";
 import Resources from "./pages/Resources";
 import Events from "./pages/Events";
@@ -36,6 +37,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
+              <Route path="/achievements" element={<Achievements />} />
               <Route path="/report" element={<Report />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/events" element={<Events />} />

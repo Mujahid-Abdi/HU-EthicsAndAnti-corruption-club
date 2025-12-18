@@ -12,15 +12,28 @@ import {
   ChevronRight,
   MessageSquare,
   Calendar,
+  Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const officeHours = [
   { day: "Monday - Friday", hours: "8:00 AM - 5:00 PM" },
   { day: "Saturday", hours: "9:00 AM - 12:00 PM" },
   { day: "Sunday", hours: "Closed" },
 ];
+
+interface ExecutiveMember {
+  id: string;
+  full_name: string;
+  position: string;
+  email: string | null;
+  phone: string | null;
+  bio: string | null;
+  image_url: string | null;
+  display_order: number;
+}
 
 const Contact = () => {
   const { toast } = useToast();
@@ -30,6 +43,23 @@ const Contact = () => {
     subject: "",
     message: "",
   });
+  const [executives, setExecutives] = useState<ExecutiveMember[]>([]);
+
+  useEffect(() => {
+    fetchExecutives();
+  }, []);
+
+  const fetchExecutives = async () => {
+    const { data } = await supabase
+      .from('executive_members')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+    
+    if (data) {
+      setExecutives(data);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +80,11 @@ const Contact = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521791055366-0d553872125f?w=1920')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521791055366-0d553872125f?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
         </div>
 
         {/* Decorative Orange Shapes */}
@@ -70,11 +100,11 @@ const Contact = () => {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
               Contact <span className="text-primary">Us</span>
             </h1>
 
-            <p className="text-base md:text-lg text-background/90 mb-8 mx-auto max-w-2xl leading-relaxed">
+            <p className="text-base md:text-lg text-white/90 mb-8 mx-auto max-w-2xl leading-relaxed">
               Have questions about our programs, want to report an issue, or
               interested in collaboration? We're here to help and would love to
               hear from you.
@@ -94,7 +124,7 @@ const Contact = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 >
                   Contact Info
                   <ChevronRight className="w-5 h-5" />
@@ -352,6 +382,89 @@ const Contact = () => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Executive Members Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Our Leadership
+              </span>
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Executive Committee
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Meet the dedicated individuals leading our mission to promote ethics and combat corruption
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {executives.map((member) => (
+              <div
+                key={member.id}
+                className="bg-card rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border text-center"
+              >
+                <div className="mb-4">
+                  {member.image_url ? (
+                    <img
+                      src={member.image_url}
+                      alt={member.full_name}
+                      className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-primary/10"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto border-4 border-primary/20">
+                      <Users className="w-12 h-12 text-primary" />
+                    </div>
+                  )}
+                </div>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+                  {member.full_name}
+                </h3>
+                <p className="text-sm text-primary font-medium mb-3">
+                  {member.position}
+                </p>
+                {member.bio && (
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                    {member.bio}
+                  </p>
+                )}
+                {(member.email || member.phone) && (
+                  <div className="pt-4 border-t border-border space-y-2">
+                    {member.email && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <Mail className="w-3 h-3" />
+                        <a href={`mailto:${member.email}`} className="hover:text-primary transition-colors">
+                          {member.email}
+                        </a>
+                      </div>
+                    )}
+                    {member.phone && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <Phone className="w-3 h-3" />
+                        <a href={`tel:${member.phone}`} className="hover:text-primary transition-colors">
+                          {member.phone}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {executives.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground">
+                Executive committee members will be announced soon.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

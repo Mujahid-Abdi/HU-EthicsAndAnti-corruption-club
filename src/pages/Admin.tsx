@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, FileText, Calendar, Newspaper, BookOpen, Users } from 'lucide-react';
+import { Shield, FileText, Calendar, Newspaper, BookOpen, Users, UserCog } from 'lucide-react';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
 import ResourcesTab from '@/components/admin/ResourcesTab';
 import UsersTab from '@/components/admin/UsersTab';
+import ExecutivesTab from '@/components/admin/ExecutivesTab';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('reports');
@@ -22,14 +23,14 @@ export default function Admin() {
             </h1>
           </div>
           <p className="text-primary-foreground/80">
-            Manage reports, events, news, resources, and users
+            Manage reports, events, news, resources, users, and executives
           </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Reports</span>
@@ -45,6 +46,10 @@ export default function Admin() {
             <TabsTrigger value="resources" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Resources</span>
+            </TabsTrigger>
+            <TabsTrigger value="executives" className="flex items-center gap-2">
+              <UserCog className="h-4 w-4" />
+              <span className="hidden sm:inline">Executives</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -63,6 +68,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="resources">
             <ResourcesTab />
+          </TabsContent>
+          <TabsContent value="executives">
+            <ExecutivesTab />
           </TabsContent>
           <TabsContent value="users">
             <UsersTab />

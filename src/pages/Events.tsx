@@ -76,11 +76,11 @@ export default function EventsPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1920')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
         </div>
 
         {/* Decorative Orange Shapes */}
@@ -96,11 +96,11 @@ export default function EventsPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-background mb-4 leading-tight">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
               Upcoming <span className="text-primary">Events</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl leading-relaxed">
+            <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl leading-relaxed">
               Join us for our upcoming events, workshops, and activities. Be part of our mission to promote integrity and combat corruption.
             </p>
           </div>

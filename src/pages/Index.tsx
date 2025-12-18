@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import {
   Shield,
   AlertTriangle,
@@ -15,6 +16,7 @@ import {
   Mail,
   Phone,
   CheckCircle2,
+  Trophy,
 } from "lucide-react";
 
 const services = [
@@ -42,14 +44,16 @@ const services = [
 ];
 
 export default function HomePage() {
+  useScrollAnimation();
+
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-gray-50">
+      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/70 to-foreground/60 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')] bg-cover bg-center opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
         </div>
 
         {/* Decorative Orange Shapes */}
@@ -65,13 +69,13 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-background mb-6 leading-tight animate-slide-up">
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-slide-up">
               Guiding Your Path to{" "}
               <span className="text-primary">Integrity</span>
             </h1>
 
             <p
-              className="text-lg md:text-xl text-background/90 mb-10 max-w-2xl animate-slide-up leading-relaxed"
+              className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl animate-slide-up leading-relaxed"
               style={{ animationDelay: "0.1s" }}
             >
               We are committed to promoting ethical conduct, combating
@@ -99,7 +103,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="gap-2 w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/30 text-background hover:bg-white/20"
+                  className="gap-2 w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 >
                   Learn More
                   <ArrowRight className="w-5 h-5" />
@@ -113,7 +117,7 @@ export default function HomePage() {
       {/* Services Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 scroll-fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <span className="text-sm text-primary font-semibold uppercase tracking-wider">
                 Our Services
@@ -133,7 +137,7 @@ export default function HomePage() {
               <Link
                 key={index}
                 to={service.link}
-                className="group bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border border-border"
+                className="scroll-fade-up group bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border border-border"
               >
                 <div className="mb-6">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -162,7 +166,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             {/* Image Side */}
-            <div className="relative">
+            <div className="relative scroll-fade-up">
               <div className="absolute -top-6 -left-6 w-32 h-32 bg-primary/20 rounded-[40%] -z-10" />
               <div className="absolute -bottom-6 -right-6 w-40 h-40 bg-primary/10 rounded-[50%] -z-10" />
               <div className="relative rounded-3xl overflow-hidden shadow-lg">
@@ -175,7 +179,7 @@ export default function HomePage() {
             </div>
 
             {/* Content Side */}
-            <div>
+            <div className="scroll-fade-up-delay">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-6">
                 <MessageSquare className="w-4 h-4 text-primary" />
                 <span className="text-sm text-primary font-semibold">
@@ -211,12 +215,20 @@ export default function HomePage() {
                 ))}
               </ul>
 
-              <Link to="/about">
-                <Button variant="default" className="gap-2">
-                  About Us
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/about">
+                  <Button variant="default" className="gap-2">
+                    About Us
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link to="/achievements">
+                  <Button variant="outline" className="gap-2">
+                    Our Achievements
+                    <Trophy className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -234,7 +246,7 @@ export default function HomePage() {
             ].map((stat, index) => (
               <div
                 key={index}
-                className="bg-card rounded-2xl p-8 text-center shadow-card border border-border"
+                className="scroll-fade-up bg-card rounded-2xl p-8 text-center shadow-card border border-border"
               >
                 <div className="text-4xl font-display font-bold text-primary mb-2">
                   {stat.number}
@@ -251,7 +263,7 @@ export default function HomePage() {
       {/* How We Operate Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 scroll-fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <span className="text-sm text-primary font-semibold uppercase tracking-wider">
                 Our Process
@@ -286,7 +298,7 @@ export default function HomePage() {
                 description: "Work towards a fair and transparent resolution",
               },
             ].map((step, index) => (
-              <div key={index} className="text-center">
+              <div key={index} className="text-center scroll-fade-up">
                 <div className="mb-6 flex justify-center">
                   <div className="w-16 h-16 rounded-full bg-gradient-orange flex items-center justify-center text-white font-display font-bold text-2xl shadow-orange">
                     {step.number}
