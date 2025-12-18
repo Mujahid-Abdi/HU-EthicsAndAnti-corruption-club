@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Shield, Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -30,7 +31,14 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState('');
   
   const { user, signIn, signUp } = useAuth();
+  const { isRegistrationEnabled, settings } = useSystemSettings();
   const navigate = useNavigate();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Auth page - Registration enabled:', isRegistrationEnabled);
+    console.log('Auth page - All settings:', settings);
+  }, [isRegistrationEnabled, settings]);
 
   useEffect(() => {
     if (user) {
@@ -96,6 +104,18 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-0 shadow-lg">
         <CardHeader className="text-center pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <div className="flex-1" />
+          </div>
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-primary/10 rounded-full">
               <Shield className="h-8 w-8 text-primary" />
@@ -110,10 +130,23 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className={`grid w-full ${isRegistrationEnabled ? 'grid-cols-2' : 'grid-cols-1'} mb-6`}>
               <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              {isRegistrationEnabled && (
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              )}
             </TabsList>
+            
+            {!isRegistrationEnabled && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Registration is currently disabled. Please sign in with your existing account.
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                  Status: {isRegistrationEnabled ? 'Enabled' : 'Disabled'}
+                </p>
+              </div>
+            )}
             
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">

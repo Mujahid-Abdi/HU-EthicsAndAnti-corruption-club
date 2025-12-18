@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { 
+  FileText, 
+  Calendar, 
+  Newspaper, 
+  BookOpen, 
+  Vote, 
+  Users, 
+  UserCog, 
+  User, 
+  Settings,
+  Menu,
+  X,
+  Shield,
+  LogOut
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+const adminNavItems = [
+  { id: 'reports', label: 'Reports', icon: FileText },
+  { id: 'events', label: 'Events', icon: Calendar },
+  { id: 'news', label: 'News', icon: Newspaper },
+  { id: 'resources', label: 'Resources', icon: BookOpen },
+  { id: 'elections', label: 'Elections', icon: Vote },
+  { id: 'candidates', label: 'Candidates', icon: Users },
+  { id: 'executives', label: 'Executives', icon: UserCog },
+  { id: 'users', label: 'Users', icon: User },
+  { id: 'settings', label: 'System Settings', icon: Settings },
+];
+
+export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-primary via-primary/95 to-orange-dark shadow-lg">
+        <div className="px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden text-white hover:bg-white/10"
+              >
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <Shield className="h-8 w-8 text-white" />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-display font-bold text-white">
+                  Admin Dashboard
+                </h1>
+                <p className="text-white/80 text-sm">
+                  Manage your ethics club system
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="font-semibold text-gray-900 dark:text-white">Navigation</h2>
+            </div>
+            
+            <ScrollArea className="flex-1 p-4">
+              <nav className="space-y-2">
+                {adminNavItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant={activeTab === item.id ? "default" : "ghost"}
+                      className={cn(
+                        "w-full justify-start gap-3 h-11 transition-all duration-200",
+                        activeTab === item.id 
+                          ? "bg-primary text-white shadow-sm hover:bg-primary/90 hover:shadow-md" 
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                      )}
+                      onClick={() => {
+                        onTabChange(item.id);
+                        setSidebarOpen(false);
+                      }}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </Button>
+                  );
+                })}
+              </nav>
+            </ScrollArea>
+
+            {/* Sign Out Button */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                variant="outline"
+                onClick={handleSignOut}
+                className="w-full justify-start gap-3 h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Overlay for mobile */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 lg:ml-0">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

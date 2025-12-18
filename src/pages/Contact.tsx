@@ -43,7 +43,38 @@ const Contact = () => {
     subject: "",
     message: "",
   });
-  const [executives, setExecutives] = useState<ExecutiveMember[]>([]);
+  const [executives, setExecutives] = useState<ExecutiveMember[]>([
+    {
+      id: '1',
+      full_name: 'Sarah Johnson',
+      position: 'President',
+      email: 'sarah.johnson@haramaya.edu.et',
+      phone: '+251-911-123456',
+      bio: 'Dedicated to promoting ethics and transparency in our university community.',
+      image_url: null,
+      display_order: 1,
+    },
+    {
+      id: '2',
+      full_name: 'Michael Chen',
+      position: 'Vice President',
+      email: 'michael.chen@haramaya.edu.et',
+      phone: '+251-911-234567',
+      bio: 'Passionate about student rights and anti-corruption initiatives.',
+      image_url: null,
+      display_order: 2,
+    },
+    {
+      id: '3',
+      full_name: 'Aisha Mohammed',
+      position: 'Secretary',
+      email: 'aisha.mohammed@haramaya.edu.et',
+      phone: '+251-911-345678',
+      bio: 'Committed to maintaining accurate records and transparent communication.',
+      image_url: null,
+      display_order: 3,
+    }
+  ]);
 
   useEffect(() => {
     fetchExecutives();

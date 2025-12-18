@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { VoteLayout } from '@/components/layout/VoteLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,7 +102,7 @@ export default function VotePage() {
     if (candidatesError) {
       toast({
         title: 'Error',
-        description: 'Failed to load candidates',
+        description: 'Failed to load candidates: ' + candidatesError.message,
         variant: 'destructive',
       });
     } else {
@@ -191,19 +191,19 @@ export default function VotePage() {
 
   if (loading) {
     return (
-      <Layout>
+      <VoteLayout>
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading election...</p>
           </div>
         </div>
-      </Layout>
+      </VoteLayout>
     );
   }
 
   return (
-    <Layout>
+    <VoteLayout>
       {/* Hero Section */}
       <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         <div className="absolute inset-0">
@@ -430,6 +430,6 @@ export default function VotePage() {
           </div>
         )}
       </div>
-    </Layout>
+    </VoteLayout>
   );
 }

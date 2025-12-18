@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Footer() {
+  const { isAdmin } = useAuth();
+
+  // Don't show footer for admin users
+  if (isAdmin) {
+    return null;
+  }
+
   return (
     <footer className="relative bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black border-t border-gray-200/80 dark:border-gray-800">
       {/* Decorative Elements */}

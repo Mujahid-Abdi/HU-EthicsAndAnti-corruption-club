@@ -448,3 +448,48 @@
   from { box-shadow: 0 0 20px hsl(28 95% 55% / 0.2); }
   to { box-shadow: 0 0 40px hsl(28 95% 55% / 0.35); }
 }
+  /* Admin Button Hover Improvements */
+  .admin-button-active {
+    @apply bg-primary text-white shadow-sm;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .admin-button-active:hover {
+    @apply bg-primary/90 shadow-md transform scale-[1.02];
+  }
+  
+  .admin-nav-active {
+    @apply text-primary bg-white/15 dark:bg-gray-800/25;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .admin-nav-active:hover {
+    @apply bg-white/20 dark:bg-gray-800/30 shadow-sm;
+  }
+  
+  /* Smooth transitions for all buttons */
+  .btn-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-smooth:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Active state improvements */
+  .nav-active {
+    position: relative;
+  }
+  
+  .nav-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: hsl(var(--primary));
+    border-radius: 0 2px 2px 0;
+  }

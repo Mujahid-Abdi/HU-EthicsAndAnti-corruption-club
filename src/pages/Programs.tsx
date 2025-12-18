@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   BookOpen,
   Calendar,
@@ -25,6 +27,8 @@ import {
   Mail,
   Bell,
   Scale,
+  Trophy,
+  Vote,
 } from "lucide-react";
 
 // Resources Data
@@ -212,6 +216,143 @@ const programStats = [
   { number: "25+", label: "Events Hosted", icon: Calendar },
   { number: "100+", label: "News Articles", icon: Newspaper },
 ];
+
+// Election Results Component
+function ElectionResults() {
+  const [elections, setElections] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchElectionResults();
+  }, []);
+
+  const fetchElectionResults = async () => {
+    setLoading(true);
+    
+    // Get closed elections
+    const { data: electionsData } = await supabase
+      .from('elections')
+      .select('*')
+      .eq('status', 'closed')
+      .order('created_at', { ascending: false });
+
+    if (electionsData && electionsData.length > 0) {
+      setElections(electionsData);
+      
+      // Get results for the most recent closed election
+      const latestElection = electionsData[0];
+      try {
+        const { data: resultsData, error } = await (supabase as any).rpc('get_election_results', {
+          election_uuid: latestElection.id
+        });
+        
+        if (error) {
+          console.error('Error fetching election results:', error);
+          setResults([]);
+        } else if (resultsData) {
+          setResults(resultsData);
+        } else {
+          setResults([]);
+        }
+      } catch (error) {
+        console.error('Error calling get_election_results:', error);
+        setResults([]); // Set empty array on error
+      }
+    }
+    
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading election results...</p>
+      </div>
+    );
+  }
+
+  if (elections.length === 0) {
+    return null; // Don't show section if no closed elections
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-orange-dark flex items-center justify-center">
+          <Trophy className="w-7 h-7 text-white" />
+        </div>
+        <div>
+          <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+            Election Results
+          </h3>
+          <p className="text-muted-foreground">
+            Results from recent club elections
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {elections.slice(0, 3).map((election) => (
+          <Card key={election.id} className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-orange-light/5 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">{election.title}</CardTitle>
+                  <p className="text-muted-foreground mt-1">
+                    Completed on {new Date(election.end_date || election.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <Trophy className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {results.length > 0 ? (
+                <div className="grid md:grid-cols-3 gap-6">
+                  {['president', 'vice_president', 'secretary'].map((position) => {
+                    const positionResults = results.filter(r => r.position === position);
+                    const winner = positionResults.find(r => r.rank === 1);
+                    
+                    return (
+                      <div key={position} className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                          <Vote className="w-8 h-8 text-primary" />
+                        </div>
+                        <h4 className="font-semibold text-foreground mb-2">
+                          {position === 'president' ? 'President' : 
+                           position === 'vice_president' ? 'Vice President' : 'Secretary'}
+                        </h4>
+                        {winner ? (
+                          <>
+                            <p className="font-medium text-primary mb-1">{winner.candidate_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {winner.vote_count} votes ({winner.percentage}%)
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No results available</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Vote className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground">Results are being processed</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ProgramsPage() {
   const [email, setEmail] = useState("");
@@ -522,6 +663,9 @@ export default function ProgramsPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Election Results Section */}
+                <ElectionResults />
 
                 {/* Newsletter Signup for Events */}
                 <div className="relative py-20 bg-gradient-to-br from-primary via-primary/95 to-orange-dark overflow-hidden rounded-3xl">

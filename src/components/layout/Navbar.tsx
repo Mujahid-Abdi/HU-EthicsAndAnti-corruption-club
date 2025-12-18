@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Shield, AlertTriangle, LogOut, Settings } from "lucide-react";
+import { Menu, X, AlertTriangle, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 
@@ -15,11 +16,16 @@ const navLinks = [
   { name: "Contact", path: "/contact" },
 ];
 
+const adminNavLinks = [
+  { name: "Dashboard", path: "/" },
+];
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
+  const { isVotingEnabled } = useSystemSettings();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -30,9 +36,9 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/20 dark:bg-gray-900/30 backdrop-blur-lg border-b border-white/30 dark:border-gray-700/30 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
@@ -43,58 +49,63 @@ export function Navbar() {
               />
             </div>
             <div className="hidden sm:block">
-              <p className="font-display font-bold text-foreground leading-tight">
+              <p className="font-display font-bold text-gray-900 dark:text-white leading-tight">
                 HUEC
               </p>
-              <p className="text-xs text-muted-foreground">Ethics Club</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">Ethics Club</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive(link.path)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive("/admin")
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span className="flex items-center gap-1">
-                  <Settings className="w-4 h-4" />
-                  Admin
-                </span>
-              </Link>
+            {isAdmin ? (
+              // Admin navigation - only Dashboard
+              adminNavLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive(link.path)
+                      ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
+                      : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))
+            ) : (
+              // Regular user navigation
+              navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive(link.path)
+                      ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
+                      : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))
             )}
           </div>
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/report">
-              <Button
-                variant="alert"
-                size="default"
-                className="gap-2 rounded-full"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                Report
-              </Button>
-            </Link>
+            {!isAdmin && (
+              <Link to="/report">
+                <Button
+                  variant="alert"
+                  size="default"
+                  className="gap-2 rounded-full"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Report
+                </Button>
+              </Link>
+            )}
             {user ? (
               <Button
                 variant="ghost"
@@ -121,7 +132,7 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-muted/50 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-gray-800 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors"
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -129,47 +140,54 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden py-4 border-t border-border animate-fade-in">
+          <div className="lg:hidden py-4 border-t border-white/30 dark:border-gray-700/30 animate-fade-in bg-white/20 dark:bg-gray-900/30 backdrop-blur-lg">
             <div className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.path)
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  onClick={() => setIsOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive("/admin")
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Admin Dashboard
-                </Link>
+              {isAdmin ? (
+                // Admin mobile navigation - only Dashboard
+                adminNavLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(link.path)
+                        ? "bg-primary/20 text-primary hover:bg-primary/25"
+                        : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/15 dark:hover:bg-gray-800/15"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))
+              ) : (
+                // Regular user mobile navigation
+                navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(link.path)
+                        ? "bg-primary/20 text-primary hover:bg-primary/25"
+                        : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/15 dark:hover:bg-gray-800/15"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))
               )}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border mt-2">
+              <div className="flex flex-col gap-2 pt-4 border-t border-white/20 dark:border-gray-800/20 mt-2">
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm text-muted-foreground">Theme</span>
                   <ThemeToggle />
                 </div>
-                <Link to="/report" onClick={() => setIsOpen(false)}>
-                  <Button variant="alert" className="w-full gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Report Anonymously
-                  </Button>
-                </Link>
+                {!isAdmin && (
+                  <Link to="/report" onClick={() => setIsOpen(false)}>
+                    <Button variant="alert" className="w-full gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Report Anonymously
+                    </Button>
+                  </Link>
+                )}
                 {user ? (
                   <Button
                     variant="ghost"

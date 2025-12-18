@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit, Trash2, Save, X, Users } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Edit, Trash2, Save, X, Users, User, Mail, Phone } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ExecutiveMember {
   id: string;
@@ -20,8 +20,43 @@ interface ExecutiveMember {
 }
 
 export default function ExecutivesTab() {
-  const [members, setMembers] = useState<ExecutiveMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<ExecutiveMember[]>([
+    {
+      id: '1',
+      full_name: 'Sarah Johnson',
+      position: 'President',
+      email: 'sarah.johnson@haramaya.edu.et',
+      phone: '+251-911-123456',
+      bio: 'Dedicated to promoting ethics and transparency in our university community.',
+      image_url: null,
+      display_order: 1,
+      is_active: true,
+    },
+    {
+      id: '2',
+      full_name: 'Michael Chen',
+      position: 'Vice President',
+      email: 'michael.chen@haramaya.edu.et',
+      phone: '+251-911-234567',
+      bio: 'Passionate about student rights and anti-corruption initiatives.',
+      image_url: null,
+      display_order: 2,
+      is_active: true,
+    },
+    {
+      id: '3',
+      full_name: 'Aisha Mohammed',
+      position: 'Secretary',
+      email: 'aisha.mohammed@haramaya.edu.et',
+      phone: '+251-911-345678',
+      bio: 'Committed to maintaining accurate records and transparent communication.',
+      image_url: null,
+      display_order: 3,
+      is_active: true,
+    }
+  ]);
+
+  const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState<Partial<ExecutiveMember>>({
@@ -35,38 +70,8 @@ export default function ExecutivesTab() {
     is_active: true,
   });
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  const fetchMembers = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('executive_members')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load executive members',
-        variant: 'destructive',
-      });
-    } else {
-      setMembers(data || []);
-    }
-    setLoading(false);
-  };
-
-  const handleEdit = (member: ExecutiveMember) => {
-    setEditingId(member.id);
-    setFormData(member);
-    setIsAdding(false);
-  };
-
   const handleAdd = () => {
     setIsAdding(true);
-    setEditingId(null);
     setFormData({
       full_name: '',
       position: '',
@@ -79,99 +84,99 @@ export default function ExecutivesTab() {
     });
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setIsAdding(false);
-    setFormData({});
+  const handleEdit = (member: ExecutiveMember) => {
+    setEditingId(member.id);
+    setFormData(member);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!formData.full_name || !formData.position) {
-      toast({
-        title: 'Error',
-        description: 'Name and position are required',
-        variant: 'destructive',
-      });
+      toast.error('Please fill in all required fields');
       return;
     }
 
     if (isAdding) {
-      const { error } = await supabase
-        .from('executive_members')
-        .insert([formData]);
-
-      if (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to add member',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Executive member added successfully',
-        });
-        fetchMembers();
-        handleCancel();
-      }
+      const newMember: ExecutiveMember = {
+        id: Date.now().toString(),
+        full_name: formData.full_name!,
+        position: formData.position!,
+        email: formData.email || null,
+        phone: formData.phone || null,
+        bio: formData.bio || null,
+        image_url: formData.image_url || null,
+        display_order: formData.display_order || members.length + 1,
+        is_active: formData.is_active !== false,
+      };
+      setMembers([...members, newMember].sort((a, b) => a.display_order - b.display_order));
+      toast.success('Executive member added successfully');
     } else if (editingId) {
-      const { error } = await supabase
-        .from('executive_members')
-        .update(formData)
-        .eq('id', editingId);
-
-      if (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to update member',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Executive member updated successfully',
-        });
-        fetchMembers();
-        handleCancel();
-      }
+      setMembers(members.map(member => 
+        member.id === editingId 
+          ? { ...member, ...formData } as ExecutiveMember
+          : member
+      ).sort((a, b) => a.display_order - b.display_order));
+      toast.success('Executive member updated successfully');
     }
+
+    setIsAdding(false);
+    setEditingId(null);
+    setFormData({});
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this executive member?')) {
-      return;
-    }
-
-    const { error } = await supabase
-      .from('executive_members')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete member',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Success',
-        description: 'Executive member deleted successfully',
-      });
-      fetchMembers();
-    }
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    setFormData({});
   };
 
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
+  const handleDelete = (id: string) => {
+    setMembers(members.filter(member => member.id !== id));
+    toast.success('Executive member deleted successfully');
+  };
+
+  const toggleActiveStatus = (id: string, currentStatus: boolean) => {
+    setMembers(members.map(member => 
+      member.id === id 
+        ? { ...member, is_active: !currentStatus }
+        : member
+    ));
+    toast.success(`Member ${!currentStatus ? 'activated' : 'deactivated'}`);
+  };
+
+  const moveUp = (id: string) => {
+    const member = members.find(m => m.id === id);
+    if (!member || member.display_order <= 1) return;
+
+    setMembers(members.map(m => {
+      if (m.id === id) return { ...m, display_order: m.display_order - 1 };
+      if (m.display_order === member.display_order - 1) return { ...m, display_order: m.display_order + 1 };
+      return m;
+    }).sort((a, b) => a.display_order - b.display_order));
+    
+    toast.success('Member moved up');
+  };
+
+  const moveDown = (id: string) => {
+    const member = members.find(m => m.id === id);
+    if (!member || member.display_order >= members.length) return;
+
+    setMembers(members.map(m => {
+      if (m.id === id) return { ...m, display_order: m.display_order + 1 };
+      if (m.display_order === member.display_order + 1) return { ...m, display_order: m.display_order - 1 };
+      return m;
+    }).sort((a, b) => a.display_order - b.display_order));
+    
+    toast.success('Member moved down');
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Executive Members</h2>
-          <p className="text-muted-foreground">Manage club executive committee</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Executive Members</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Manage club executive members and their information
+          </p>
         </div>
         <Button onClick={handleAdd} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -182,85 +187,100 @@ export default function ExecutivesTab() {
       {(isAdding || editingId) && (
         <Card>
           <CardHeader>
-            <CardTitle>{isAdding ? 'Add New Member' : 'Edit Member'}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              {isAdding ? 'Add New Executive Member' : 'Edit Executive Member'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Full Name *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Full Name *</label>
                 <Input
                   value={formData.full_name || ''}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                   placeholder="Enter full name"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Position *</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Position *</label>
                 <Input
                   value={formData.position || ''}
-                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  placeholder="e.g., President, Secretary"
+                  onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
+                  placeholder="Enter position (e.g., President, Secretary)"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
                 <Input
                   type="email"
                   value={formData.email || ''}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@example.com"
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter email address"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Phone</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone</label>
                 <Input
                   value={formData.phone || ''}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+251 xxx xxx xxx"
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter phone number"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Display Order</label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Photo URL</label>
+                <Input
+                  value={formData.image_url || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                  placeholder="Enter photo URL"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Display Order</label>
                 <Input
                   type="number"
                   value={formData.display_order || 0}
-                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Image URL</label>
-                <Input
-                  value={formData.image_url || ''}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://..."
+                  onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                  placeholder="Enter display order"
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Bio</label>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Bio</label>
               <Textarea
                 value={formData.bio || ''}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Brief biography..."
-                rows={3}
+                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                placeholder="Enter member bio"
+                rows={4}
               />
             </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="is_active"
-                checked={formData.is_active || false}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="w-4 h-4"
+                checked={formData.is_active !== false}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                className="rounded"
               />
-              <label htmlFor="is_active" className="text-sm font-medium">Active (visible on website)</label>
+              <label htmlFor="is_active" className="text-sm font-medium">
+                Active member
+              </label>
             </div>
+
             <div className="flex gap-2">
               <Button onClick={handleSave} className="gap-2">
                 <Save className="w-4 h-4" />
-                Save
+                Save Member
               </Button>
-              <Button onClick={handleCancel} variant="outline" className="gap-2">
+              <Button variant="outline" onClick={handleCancel} className="gap-2">
                 <X className="w-4 h-4" />
                 Cancel
               </Button>
@@ -269,62 +289,138 @@ export default function ExecutivesTab() {
         </Card>
       )}
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4">
         {members.map((member) => (
-          <Card key={member.id} className={!member.is_active ? 'opacity-50' : ''}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  {member.image_url ? (
-                    <img
-                      src={member.image_url}
-                      alt={member.full_name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
+          <Card key={member.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                    {member.image_url ? (
+                      <img 
+                        src={member.image_url} 
+                        alt={member.full_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-gray-400" />
+                    )}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {member.full_name}
+                      </h3>
+                      <Badge variant="outline">
+                        {member.position}
+                      </Badge>
+                      {!member.is_active && (
+                        <Badge variant="secondary">
+                          Inactive
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        #{member.display_order}
+                      </Badge>
                     </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-foreground">{member.full_name}</h3>
-                    <p className="text-sm text-primary">{member.position}</p>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      {member.email && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          <span>{member.email}</span>
+                        </div>
+                      )}
+                      {member.phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="w-3 h-3" />
+                          <span>{member.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {member.bio && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {member.bio}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground">#{member.display_order}</span>
-              </div>
-              {member.bio && (
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{member.bio}</p>
-              )}
-              {(member.email || member.phone) && (
-                <div className="text-xs text-muted-foreground space-y-1 mb-3">
-                  {member.email && <div>📧 {member.email}</div>}
-                  {member.phone && <div>📱 {member.phone}</div>}
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => moveUp(member.id)}
+                    disabled={member.display_order <= 1}
+                    className="gap-1"
+                  >
+                    ↑
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => moveDown(member.id)}
+                    disabled={member.display_order >= members.length}
+                    className="gap-1"
+                  >
+                    ↓
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleActiveStatus(member.id, member.is_active)}
+                    className="gap-1"
+                  >
+                    {member.is_active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(member)}
+                    className="gap-1"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Edit
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(member.id)}
+                    className="gap-1 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </Button>
                 </div>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleEdit(member)}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1"
-                >
-                  <Edit className="w-3 h-3" />
-                  Edit
-                </Button>
-                <Button
-                  onClick={() => handleDelete(member.id)}
-                  variant="destructive"
-                  size="sm"
-                  className="gap-1"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {members.length === 0 && !isAdding && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No Executive Members Found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Add your first executive member to get started
+            </p>
+            <Button onClick={handleAdd} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add First Member
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

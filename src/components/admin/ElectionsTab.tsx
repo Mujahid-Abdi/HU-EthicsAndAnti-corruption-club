@@ -20,7 +20,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 interface Election {
   id: string;
@@ -33,49 +33,14 @@ interface Election {
   created_at: string;
 }
 
-interface Candidate {
-  id: string;
-  election_id: string;
-  full_name: string;
-  position: 'president' | 'vice_president' | 'secretary';
-  photo_url: string | null;
-  department: string;
-  batch: string;
-  manifesto: string | null;
-}
-
-interface ElectionResult {
-  position: 'president' | 'vice_president' | 'secretary';
-  candidate_id: string;
-  candidate_name: string;
-  vote_count: number;
-}
-
 export default function ElectionsTab() {
   const [elections, setElections] = useState<Election[]>([]);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [results, setResults] = useState<ElectionResult[]>([]);
-  const [selectedElection, setSelectedElection] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [editingElection, setEditingElection] = useState<string | null>(null);
-  const [isAddingElection, setIsAddingElection] = useState(false);
-  const [electionForm, setElectionForm] = useState({
-    title: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-  });
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchElections();
   }, []);
-
-  useEffect(() => {
-    if (selectedElection) {
-      fetchCandidates(selectedElection);
-      fetchResults(selectedElection);
-    }
-  }, [selectedElection]);
 
   const fetchElections = async () => {
     setLoading(true);
@@ -85,125 +50,153 @@ export default function ElectionsTab() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load elections',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load elections: ' + error.message);
     } else {
       setElections(data || []);
-      if (data && data.length > 0 && !selectedElection) {
-        setSelectedElection(data[0].id);
+    }
+    setLoading(false);
+  };
+  const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState<Partial<Election>>({
+    title: '',
+    description: '',
+    status: 'draft',
+    start_date: '',
+    end_date: '',
+    results_public: false,
+  });
+
+  const handleAdd = () => {
+    setIsAdding(true);
+    setFormData({
+      title: '',
+      description: '',
+      status: 'draft',
+      start_date: '',
+      end_date: '',
+      results_public: false,
+    });
+  };
+
+  const handleEdit = (election: Election) => {
+    setEditingId(election.id);
+    setFormData(election);
+  };
+
+  const handleSave = async () => {
+    if (!formData.title) {
+      toast.error('Please enter an election title');
+      return;
+    }
+
+    setLoading(true);
+
+    if (isAdding) {
+      const { data, error } = await supabase
+        .from('elections')
+        .insert([{
+          title: formData.title!,
+          description: formData.description || null,
+          status: formData.status || 'draft',
+          start_date: formData.start_date || null,
+          end_date: formData.end_date || null,
+          results_public: formData.results_public || false,
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        toast.error('Failed to create election: ' + error.message);
+      } else {
+        toast.success('Election created successfully');
+        fetchElections(); // Refresh the list
       }
+    } else if (editingId) {
+      const { error } = await supabase
+        .from('elections')
+        .update({
+          title: formData.title!,
+          description: formData.description || null,
+          status: formData.status || 'draft',
+          start_date: formData.start_date || null,
+          end_date: formData.end_date || null,
+          results_public: formData.results_public || false,
+        })
+        .eq('id', editingId);
+
+      if (error) {
+        toast.error('Failed to update election: ' + error.message);
+      } else {
+        toast.success('Election updated successfully');
+        fetchElections(); // Refresh the list
+      }
+    }
+
+    setLoading(false);
+    setIsAdding(false);
+    setEditingId(null);
+    setFormData({});
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    setFormData({});
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this election? This action cannot be undone.')) {
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase
+      .from('elections')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Failed to delete election: ' + error.message);
+    } else {
+      toast.success('Election deleted successfully');
+      fetchElections(); // Refresh the list
     }
     setLoading(false);
   };
 
-  const fetchCandidates = async (electionId: string) => {
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('election_id', electionId)
-      .order('position', { ascending: true });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load candidates',
-        variant: 'destructive',
-      });
-    } else {
-      setCandidates(data || []);
-    }
-  };
-
-  const fetchResults = async (electionId: string) => {
-    const { data, error } = await supabase.rpc('get_election_results', {
-      election_uuid: electionId
-    });
-
-    if (error) {
-      console.error('Failed to load results:', error);
-    } else {
-      setResults(data || []);
-    }
-  };
-
-  const handleCreateElection = async () => {
-    if (!electionForm.title) {
-      toast({
-        title: 'Error',
-        description: 'Election title is required',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const toggleElectionStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'draft' ? 'open' : 
+                     currentStatus === 'open' ? 'closed' : 'draft';
+    
+    setLoading(true);
     const { error } = await supabase
       .from('elections')
-      .insert([{
-        ...electionForm,
-        start_date: electionForm.start_date || null,
-        end_date: electionForm.end_date || null,
-      }]);
+      .update({ status: newStatus })
+      .eq('id', id);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create election',
-        variant: 'destructive',
-      });
+      toast.error('Failed to update election status: ' + error.message);
     } else {
-      toast({
-        title: 'Success',
-        description: 'Election created successfully',
-      });
-      fetchElections();
-      setIsAddingElection(false);
-      setElectionForm({ title: '', description: '', start_date: '', end_date: '' });
+      toast.success(`Election status changed to ${newStatus}`);
+      fetchElections(); // Refresh the list
     }
+    setLoading(false);
   };
 
-  const handleUpdateElectionStatus = async (electionId: string, status: 'draft' | 'open' | 'closed') => {
+  const toggleResultsVisibility = async (id: string, currentVisibility: boolean) => {
+    setLoading(true);
     const { error } = await supabase
       .from('elections')
-      .update({ status })
-      .eq('id', electionId);
+      .update({ results_public: !currentVisibility })
+      .eq('id', id);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update election status',
-        variant: 'destructive',
-      });
+      toast.error('Failed to update results visibility: ' + error.message);
     } else {
-      toast({
-        title: 'Success',
-        description: `Election ${status === 'open' ? 'opened' : 'closed'} successfully`,
-      });
-      fetchElections();
+      toast.success(`Results ${!currentVisibility ? 'published' : 'hidden'}`);
+      fetchElections(); // Refresh the list
     }
-  };
-
-  const handleToggleResultsPublic = async (electionId: string, resultsPublic: boolean) => {
-    const { error } = await supabase
-      .from('elections')
-      .update({ results_public: resultsPublic })
-      .eq('id', electionId);
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update results visibility',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Success',
-        description: `Results are now ${resultsPublic ? 'public' : 'private'}`,
-      });
-      fetchElections();
-    }
+    setLoading(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -215,88 +208,101 @@ export default function ElectionsTab() {
     }
   };
 
-  const getPositionLabel = (position: string) => {
-    switch (position) {
-      case 'president': return 'President';
-      case 'vice_president': return 'Vice President';
-      case 'secretary': return 'Secretary';
-      default: return position;
-    }
-  };
-
-  const currentElection = elections.find(e => e.id === selectedElection);
-
-  if (loading) {
-    return <div className="text-center py-8">Loading elections...</div>;
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Election Management</h2>
-          <p className="text-muted-foreground">Manage elections, candidates, and view results</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Elections Management</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Create and manage elections for your organization
+          </p>
         </div>
-        <Button onClick={() => setIsAddingElection(true)} className="gap-2">
+        <Button onClick={handleAdd} className="gap-2">
           <Plus className="w-4 h-4" />
           New Election
         </Button>
       </div>
 
-      {isAddingElection && (
+      {(isAdding || editingId) && (
         <Card>
           <CardHeader>
-            <CardTitle>Create New Election</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Vote className="w-5 h-5" />
+              {isAdding ? 'Create New Election' : 'Edit Election'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Title *</label>
-              <Input
-                value={electionForm.title}
-                onChange={(e) => setElectionForm({ ...electionForm, title: e.target.value })}
-                placeholder="Election title"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Election Title</label>
+                <Input
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter election title"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <select
+                  value={formData.status || 'draft'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'open' | 'closed' }))}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
               <Textarea
-                value={electionForm.description}
-                onChange={(e) => setElectionForm({ ...electionForm, description: e.target.value })}
-                placeholder="Election description"
+                value={formData.description || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter election description"
                 rows={3}
               />
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Start Date</label>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Start Date</label>
                 <Input
-                  type="datetime-local"
-                  value={electionForm.start_date}
-                  onChange={(e) => setElectionForm({ ...electionForm, start_date: e.target.value })}
+                  type="date"
+                  value={formData.start_date || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">End Date</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">End Date</label>
                 <Input
-                  type="datetime-local"
-                  value={electionForm.end_date}
-                  onChange={(e) => setElectionForm({ ...electionForm, end_date: e.target.value })}
+                  type="date"
+                  value={formData.end_date || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
                 />
               </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="results_public"
+                checked={formData.results_public || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, results_public: e.target.checked }))}
+                className="rounded"
+              />
+              <label htmlFor="results_public" className="text-sm font-medium">
+                Make results public
+              </label>
+            </div>
+
             <div className="flex gap-2">
-              <Button onClick={handleCreateElection} className="gap-2">
+              <Button onClick={handleSave} className="gap-2">
                 <Save className="w-4 h-4" />
-                Create Election
+                Save Election
               </Button>
-              <Button 
-                onClick={() => {
-                  setIsAddingElection(false);
-                  setElectionForm({ title: '', description: '', start_date: '', end_date: '' });
-                }} 
-                variant="outline" 
-                className="gap-2"
-              >
+              <Button variant="outline" onClick={handleCancel} className="gap-2">
                 <X className="w-4 h-4" />
                 Cancel
               </Button>
@@ -305,248 +311,107 @@ export default function ElectionsTab() {
         </Card>
       )}
 
-      {elections.length === 0 ? (
+      <div className="grid gap-4">
+        {elections.map((election) => (
+          <Card key={election.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {election.title}
+                    </h3>
+                    <Badge className={getStatusColor(election.status)}>
+                      {election.status}
+                    </Badge>
+                    {election.results_public && (
+                      <Badge variant="outline" className="gap-1">
+                        <Eye className="w-3 h-3" />
+                        Public Results
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {election.description && (
+                    <p className="text-gray-600 dark:text-gray-400 mb-3">
+                      {election.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    {election.start_date && (
+                      <span>Start: {new Date(election.start_date).toLocaleDateString()}</span>
+                    )}
+                    {election.end_date && (
+                      <span>End: {new Date(election.end_date).toLocaleDateString()}</span>
+                    )}
+                    <span>Created: {new Date(election.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleElectionStatus(election.id, election.status)}
+                    className="gap-1"
+                  >
+                    {election.status === 'open' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    {election.status === 'draft' ? 'Start' : election.status === 'open' ? 'Close' : 'Reopen'}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleResultsVisibility(election.id, election.results_public)}
+                    className="gap-1"
+                  >
+                    {election.results_public ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    {election.results_public ? 'Hide' : 'Show'} Results
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(election)}
+                    className="gap-1"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Edit
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(election.id)}
+                    className="gap-1 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {elections.length === 0 && !isAdding && (
         <Card>
-          <CardContent className="text-center py-12">
-            <Vote className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">No elections found. Create your first election to get started.</p>
+          <CardContent className="p-12 text-center">
+            <Vote className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No Elections Found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Get started by creating your first election
+            </p>
+            <Button onClick={handleAdd} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create Election
+            </Button>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Elections List */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Elections</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {elections.map((election) => (
-                  <div
-                    key={election.id}
-                    onClick={() => setSelectedElection(election.id)}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedElection === election.id
-                        ? 'bg-primary/10 border border-primary/20'
-                        : 'hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm">{election.title}</h4>
-                      <Badge className={getStatusColor(election.status)}>
-                        {election.status}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(election.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Election Details */}
-          <div className="lg:col-span-3">
-            {currentElection && (
-              <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="candidates">Candidates</TabsTrigger>
-                  <TabsTrigger value="results">Results</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle>{currentElection.title}</CardTitle>
-                          <p className="text-muted-foreground mt-2">{currentElection.description}</p>
-                        </div>
-                        <Badge className={getStatusColor(currentElection.status)}>
-                          {currentElection.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium">Start Date</label>
-                          <p className="text-sm text-muted-foreground">
-                            {currentElection.start_date 
-                              ? new Date(currentElection.start_date).toLocaleString()
-                              : 'Not set'
-                            }
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">End Date</label>
-                          <p className="text-sm text-muted-foreground">
-                            {currentElection.end_date 
-                              ? new Date(currentElection.end_date).toLocaleString()
-                              : 'Not set'
-                            }
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {currentElection.status === 'draft' && (
-                          <Button
-                            onClick={() => handleUpdateElectionStatus(currentElection.id, 'open')}
-                            className="gap-2"
-                          >
-                            <Play className="w-4 h-4" />
-                            Open Election
-                          </Button>
-                        )}
-                        {currentElection.status === 'open' && (
-                          <Button
-                            onClick={() => handleUpdateElectionStatus(currentElection.id, 'closed')}
-                            variant="destructive"
-                            className="gap-2"
-                          >
-                            <Pause className="w-4 h-4" />
-                            Close Election
-                          </Button>
-                        )}
-                        {currentElection.status === 'closed' && (
-                          <Button
-                            onClick={() => handleToggleResultsPublic(currentElection.id, !currentElection.results_public)}
-                            variant="outline"
-                            className="gap-2"
-                          >
-                            {currentElection.results_public ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            {currentElection.results_public ? 'Make Results Private' : 'Make Results Public'}
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="candidates">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Candidates</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {candidates.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">
-                          No candidates added yet. Add candidates to start the election.
-                        </p>
-                      ) : (
-                        <div className="space-y-6">
-                          {['president', 'vice_president', 'secretary'].map((position) => {
-                            const positionCandidates = candidates.filter(c => c.position === position);
-                            return (
-                              <div key={position}>
-                                <h4 className="font-semibold mb-3">{getPositionLabel(position)}</h4>
-                                {positionCandidates.length === 0 ? (
-                                  <p className="text-sm text-muted-foreground">No candidates for this position</p>
-                                ) : (
-                                  <div className="grid md:grid-cols-2 gap-4">
-                                    {positionCandidates.map((candidate) => (
-                                      <div key={candidate.id} className="border rounded-lg p-4">
-                                        <div className="flex items-start gap-3">
-                                          {candidate.photo_url ? (
-                                            <img
-                                              src={candidate.photo_url}
-                                              alt={candidate.full_name}
-                                              className="w-12 h-12 rounded-full object-cover"
-                                            />
-                                          ) : (
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                              <Users className="w-6 h-6 text-primary" />
-                                            </div>
-                                          )}
-                                          <div className="flex-1">
-                                            <h5 className="font-medium">{candidate.full_name}</h5>
-                                            <p className="text-sm text-muted-foreground">
-                                              {candidate.department} • {candidate.batch}
-                                            </p>
-                                            {candidate.manifesto && (
-                                              <p className="text-sm mt-2 line-clamp-2">{candidate.manifesto}</p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="results">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5" />
-                        Election Results
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {results.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">
-                          No votes cast yet.
-                        </p>
-                      ) : (
-                        <div className="space-y-6">
-                          {['president', 'vice_president', 'secretary'].map((position) => {
-                            const positionResults = results.filter(r => r.position === position);
-                            const totalVotes = positionResults.reduce((sum, r) => sum + r.vote_count, 0);
-                            
-                            return (
-                              <div key={position}>
-                                <h4 className="font-semibold mb-3">
-                                  {getPositionLabel(position)} ({totalVotes} votes)
-                                </h4>
-                                {positionResults.length === 0 ? (
-                                  <p className="text-sm text-muted-foreground">No candidates for this position</p>
-                                ) : (
-                                  <div className="space-y-2">
-                                    {positionResults.map((result) => {
-                                      const percentage = totalVotes > 0 ? (result.vote_count / totalVotes) * 100 : 0;
-                                      return (
-                                        <div key={result.candidate_id} className="flex items-center gap-4">
-                                          <div className="flex-1">
-                                            <div className="flex justify-between items-center mb-1">
-                                              <span className="font-medium">{result.candidate_name}</span>
-                                              <span className="text-sm text-muted-foreground">
-                                                {result.vote_count} votes ({percentage.toFixed(1)}%)
-                                              </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                              <div
-                                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${percentage}%` }}
-                                              />
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-        </div>
       )}
     </div>
   );

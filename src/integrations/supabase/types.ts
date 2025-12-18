@@ -442,6 +442,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_election_results: {
+        Args: {
+          election_uuid: string
+        }
+        Returns: {
+          position: Database["public"]["Enums"]["election_position"]
+          candidate_id: string
+          candidate_name: string
+          vote_count: number
+          percentage: number
+          rank: number
+        }[]
+      }
+      has_user_voted: {
+        Args: {
+          election_uuid: string
+          user_uuid: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "member"
