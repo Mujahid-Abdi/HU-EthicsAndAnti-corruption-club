@@ -29,6 +29,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
+import GalleryTab from '@/components/admin/GalleryTab';
 import ResourcesTab from '@/components/admin/ResourcesTab';
 import UsersTab from '@/components/admin/UsersTab';
 import ExecutivesTab from '@/components/admin/ExecutivesTab';
@@ -75,6 +76,8 @@ export default function HomePage() {
           return <EventsTab />;
         case 'news':
           return <NewsTab />;
+        case 'gallery':
+          return <GalleryTab />;
         case 'resources':
           return <ResourcesTab />;
         case 'elections':

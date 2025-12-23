@@ -10,6 +10,8 @@ import { toast } from "sonner";
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },
+  { name: "News", path: "/news" },
+  { name: "Gallery", path: "/gallery" },
   { name: "Achievements", path: "/achievements" },
   { name: "Programs", path: "/programs" },
   { name: "Vote", path: "/vote" },

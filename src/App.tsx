@@ -12,6 +12,9 @@ import About from "./pages/About";
 import Achievements from "./pages/Achievements";
 import Programs from "./pages/Programs";
 import Report from "./pages/Report";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import Gallery from "./pages/Gallery";
 
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
@@ -41,6 +44,9 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/programs" element={<Programs />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<NewsDetail />} />
+              <Route path="/gallery" element={<Gallery />} />
               <Route path="/report" element={<Report />} />
               <Route path="/join" element={<Join />} />
               <Route path="/contact" element={<Contact />} />

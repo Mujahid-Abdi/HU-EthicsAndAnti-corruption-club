@@ -9,9 +9,131 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Newspaper } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Newspaper, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+
+const sampleNewsArticles = [
+  {
+    title: "Student Union Elections 2025: Registration Now Open",
+    excerpt: "The Haramaya University Student Union announces the opening of candidate registration for the upcoming 2025 elections. All eligible students are encouraged to participate.",
+    content: `The Haramaya University Student Union is pleased to announce that candidate registration for the 2025 Student Union Elections is now officially open.
+
+This year's elections will determine the leadership of our student body for the upcoming academic year. We are seeking dedicated, passionate, and ethical students to represent their peers in various positions including President, Vice President, Secretary General, and departmental representatives.
+
+Key Dates:
+- Candidate Registration: December 20, 2025 - January 10, 2026
+- Campaign Period: January 15 - January 25, 2026
+- Voting Days: January 28-29, 2026
+- Results Announcement: January 30, 2026
+
+Eligibility Requirements:
+- Must be a registered student in good academic standing
+- Minimum GPA of 2.5
+- No disciplinary actions in the past academic year
+- Commitment to ethical leadership and transparency
+
+The Ethics and Anti-Corruption Club will be monitoring the entire election process to ensure fairness and transparency.`,
+    image_url: "https://images.unsplash.com/photo-1494172961521-33799ddd43a5?w=800",
+    published: true,
+  },
+  {
+    title: "Ethics Club Launches Anti-Corruption Awareness Week",
+    excerpt: "Join us for a week of workshops, seminars, and activities focused on promoting ethical conduct and fighting corruption in our university community.",
+    content: `The Haramaya University Ethics and Anti-Corruption Club is proud to announce our annual Anti-Corruption Awareness Week, scheduled for January 15-21, 2026.
+
+This year's theme is "Integrity Starts With You" and will feature a variety of engaging activities designed to educate and inspire our university community.
+
+Program Highlights:
+- Day 1: Opening Ceremony & Keynote Address
+- Day 2: Workshop on Recognizing and Reporting Corruption
+- Day 3: Panel Discussion on Ethics in Academic Life
+- Day 4: Documentary Screening & Discussion
+- Day 5: Student Debate Competition
+- Day 6: Community Outreach
+- Day 7: Closing Ceremony & Awards
+
+All events are free and open to all students, faculty, and staff. Certificates of participation will be provided.`,
+    image_url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800",
+    published: true,
+  },
+  {
+    title: "Clubs and Organizations Fair: Find Your Community",
+    excerpt: "Over 50 student clubs and organizations will showcase their activities at the annual Clubs Fair. Discover opportunities to get involved!",
+    content: `Haramaya University invites all students to the Annual Clubs and Organizations Fair, taking place on January 8, 2026, at the Main Campus Grounds from 9:00 AM to 5:00 PM.
+
+This exciting event brings together over 50 registered student clubs and organizations, offering students the perfect opportunity to explore their interests and find their community.
+
+Featured Organizations:
+- Academic Clubs: Engineering Society, Medical Students Association, Law Students Forum
+- Cultural & Arts: Drama Club, Music Association, Photography Club
+- Service & Advocacy: Ethics and Anti-Corruption Club, Environmental Conservation Club
+- Sports & Recreation: Football Club, Basketball Association, Chess Club
+
+Don't miss this chance to enhance your university experience!`,
+    image_url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800",
+    published: true,
+  },
+  {
+    title: "Voting System Training for Election Monitors",
+    excerpt: "The Ethics Club is conducting training sessions for students who will serve as election monitors during the upcoming Student Union elections.",
+    content: `In preparation for the 2025 Student Union Elections, the Ethics and Anti-Corruption Club is organizing comprehensive training sessions for volunteer election monitors.
+
+Training Schedule:
+- Session 1: January 5, 2026 (9:00 AM - 12:00 PM)
+- Session 2: January 6, 2026 (2:00 PM - 5:00 PM)
+- Session 3: January 7, 2026 (9:00 AM - 12:00 PM)
+
+Training Topics:
+1. Understanding Electoral Integrity
+2. Monitoring Procedures
+3. Conflict Resolution
+4. Technology and Voting Systems
+
+To register as an election monitor, please fill out the application form at the Ethics Club office.`,
+    image_url: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800",
+    published: true,
+  },
+  {
+    title: "Student Union Announces New Scholarship Programs",
+    excerpt: "Three new scholarship programs have been established to support academically excellent and financially needy students at Haramaya University.",
+    content: `The Haramaya University Student Union is proud to announce the establishment of three new scholarship programs for the 2025-2026 academic year.
+
+1. Merit Excellence Scholarship
+- Award: Full tuition coverage
+- Eligibility: GPA of 3.75 or above
+
+2. Need-Based Support Grant
+- Award: 50-100% tuition support based on need
+- Eligibility: Demonstrated financial need
+
+3. Leadership and Service Award
+- Award: Partial tuition + monthly stipend
+- Eligibility: Active involvement in clubs/community service
+
+Application Opens: January 2, 2026
+Application Deadline: February 15, 2026`,
+    image_url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800",
+    published: true,
+  },
+  {
+    title: "Ethics Club Partners with Regional Anti-Corruption Office",
+    excerpt: "A new partnership will bring professional training and resources to strengthen our fight against corruption on campus and in the community.",
+    content: `The Haramaya University Ethics and Anti-Corruption Club has signed a Memorandum of Understanding (MOU) with the Oromia Regional Anti-Corruption Commission.
+
+Partnership Highlights:
+- Professional training for club members
+- Workshops on investigation techniques
+- Guest lectures from commission experts
+- Internship opportunities for students
+- Joint community education programs
+- Streamlined reporting channels
+
+This partnership reflects our commitment to moving beyond awareness to actual impact. We invite all students to join us in this important mission.`,
+    image_url: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800",
+    published: true,
+  }
+];
 
 interface NewsItem {
   id: string;
@@ -38,6 +160,7 @@ export default function NewsTab() {
     image_url: '',
     published: false,
   });
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
     fetchNews();
@@ -55,6 +178,32 @@ export default function NewsTab() {
       setNews(data || []);
     }
     setIsLoading(false);
+  };
+
+  const seedSampleNews = async () => {
+    setIsSeeding(true);
+    let successCount = 0;
+    
+    for (const article of sampleNewsArticles) {
+      const { error } = await supabase
+        .from('news')
+        .insert({
+          ...article,
+          created_by: user?.id,
+        });
+      
+      if (!error) {
+        successCount++;
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Added ${successCount} sample news articles`);
+      fetchNews();
+    } else {
+      toast.error('Failed to add sample articles');
+    }
+    setIsSeeding(false);
   };
 
   const resetForm = () => {
@@ -153,10 +302,27 @@ export default function NewsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">News Management</h2>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Article
-        </Button>
+        <div className="flex gap-2">
+          {news.length === 0 && (
+            <Button variant="outline" onClick={seedSampleNews} disabled={isSeeding}>
+              {isSeeding ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Database className="h-4 w-4 mr-2" />
+                  Add Sample News
+                </>
+              )}
+            </Button>
+          )}
+          <Button onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Article
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
