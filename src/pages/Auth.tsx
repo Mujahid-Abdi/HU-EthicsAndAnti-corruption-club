@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
+import { Shield, Mail, Lock, User, Loader2, ArrowLeft, GraduationCap, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -20,6 +20,8 @@ const signupSchema = z.object({
   fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().trim().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  department: z.string().trim().min(2, 'Department is required').max(100),
+  batch: z.string().trim().min(4, 'Batch year is required (e.g., 2024)').max(10),
 });
 
 export default function Auth() {
@@ -29,6 +31,8 @@ export default function Auth() {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupDepartment, setSignupDepartment] = useState('');
+  const [signupBatch, setSignupBatch] = useState('');
   
   const { user, signIn, signUp } = useAuth();
   const { isRegistrationEnabled, settings } = useSystemSettings();
@@ -76,7 +80,9 @@ export default function Auth() {
     const result = signupSchema.safeParse({ 
       fullName: signupName, 
       email: signupEmail, 
-      password: signupPassword 
+      password: signupPassword,
+      department: signupDepartment,
+      batch: signupBatch
     });
     
     if (!result.success) {
@@ -85,7 +91,7 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName);
+    const { error } = await signUp(signupEmail, signupPassword, signupName, signupDepartment, signupBatch);
     setIsLoading(false);
 
     if (error) {
@@ -180,7 +186,7 @@ export default function Auth() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full hover:bg-primary/90 hover:scale-[1.02] transition-all duration-200" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -225,6 +231,38 @@ export default function Auth() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-department">Department</Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-department"
+                        type="text"
+                        placeholder="e.g., Computer Science"
+                        className="pl-10"
+                        value={signupDepartment}
+                        onChange={(e) => setSignupDepartment(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-batch">Batch</Label>
+                    <div className="relative">
+                      <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-batch"
+                        type="text"
+                        placeholder="e.g., 2024"
+                        className="pl-10"
+                        value={signupBatch}
+                        onChange={(e) => setSignupBatch(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
                   <div className="relative">
@@ -240,7 +278,7 @@ export default function Auth() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full hover:bg-primary/90 hover:scale-[1.02] transition-all duration-200" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

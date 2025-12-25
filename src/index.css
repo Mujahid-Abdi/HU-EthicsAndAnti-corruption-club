@@ -493,3 +493,16 @@
     background: hsl(var(--primary));
     border-radius: 0 2px 2px 0;
   }
+
+  /* Navbar transparency class */
+  .navbar-transparent {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Only make specific elements transparent, not all children */
+  .navbar-transparent .container {
+    background-color: transparent !important;
+  }

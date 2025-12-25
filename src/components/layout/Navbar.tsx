@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, AlertTriangle, LogOut } from "lucide-react";
@@ -24,10 +24,28 @@ const adminNavLinks = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
-  const { isVotingEnabled } = useSystemSettings();
+  const { isRegistrationEnabled } = useSystemSettings();
+
+  // Handle scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const newIsScrolled = scrollTop > 10;
+      setIsScrolled(newIsScrolled);
+      // Debug log to see if scroll detection is working
+      console.log('Scroll position:', scrollTop, 'isScrolled:', newIsScrolled);
+    };
+
+    // Set initial state
+    handleScroll();
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -38,12 +56,20 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/20 dark:bg-gray-900/30 backdrop-blur-lg border-b border-white/30 dark:border-gray-700/30 shadow-sm">
+    <nav 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+        isScrolled 
+          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/30 shadow-lg' 
+          : 'bg-transparent'
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className={`w-12 h-12 rounded-full overflow-hidden group-hover:scale-105 transition-all duration-300 flex-shrink-0 ${
+              isScrolled ? 'bg-white shadow-md' : 'bg-transparent'
+            }`}>
               <img 
                 src="/haramaya-logo.jpg" 
                 alt="Haramaya University Logo" 
@@ -51,10 +77,18 @@ export function Navbar() {
               />
             </div>
             <div className="hidden sm:block">
-              <p className="font-display font-bold text-gray-900 dark:text-white leading-tight">
+              <p className={`font-display font-bold leading-tight transition-colors duration-300 ${
+                isScrolled 
+                  ? 'text-gray-900 dark:text-white' 
+                  : 'text-white drop-shadow-lg'
+              }`}>
                 HUEC
               </p>
-              <p className="text-xs text-gray-700 dark:text-gray-300">Ethics Club</p>
+              <p className={`text-xs transition-colors duration-300 ${
+                isScrolled 
+                  ? 'text-gray-700 dark:text-gray-300' 
+                  : 'text-white/90 drop-shadow-md'
+              }`}>Ethics Club</p>
             </div>
           </Link>
 
@@ -69,7 +103,9 @@ export function Navbar() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(link.path)
                       ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
-                      : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                      : isScrolled 
+                        ? "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                        : "text-white/90 hover:text-white hover:bg-white/10 drop-shadow-md"
                   }`}
                 >
                   {link.name}
@@ -84,7 +120,9 @@ export function Navbar() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(link.path)
                       ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
-                      : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                      : isScrolled 
+                        ? "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
+                        : "text-white/90 hover:text-white hover:bg-white/10 drop-shadow-md"
                   }`}
                 >
                   {link.name}
@@ -125,7 +163,7 @@ export function Navbar() {
                   size="default"
                   className="gap-2 rounded-full"
                 >
-                  Get started
+                  {isRegistrationEnabled ? "Join Us" : "Sign In"}
                 </Button>
               </Link>
             )}
@@ -134,7 +172,11 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-lg text-gray-800 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors"
+            className={`lg:hidden p-2 rounded-lg transition-colors ${
+              isScrolled 
+                ? 'text-gray-800 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-gray-800/20'
+                : 'text-white hover:bg-white/10 drop-shadow-md'
+            }`}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -142,7 +184,11 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden py-4 border-t border-white/30 dark:border-gray-700/30 animate-fade-in bg-white/20 dark:bg-gray-900/30 backdrop-blur-lg">
+          <div className={`lg:hidden py-4 border-t animate-fade-in transition-all duration-300 ${
+            isScrolled 
+              ? 'border-white/20 dark:border-gray-700/30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg' 
+              : 'border-white/20 dark:border-gray-800/20 bg-black/20 dark:bg-gray-900/40 backdrop-blur-md'
+          }`}>
             <div className="flex flex-col gap-2">
               {isAdmin ? (
                 // Admin mobile navigation - only Dashboard
@@ -205,7 +251,7 @@ export function Navbar() {
                 ) : (
                   <Link to="/auth" onClick={() => setIsOpen(false)}>
                     <Button variant="glass" className="w-full gap-2">
-                      Get Started
+                      {isRegistrationEnabled ? "Join Us" : "Sign In"}
                     </Button>
                   </Link>
                 )}

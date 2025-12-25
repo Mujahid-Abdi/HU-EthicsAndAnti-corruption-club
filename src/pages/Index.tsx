@@ -106,12 +106,12 @@ export default function HomePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[400px] md:min-h-[500px] lg:min-h-[600px] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative min-h-screen flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 via-gray-900/60 to-gray-900/50 dark:from-gray-950/85 dark:via-gray-950/75 dark:to-gray-950/65 z-10" />
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90 dark:opacity-70" 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
             style={{
               backgroundImage: "url('/ethics-hero.png'), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')",
               backgroundSize: 'cover',
@@ -124,18 +124,18 @@ export default function HomePage() {
         <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
         <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
 
-        <div className="container mx-auto px-4 py-24 relative z-20">
+        <div className="container mx-auto px-4 pt-16 pb-24 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
               <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">
+              <span className="text-sm text-primary font-medium">
                 Haramaya University Ethics Club
               </span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-slide-up">
-              Guiding Your Path to{" "}
-              <span className="text-primary">Integrity</span>
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-6 leading-tight animate-slide-up">
+              Welcome to HU Ethics and{" "}
+              <span className="text-primary">Anti-Corruption Club</span>
             </h1>
 
             <p
