@@ -62,12 +62,87 @@ This project is built with:
 
 ## How can I deploy this project?
 
+This project includes multiple deployment options:
+
+### Option 1: GitHub Pages (Automated)
+
+The repository includes a GitHub Actions workflow that automatically deploys to GitHub Pages.
+
+**Setup Steps:**
+
+1. Go to your repository settings on GitHub
+2. Navigate to Settings > Pages
+3. Under "Build and deployment", select "GitHub Actions" as the source
+4. Go to Settings > Secrets and variables > Actions
+5. Add the following secrets:
+   - `VITE_SUPABASE_PROJECT_ID`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+   - `VITE_SUPABASE_URL`
+6. Push to the `main` branch or manually trigger the workflow
+
+The site will be automatically deployed to: `https://<username>.github.io/HU-EthicsAndAnti-corruption-club/`
+
+### Option 2: Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Mujahid-Abdi/HU-EthicsAndAnti-corruption-club)
+
+**Manual Deployment:**
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run: `vercel`
+3. Follow the prompts
+4. Add environment variables in Vercel dashboard:
+   - `VITE_SUPABASE_PROJECT_ID`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+   - `VITE_SUPABASE_URL`
+
+### Option 3: Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Mujahid-Abdi/HU-EthicsAndAnti-corruption-club)
+
+**Manual Deployment:**
+
+1. Install Netlify CLI: `npm i -g netlify-cli`
+2. Run: `netlify deploy`
+3. Follow the prompts
+4. Add environment variables in Netlify dashboard:
+   - `VITE_SUPABASE_PROJECT_ID`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+   - `VITE_SUPABASE_URL`
+
+### Option 4: Lovable
+
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
+### Manual Build
 
-Yes, you can!
+To build the project manually:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+npm run build
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The built files will be in the `dist` directory. You can then upload these files to any static hosting service.
+
+## Environment Variables
+
+Make sure to set the following environment variables in your deployment platform:
+
+- `VITE_SUPABASE_PROJECT_ID`: Your Supabase project ID
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase publishable key
+- `VITE_SUPABASE_URL`: Your Supabase URL
+
+## Can I connect a custom domain?
+
+Yes! Most deployment platforms support custom domains:
+
+- **GitHub Pages**: Go to Settings > Pages > Custom domain
+- **Vercel**: Go to Project Settings > Domains
+- **Netlify**: Go to Site Settings > Domain management
+- **Lovable**: Navigate to Project > Settings > Domains
+
+Read more about custom domains:
+- [GitHub Pages Custom Domain](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site)
+- [Vercel Custom Domain](https://vercel.com/docs/concepts/projects/domains)
+- [Netlify Custom Domain](https://docs.netlify.com/domains-https/custom-domains/)
+- [Lovable Custom Domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
