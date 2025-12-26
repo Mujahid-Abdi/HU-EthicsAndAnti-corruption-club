@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
+import { where, query, collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { 
   Vote as VoteIcon, 
   User, 
@@ -17,7 +19,7 @@ import {
   Clock,
   Users
 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 
 interface Election {
@@ -25,154 +27,160 @@ interface Election {
   title: string;
   description: string | null;
   status: 'draft' | 'open' | 'closed';
-  start_date: string | null;
-  end_date: string | null;
+  startDate: any;
+  endDate: any;
 }
 
 interface Candidate {
   id: string;
-  full_name: string;
+  fullName: string;
   position: 'president' | 'vice_president' | 'secretary';
-  photo_url: string | null;
+  photoUrl: string | null;
   department: string;
   batch: string;
   manifesto: string | null;
 }
 
 interface VoteForm {
-  voter_full_name: string;
-  voter_student_id: string;
-  voter_department: string;
-  voter_batch: string;
-  president_candidate_id: string;
-  vice_president_candidate_id: string;
-  secretary_candidate_id: string;
+  voterFullName: string;
+  voterStudentId: string;
+  voterDepartment: string;
+  voterBatch: string;
+  presidentCandidateId: string;
+  vicePresidentCandidateId: string;
+  secretaryCandidateId: string;
 }
 
 export default function VotePage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [election, setElection] = useState<Election | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  console.log('🔍 Vote Page State:', { user: !!user, authLoading, loading, election: !!election, candidatesCount: candidates.length });
   const [voteForm, setVoteForm] = useState<VoteForm>({
-    voter_full_name: '',
-    voter_student_id: '',
-    voter_department: '',
-    voter_batch: '',
-    president_candidate_id: '',
-    vice_president_candidate_id: '',
-    secretary_candidate_id: '',
+    voterFullName: '',
+    voterStudentId: '',
+    voterDepartment: '',
+    voterBatch: '',
+    presidentCandidateId: '',
+    vicePresidentCandidateId: '',
+    secretaryCandidateId: '',
   });
 
   useScrollAnimation();
 
   useEffect(() => {
-    if (user) {
-      fetchCurrentElection();
-    }
+    fetchCurrentElection();
   }, [user]);
 
   const fetchCurrentElection = async () => {
     setLoading(true);
     
-    // Get current open election
-    const { data: electionData, error: electionError } = await supabase
-      .from('elections')
-      .select('*')
-      .eq('status', 'open')
-      .single();
+    try {
+      console.log('🔍 Fetching elections...');
+      
+      // Get current open election
+      const elections = await FirestoreService.getAll(Collections.ELECTIONS, [
+        where('status', '==', 'open')
+      ]);
 
-    if (electionError || !electionData) {
-      setElection(null);
+      console.log('📊 Elections found:', elections);
+
+      if (!elections || elections.length === 0) {
+        console.log('❌ No open elections found');
+        setElection(null);
+        setLoading(false);
+        return;
+      }
+
+      const currentElection = elections[0] as Election;
+      console.log('✅ Current election:', currentElection);
+      setElection(currentElection);
+
+      // Get candidates for this election
+      console.log('🔍 Fetching candidates for election:', currentElection.id);
+      const candidatesData = await FirestoreService.getAll(Collections.CANDIDATES, [
+        where('electionId', '==', currentElection.id)
+      ]);
+
+      console.log('👥 Candidates found:', candidatesData);
+      setCandidates(candidatesData as Candidate[]);
+
+      // Check if user has already voted
+      if (user?.uid) {
+        console.log('🔍 Checking if user has voted:', user.uid);
+        const votesQuery = query(
+          collection(db, Collections.VOTES),
+          where('electionId', '==', currentElection.id),
+          where('userId', '==', user.uid)
+        );
+        const votesSnapshot = await getDocs(votesQuery);
+        const hasVotedResult = !votesSnapshot.empty;
+        console.log('🗳️ User has voted:', hasVotedResult);
+        setHasVoted(hasVotedResult);
+      }
+
+    } catch (error) {
+      console.error('❌ Error fetching election data:', error);
+      toast.error('Failed to load election data: ' + (error as Error).message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setElection(electionData);
-
-    // Get candidates for this election
-    const { data: candidatesData, error: candidatesError } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('election_id', electionData.id)
-      .order('position', { ascending: true });
-
-    if (candidatesError) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load candidates: ' + candidatesError.message,
-        variant: 'destructive',
-      });
-    } else {
-      setCandidates(candidatesData || []);
-    }
-
-    // Check if user has already voted
-    const { data: hasVotedData } = await supabase.rpc('has_user_voted', {
-      election_uuid: electionData.id,
-      user_uuid: user?.id
-    });
-
-    setHasVoted(hasVotedData || false);
-    setLoading(false);
   };
 
   const handleCandidateSelect = (position: 'president' | 'vice_president' | 'secretary', candidateId: string) => {
+    const fieldName = position === 'president' ? 'presidentCandidateId' : 
+                     position === 'vice_president' ? 'vicePresidentCandidateId' : 
+                     'secretaryCandidateId';
+    
     setVoteForm(prev => ({
       ...prev,
-      [`${position}_candidate_id`]: candidateId
+      [fieldName]: candidateId
     }));
   };
 
   const handleSubmitVote = async () => {
     // Validate form
-    if (!voteForm.voter_full_name || !voteForm.voter_student_id || !voteForm.voter_department || !voteForm.voter_batch) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all voter details',
-        variant: 'destructive',
-      });
+    if (!voteForm.voterFullName || !voteForm.voterStudentId || !voteForm.voterDepartment || !voteForm.voterBatch) {
+      toast.error('Please fill in all voter details');
       return;
     }
 
-    if (!voteForm.president_candidate_id || !voteForm.vice_president_candidate_id || !voteForm.secretary_candidate_id) {
-      toast({
-        title: 'Error',
-        description: 'Please select a candidate for each position',
-        variant: 'destructive',
-      });
+    if (!voteForm.presidentCandidateId || !voteForm.vicePresidentCandidateId || !voteForm.secretaryCandidateId) {
+      toast.error('Please select a candidate for each position');
       return;
     }
 
     setSubmitting(true);
 
-    const { error } = await supabase
-      .from('votes')
-      .insert([{
-        election_id: election!.id,
-        user_id: user!.id,
-        ...voteForm,
-      }]);
+    try {
+      await FirestoreService.create(Collections.VOTES, {
+        electionId: election!.id,
+        userId: user!.uid,
+        voterFullName: voteForm.voterFullName,
+        voterStudentId: voteForm.voterStudentId,
+        voterDepartment: voteForm.voterDepartment,
+        voterBatch: voteForm.voterBatch,
+        presidentCandidateId: voteForm.presidentCandidateId,
+        vicePresidentCandidateId: voteForm.vicePresidentCandidateId,
+        secretaryCandidateId: voteForm.secretaryCandidateId,
+      });
 
-    if (error) {
-      toast({
-        title: 'Error',
-        description: error.message.includes('duplicate') 
-          ? 'You have already voted in this election'
-          : 'Failed to submit vote. Please try again.',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Success',
-        description: 'Your vote has been submitted successfully!',
-      });
+      toast.success('Your vote has been submitted successfully!');
       setHasVoted(true);
+    } catch (error: any) {
+      console.error('Error submitting vote:', error);
+      if (error.message?.includes('duplicate') || error.code === 'permission-denied') {
+        toast.error('You have already voted in this election');
+      } else {
+        toast.error('Failed to submit vote. Please try again.');
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   const getPositionLabel = (position: string) => {
@@ -184,12 +192,13 @@ export default function VotePage() {
     }
   };
 
-  // Redirect if not logged in
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  // Redirect if not logged in and auth is not loading
+  // Temporarily disabled for debugging
+  // if (!authLoading && !user) {
+  //   return <Navigate to="/auth" replace />;
+  // }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <VoteLayout>
         <div className="container mx-auto px-4 py-20">
@@ -204,6 +213,15 @@ export default function VotePage() {
 
   return (
     <VoteLayout>
+      {/* Debug Info */}
+      <div className="container mx-auto px-4 py-4 bg-yellow-100 dark:bg-yellow-900/20">
+        <p className="text-sm">
+          Debug: User: {user ? '✅' : '❌'} | Auth Loading: {authLoading ? '⏳' : '✅'} | 
+          Data Loading: {loading ? '⏳' : '✅'} | Election: {election ? '✅' : '❌'} | 
+          Candidates: {candidates.length}
+        </p>
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         <div className="absolute inset-0">
@@ -291,32 +309,32 @@ export default function VotePage() {
                   <div>
                     <label className="block text-sm font-medium mb-2">Full Name *</label>
                     <Input
-                      value={voteForm.voter_full_name}
-                      onChange={(e) => setVoteForm(prev => ({ ...prev, voter_full_name: e.target.value }))}
+                      value={voteForm.voterFullName}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterFullName: e.target.value }))}
                       placeholder="Enter your full name"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Student ID *</label>
                     <Input
-                      value={voteForm.voter_student_id}
-                      onChange={(e) => setVoteForm(prev => ({ ...prev, voter_student_id: e.target.value }))}
+                      value={voteForm.voterStudentId}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterStudentId: e.target.value }))}
                       placeholder="Enter your student ID"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Department *</label>
                     <Input
-                      value={voteForm.voter_department}
-                      onChange={(e) => setVoteForm(prev => ({ ...prev, voter_department: e.target.value }))}
+                      value={voteForm.voterDepartment}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterDepartment: e.target.value }))}
                       placeholder="Enter your department"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Batch *</label>
                     <Input
-                      value={voteForm.voter_batch}
-                      onChange={(e) => setVoteForm(prev => ({ ...prev, voter_batch: e.target.value }))}
+                      value={voteForm.voterBatch}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterBatch: e.target.value }))}
                       placeholder="Enter your batch year"
                     />
                   </div>
@@ -327,7 +345,10 @@ export default function VotePage() {
             {/* Voting Sections */}
             {['president', 'vice_president', 'secretary'].map((position) => {
               const positionCandidates = candidates.filter(c => c.position === position);
-              const selectedCandidate = voteForm[`${position}_candidate_id` as keyof VoteForm];
+              const fieldName = position === 'president' ? 'presidentCandidateId' : 
+                               position === 'vice_president' ? 'vicePresidentCandidateId' : 
+                               'secretaryCandidateId';
+              const selectedCandidate = voteForm[fieldName as keyof VoteForm];
 
               return (
                 <Card key={position} className="scroll-fade-up">
@@ -355,10 +376,10 @@ export default function VotePage() {
                             }`}
                           >
                             <div className="flex items-start gap-3 mb-4">
-                              {candidate.photo_url ? (
+                              {candidate.photoUrl ? (
                                 <img
-                                  src={candidate.photo_url}
-                                  alt={candidate.full_name}
+                                  src={candidate.photoUrl}
+                                  alt={candidate.fullName}
                                   className="w-16 h-16 rounded-full object-cover"
                                 />
                               ) : (
@@ -367,7 +388,7 @@ export default function VotePage() {
                                 </div>
                               )}
                               <div className="flex-1">
-                                <h4 className="font-semibold text-foreground mb-1">{candidate.full_name}</h4>
+                                <h4 className="font-semibold text-foreground mb-1">{candidate.fullName}</h4>
                                 <p className="text-sm text-muted-foreground">
                                   {candidate.department} • {candidate.batch}
                                 </p>

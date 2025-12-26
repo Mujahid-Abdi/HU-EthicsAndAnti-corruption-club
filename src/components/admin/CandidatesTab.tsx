@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
+import { where, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,10 +11,10 @@ import { toast } from 'sonner';
 
 interface Candidate {
   id: string;
-  election_id: string;
-  full_name: string;
+  electionId: string;
+  fullName: string;
   position: 'president' | 'vice_president' | 'secretary';
-  photo_url: string | null;
+  photoUrl: string | null;
   department: string;
   batch: string;
   manifesto: string | null;
@@ -42,18 +43,17 @@ export default function CandidatesTab() {
   }, [selectedElection]);
 
   const fetchElections = async () => {
-    const { data, error } = await supabase
-      .from('elections')
-      .select('id, title, status')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Failed to load elections: ' + error.message);
-    } else {
-      setElections(data || []);
+    try {
+      const data = await FirestoreService.getAll(Collections.ELECTIONS, [
+        orderBy('createdAt', 'desc')
+      ]);
+      setElections(data as Election[]);
       if (data && data.length > 0 && !selectedElection) {
         setSelectedElection(data[0].id);
       }
+    } catch (error) {
+      console.error('Error fetching elections:', error);
+      toast.error('Failed to load elections');
     }
   };
 
@@ -61,38 +61,38 @@ export default function CandidatesTab() {
     if (!selectedElection) return;
     
     setLoading(true);
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('election_id', selectedElection)
-      .order('position', { ascending: true });
-
-    if (error) {
-      toast.error('Failed to load candidates: ' + error.message);
-    } else {
-      setCandidates(data || []);
+    try {
+      const data = await FirestoreService.getAll(Collections.CANDIDATES, [
+        where('electionId', '==', selectedElection),
+        orderBy('position', 'asc')
+      ]);
+      setCandidates(data as Candidate[]);
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      toast.error('Failed to load candidates');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState<Partial<Candidate>>({
-    full_name: '',
+    fullName: '',
     position: 'president',
-    photo_url: '',
+    photoUrl: '',
     department: '',
     batch: '',
     manifesto: '',
   });
 
-  const filteredCandidates = candidates.filter(c => c.election_id === selectedElection);
+  const filteredCandidates = candidates.filter(c => c.electionId === selectedElection);
 
   const handleAdd = () => {
     setIsAdding(true);
     setFormData({
-      full_name: '',
+      fullName: '',
       position: 'president',
-      photo_url: '',
+      photoUrl: '',
       department: '',
       batch: '',
       manifesto: '',
@@ -105,7 +105,7 @@ export default function CandidatesTab() {
   };
 
   const handleSave = async () => {
-    if (!formData.full_name || !formData.department || !formData.batch) {
+    if (!formData.fullName || !formData.department || !formData.batch) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -117,52 +117,40 @@ export default function CandidatesTab() {
 
     setLoading(true);
 
-    if (isAdding) {
-      const { data, error } = await supabase
-        .from('candidates')
-        .insert([{
-          election_id: selectedElection,
-          full_name: formData.full_name!,
+    try {
+      if (isAdding) {
+        await FirestoreService.create(Collections.CANDIDATES, {
+          electionId: selectedElection,
+          fullName: formData.fullName!,
           position: formData.position || 'president',
-          photo_url: formData.photo_url || null,
+          photoUrl: formData.photoUrl || null,
           department: formData.department!,
           batch: formData.batch!,
           manifesto: formData.manifesto || null,
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        toast.error('Failed to add candidate: ' + error.message);
-      } else {
+        });
         toast.success('Candidate added successfully');
-        fetchCandidates(); // Refresh the list
-      }
-    } else if (editingId) {
-      const { error } = await supabase
-        .from('candidates')
-        .update({
-          full_name: formData.full_name!,
+      } else if (editingId) {
+        await FirestoreService.update(Collections.CANDIDATES, editingId, {
+          fullName: formData.fullName!,
           position: formData.position || 'president',
-          photo_url: formData.photo_url || null,
+          photoUrl: formData.photoUrl || null,
           department: formData.department!,
           batch: formData.batch!,
           manifesto: formData.manifesto || null,
-        })
-        .eq('id', editingId);
-
-      if (error) {
-        toast.error('Failed to update candidate: ' + error.message);
-      } else {
+        });
         toast.success('Candidate updated successfully');
-        fetchCandidates(); // Refresh the list
       }
+      
+      fetchCandidates(); // Refresh the list
+    } catch (error) {
+      console.error('Error saving candidate:', error);
+      toast.error(`Failed to ${isAdding ? 'add' : 'update'} candidate`);
+    } finally {
+      setLoading(false);
+      setIsAdding(false);
+      setEditingId(null);
+      setFormData({});
     }
-
-    setLoading(false);
-    setIsAdding(false);
-    setEditingId(null);
-    setFormData({});
   };
 
   const handleCancel = () => {
@@ -177,18 +165,16 @@ export default function CandidatesTab() {
     }
 
     setLoading(true);
-    const { error } = await supabase
-      .from('candidates')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast.error('Failed to delete candidate: ' + error.message);
-    } else {
+    try {
+      await FirestoreService.delete(Collections.CANDIDATES, id);
       toast.success('Candidate deleted successfully');
       fetchCandidates(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting candidate:', error);
+      toast.error('Failed to delete candidate');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getPositionColor = (position: string) => {
@@ -253,8 +239,8 @@ export default function CandidatesTab() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Full Name *</label>
                 <Input
-                  value={formData.full_name || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  value={formData.fullName || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                   placeholder="Enter candidate's full name"
                 />
               </div>
@@ -294,8 +280,8 @@ export default function CandidatesTab() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Photo URL</label>
               <Input
-                value={formData.photo_url || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, photo_url: e.target.value }))}
+                value={formData.photoUrl || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, photoUrl: e.target.value }))}
                 placeholder="Enter photo URL (optional)"
               />
             </div>
@@ -332,10 +318,10 @@ export default function CandidatesTab() {
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4">
                     <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                      {candidate.photo_url ? (
+                      {candidate.photoUrl ? (
                         <img 
-                          src={candidate.photo_url} 
-                          alt={candidate.full_name}
+                          src={candidate.photoUrl} 
+                          alt={candidate.fullName}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -346,7 +332,7 @@ export default function CandidatesTab() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {candidate.full_name}
+                          {candidate.fullName}
                         </h3>
                         <Badge className={getPositionColor(candidate.position)}>
                           {formatPosition(candidate.position)}

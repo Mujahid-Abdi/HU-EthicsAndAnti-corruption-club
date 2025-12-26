@@ -1,11 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface SystemSettings {
-  voting_enabled: boolean;
-  registration_enabled: boolean;
-  election_open: boolean;
-  maintenance_mode: boolean;
-}
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { SystemSettings } from '@/types';
 
 interface SystemSettingsContextType {
   settings: SystemSettings;
@@ -29,42 +25,64 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
       }
     }
     return {
-      voting_enabled: false,
-      registration_enabled: true,
-      election_open: false,
-      maintenance_mode: false,
+      votingEnabled: false,
+      registrationEnabled: true,
+      electionOpen: false,
+      maintenanceMode: false,
     };
   });
+
+  // Load settings from Firestore on mount
+  useEffect(() => {
+    loadSettingsFromFirestore();
+  }, []);
 
   // Persist to localStorage whenever settings change
   useEffect(() => {
     localStorage.setItem('system_settings', JSON.stringify(settings));
   }, [settings]);
 
-  const updateSettings = (newSettings: Partial<SystemSettings>) => {
-    setSettings(prev => {
-      const updated = { ...prev, ...newSettings };
-      
-      // Business rule: voting and registration can't be enabled simultaneously
-      if (updated.voting_enabled && updated.registration_enabled) {
-        if (newSettings.voting_enabled) {
-          updated.registration_enabled = false;
-        } else if (newSettings.registration_enabled) {
-          updated.voting_enabled = false;
-        }
+  const loadSettingsFromFirestore = async () => {
+    try {
+      const settingsDoc = await getDoc(doc(db, 'settings', 'system'));
+      if (settingsDoc.exists()) {
+        const firestoreSettings = settingsDoc.data() as SystemSettings;
+        setSettings(firestoreSettings);
       }
-      
-      return updated;
-    });
+    } catch (error) {
+      console.error('Error loading settings from Firestore:', error);
+    }
+  };
+
+  const updateSettings = async (newSettings: Partial<SystemSettings>) => {
+    const updatedSettings = { ...settings, ...newSettings };
+    
+    // Business rule: voting and registration can't be enabled simultaneously
+    if (updatedSettings.votingEnabled && updatedSettings.registrationEnabled) {
+      if (newSettings.votingEnabled) {
+        updatedSettings.registrationEnabled = false;
+      } else if (newSettings.registrationEnabled) {
+        updatedSettings.votingEnabled = false;
+      }
+    }
+    
+    setSettings(updatedSettings);
+    
+    // Save to Firestore
+    try {
+      await setDoc(doc(db, 'settings', 'system'), updatedSettings);
+    } catch (error) {
+      console.error('Error saving settings to Firestore:', error);
+    }
   };
 
   return (
     <SystemSettingsContext.Provider value={{
       settings,
       updateSettings,
-      isElectionOpen: settings.election_open,
-      isVotingEnabled: settings.voting_enabled,
-      isRegistrationEnabled: settings.registration_enabled,
+      isElectionOpen: settings.electionOpen,
+      isVotingEnabled: settings.votingEnabled,
+      isRegistrationEnabled: settings.registrationEnabled,
     }}>
       {children}
     </SystemSettingsContext.Provider>

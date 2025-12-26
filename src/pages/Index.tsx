@@ -26,6 +26,7 @@ import {
   User,
 } from "lucide-react";
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import DashboardTab from '@/components/admin/DashboardTab';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
@@ -63,13 +64,15 @@ const services = [
 
 export default function HomePage() {
   const { isAdmin, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('reports');
+  const [activeTab, setActiveTab] = useState('dashboard');
   useScrollAnimation();
 
   // Show admin panel only for admins
   if (isAdmin) {
     const renderTabContent = () => {
       switch (activeTab) {
+        case 'dashboard':
+          return <DashboardTab />;
         case 'reports':
           return <ReportsTab />;
         case 'events':
@@ -91,7 +94,7 @@ export default function HomePage() {
         case 'settings':
           return <SystemSettingsTab />;
         default:
-          return <ReportsTab />;
+          return <DashboardTab />;
       }
     };
 
@@ -121,21 +124,20 @@ export default function HomePage() {
         </div>
 
         {/* Decorative Orange Shapes */}
-        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
-        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
+        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full z-0" />
+        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] z-0" />
 
         <div className="container mx-auto px-4 pt-16 pb-24 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
-              <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/30 mb-6 animate-fade-in">
+              <Shield className="w-4 h-4 text-white" />
+              <span className="text-sm text-white font-medium">
                 Haramaya University Ethics Club
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-6 leading-tight animate-slide-up">
-              Welcome to HU Ethics and{" "}
-              <span className="text-primary">Anti-Corruption Club</span>
+            <h1 className="font-display text-2xl md:text-4xl font-bold text-white mb-6 leading-tight animate-slide-up">
+              Welcome to HU Ethics and Anti-Corruption Club
             </h1>
 
             <p

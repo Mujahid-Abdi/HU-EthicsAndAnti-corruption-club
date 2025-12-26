@@ -54,7 +54,13 @@
     --alert: 0 84% 60%;
     --alert-hover: 0 84% 50%;
     --gold: 45 100% 51%;
+    --gold-light: 45 100% 61%;
+    --gold-dark: 45 100% 41%;
     --forest: 180 30% 20%;
+    --forest-light: 180 30% 30%;
+    --forest-dark: 180 30% 15%;
+    --cream: 45 50% 95%;
+    --cream-dark: 45 50% 85%;
 
     /* Glass colors for light theme */
     --glass: 0 0% 100%;
@@ -130,7 +136,13 @@
     --alert: 0 84% 60%;
     --alert-hover: 0 84% 50%;
     --gold: 45 100% 51%;
+    --gold-light: 45 100% 61%;
+    --gold-dark: 45 100% 41%;
     --forest: 180 30% 30%;
+    --forest-light: 180 30% 40%;
+    --forest-dark: 180 30% 25%;
+    --cream: 45 50% 20%;
+    --cream-dark: 45 50% 15%;
 
     /* Glass colors for dark theme */
     --glass: 222 47% 15%;

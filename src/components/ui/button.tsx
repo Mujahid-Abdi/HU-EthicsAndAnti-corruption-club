@@ -10,22 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-forest-light shadow-md hover:shadow-lg",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg",
         outline:
           "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-gold-dark shadow-md hover:shadow-lg",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md hover:shadow-lg",
         ghost:
           "text-foreground hover:bg-muted hover:text-foreground",
         link:
           "text-primary underline-offset-4 hover:underline",
         // Custom variants for Ethics Club
         hero: "bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-md hover:shadow-glow hover:scale-105 transform",
-        alert: "bg-alert text-destructive-foreground font-bold shadow-lg hover:bg-alert-hover hover:shadow-xl",
-        gold: "bg-gold text-forest-dark font-semibold hover:bg-gold-dark shadow-md",
-        forest: "bg-forest text-primary-foreground hover:bg-forest-light shadow-md",
+        alert: "bg-alert text-white font-bold shadow-lg hover:bg-alert/90 hover:shadow-xl",
+        gold: "bg-gold text-forest-dark font-semibold hover:bg-gold/90 shadow-md",
+        forest: "bg-forest text-primary-foreground hover:bg-forest/90 shadow-md",
         "outline-gold": "border-2 border-gold bg-transparent text-gold hover:bg-gold hover:text-forest-dark",
         "outline-light": "border-2 border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10",
         glass: "bg-muted/30 backdrop-blur-md border border-border text-foreground hover:bg-muted/50 hover:border-primary/50",

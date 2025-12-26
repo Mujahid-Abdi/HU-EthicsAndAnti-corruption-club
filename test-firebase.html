@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Test</title>
+</head>
+<body>
+    <h1>Firebase Connection Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrpcK2NbKvcBpJ9AN-D2-V5BiB-sLqMf8",
+            authDomain: "hu-ethics-club.firebaseapp.com",
+            projectId: "hu-ethics-club",
+            storageBucket: "hu-ethics-club.firebasestorage.app",
+            messagingSenderId: "273422042680",
+            appId: "1:273422042680:web:7cc2d53ded61a4539c48cd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function testFirebase() {
+            const results = document.getElementById('results');
+            
+            try {
+                results.innerHTML += '<p>🔍 Testing Firebase connection...</p>';
+                
+                // Test elections
+                const electionsSnapshot = await getDocs(collection(db, 'elections'));
+                results.innerHTML += `<p>📊 Found ${electionsSnapshot.size} elections</p>`;
+                
+                // Test open elections
+                const openElectionsQuery = query(collection(db, 'elections'), where('status', '==', 'open'));
+                const openElectionsSnapshot = await getDocs(openElectionsQuery);
+                results.innerHTML += `<p>🗳️ Found ${openElectionsSnapshot.size} open elections</p>`;
+                
+                if (openElectionsSnapshot.size > 0) {
+                    const election = openElectionsSnapshot.docs[0];
+                    const electionData = election.data();
+                    results.innerHTML += `<p>✅ Election: ${electionData.title}</p>`;
+                    
+                    // Test candidates
+                    const candidatesQuery = query(collection(db, 'candidates'), where('electionId', '==', election.id));
+                    const candidatesSnapshot = await getDocs(candidatesQuery);
+                    results.innerHTML += `<p>👥 Found ${candidatesSnapshot.size} candidates</p>`;
+                    
+                    candidatesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        results.innerHTML += `<p>   - ${data.fullName} (${data.position})</p>`;
+                    });
+                }
+                
+                results.innerHTML += '<p>✅ Firebase test completed successfully!</p>';
+                
+            } catch (error) {
+                results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                console.error('Firebase test error:', error);
+            }
+        }
+
+        testFirebase();
+    </script>
+</body>
+</html>

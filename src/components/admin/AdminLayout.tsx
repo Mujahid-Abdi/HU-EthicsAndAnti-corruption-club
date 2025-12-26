@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { 
@@ -17,7 +18,9 @@ import {
   Menu,
   X,
   Shield,
-  LogOut
+  LogOut,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +31,7 @@ interface AdminLayoutProps {
 }
 
 const adminNavItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: Shield },
   { id: 'reports', label: 'Reports', icon: FileText },
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'news', label: 'News', icon: Newspaper },
@@ -42,6 +46,7 @@ const adminNavItems = [
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -55,7 +60,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary via-primary/95 to-orange-dark shadow-lg">
         <div className="px-4 py-6">
@@ -65,7 +70,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
                 variant="ghost"
                 size="sm"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden text-white hover:bg-white/10"
+                className="lg:hidden text-white hover:bg-white/10 transition-colors"
               >
                 {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
@@ -79,6 +84,25 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
                 </p>
               </div>
             </div>
+            
+            {/* Theme Toggle in Header */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="rounded-full w-10 h-10 text-white hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+                  aria-label="Toggle theme"
+                >
+                  {theme === "light" ? (
+                    <Moon className="w-5 h-5 transition-transform duration-300" />
+                  ) : (
+                    <Sun className="w-5 h-5 transition-transform duration-300" />
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,7 +110,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
       <div className="flex">
         {/* Sidebar */}
         <aside className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 border-r border-gray-200 dark:border-gray-700",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           <div className="flex flex-col h-full">
@@ -103,17 +127,17 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
                       key={item.id}
                       variant={activeTab === item.id ? "default" : "ghost"}
                       className={cn(
-                        "w-full justify-start gap-3 h-11 transition-all duration-200",
+                        "w-full justify-start gap-3 h-11 transition-all duration-300 group",
                         activeTab === item.id 
-                          ? "bg-primary text-white shadow-sm hover:bg-primary/90 hover:shadow-md" 
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                          ? "bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02]" 
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:scale-[1.01] hover:shadow-sm"
                       )}
                       onClick={() => {
                         onTabChange(item.id);
                         setSidebarOpen(false);
                       }}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                       {item.label}
                     </Button>
                   );
@@ -126,9 +150,9 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
               <Button
                 variant="outline"
                 onClick={handleSignOut}
-                className="w-full justify-start gap-3 h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 transition-all duration-200"
+                className="w-full justify-start gap-3 h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-md group"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                 Sign Out
               </Button>
             </div>
@@ -144,7 +168,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
         )}
 
         {/* Main Content */}
-        <main className="flex-1 lg:ml-0">
+        <main className="flex-1 lg:ml-0 bg-gray-50 dark:bg-gray-900 transition-colors">
           <div className="p-6">
             {children}
           </div>

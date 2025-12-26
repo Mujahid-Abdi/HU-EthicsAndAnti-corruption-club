@@ -15,10 +15,12 @@ import Report from "./pages/Report";
 import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
 import Gallery from "./pages/Gallery";
-
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
 import Vote from "./pages/Vote";
+import VoteNew from "./pages/VoteNew";
+import SimpleVote from "./pages/SimpleVote";
+import TestVote from "./pages/TestVote";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -50,7 +52,10 @@ const App = () => (
               <Route path="/report" element={<Report />} />
               <Route path="/join" element={<Join />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/vote" element={<Vote />} />
+              <Route path="/vote" element={<VoteNew />} />
+              <Route path="/vote-simple" element={<SimpleVote />} />
+              <Route path="/vote-full" element={<Vote />} />
+              <Route path="/test-vote" element={<TestVote />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/admin"
