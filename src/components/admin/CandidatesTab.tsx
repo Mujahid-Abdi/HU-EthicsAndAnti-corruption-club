@@ -44,16 +44,24 @@ export default function CandidatesTab() {
 
   const fetchElections = async () => {
     try {
-      const data = await FirestoreService.getAll(Collections.ELECTIONS, [
-        orderBy('createdAt', 'desc')
-      ]);
-      setElections(data as Election[]);
-      if (data && data.length > 0 && !selectedElection) {
-        setSelectedElection(data[0].id);
+      console.log('🔍 Fetching elections for CandidatesTab...');
+      const data = await FirestoreService.getAll(Collections.ELECTIONS);
+      console.log('📊 Elections fetched:', data);
+      
+      // Sort elections by creation date in JavaScript
+      const sortedElections = (data as Election[]).sort((a, b) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        return bTime - aTime; // Newest first
+      });
+      
+      setElections(sortedElections);
+      if (sortedElections && sortedElections.length > 0 && !selectedElection) {
+        setSelectedElection(sortedElections[0].id);
       }
     } catch (error) {
-      console.error('Error fetching elections:', error);
-      toast.error('Failed to load elections');
+      console.error('❌ Error fetching elections:', error);
+      toast.error('Failed to load elections: ' + (error as Error).message);
     }
   };
 
@@ -62,14 +70,22 @@ export default function CandidatesTab() {
     
     setLoading(true);
     try {
+      console.log('🔍 Fetching candidates for election:', selectedElection);
       const data = await FirestoreService.getAll(Collections.CANDIDATES, [
-        where('electionId', '==', selectedElection),
-        orderBy('position', 'asc')
+        where('electionId', '==', selectedElection)
       ]);
-      setCandidates(data as Candidate[]);
+      console.log('👥 Candidates fetched:', data);
+      
+      // Sort candidates by position in JavaScript instead of Firestore
+      const sortedCandidates = (data as Candidate[]).sort((a, b) => {
+        const positionOrder = { 'president': 1, 'vice_president': 2, 'secretary': 3 };
+        return positionOrder[a.position] - positionOrder[b.position];
+      });
+      
+      setCandidates(sortedCandidates);
     } catch (error) {
-      console.error('Error fetching candidates:', error);
-      toast.error('Failed to load candidates');
+      console.error('❌ Error fetching candidates:', error);
+      toast.error('Failed to load candidates: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }

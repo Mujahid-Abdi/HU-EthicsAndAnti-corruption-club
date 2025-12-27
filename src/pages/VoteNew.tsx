@@ -5,7 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { FirestoreService, Collections } from '@/lib/firestore';
+import { where, query, collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { 
   Vote as VoteIcon, 
   User, 
@@ -17,18 +22,17 @@ import {
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 
-// Simple interfaces
 interface Election {
   id: string;
   title: string;
   description: string;
-  status: string;
+  status: 'draft' | 'open' | 'closed';
 }
 
 interface Candidate {
   id: string;
   fullName: string;
-  position: string;
+  position: 'president' | 'vice_president' | 'secretary';
   department: string;
   batch: string;
   manifesto: string;
@@ -37,56 +41,198 @@ interface Candidate {
 
 export default function VoteNew() {
   const { user, isLoading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { votingEnabled, electionOpen } = useSystemSettings();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [election, setElection] = useState<Election | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  
+  const [voteForm, setVoteForm] = useState({
+    voterFullName: '',
+    voterStudentId: '',
+    voterDepartment: '',
+    voterBatch: '',
+    selectedCandidates: {
+      president: '',
+      vice_president: '',
+      secretary: ''
+    }
+  });
 
-  // Mock data for testing
+  // Firebase data loading
   useEffect(() => {
+    if (user) {
+      fetchElectionData();
+    }
+  }, [user]);
+
+  const fetchElectionData = async () => {
     setLoading(true);
     
-    // Simulate loading
-    setTimeout(() => {
-      setElection({
-        id: '1',
-        title: 'HU Ethics Club Executive Elections 2025',
-        description: 'Annual elections for club executive positions',
-        status: 'open'
+    try {
+      console.log('🔍 Fetching election data...');
+      
+      // Get open elections
+      const elections = await FirestoreService.getAll(Collections.ELECTIONS, [
+        where('status', '==', 'open')
+      ]);
+
+      if (!elections || elections.length === 0) {
+        console.log('❌ No open elections found');
+        setElection(null);
+        setLoading(false);
+        return;
+      }
+
+      const currentElection = elections[0] as Election;
+      console.log('✅ Current election:', currentElection);
+      setElection(currentElection);
+
+      // Get candidates for this election
+      const candidatesData = await FirestoreService.getAll(Collections.CANDIDATES, [
+        where('electionId', '==', currentElection.id)
+      ]);
+
+      console.log('👥 Candidates found:', candidatesData);
+      
+      // Sort candidates by position in JavaScript
+      const sortedCandidates = (candidatesData as Candidate[]).sort((a, b) => {
+        const positionOrder = { 'president': 1, 'vice_president': 2, 'secretary': 3 };
+        return positionOrder[a.position] - positionOrder[b.position];
       });
       
-      setCandidates([
-        {
-          id: '1',
-          fullName: 'Ahmed Hassan Mohammed',
-          position: 'president',
-          department: 'Computer Science',
-          batch: '2024',
-          manifesto: 'Committed to promoting transparency and fighting corruption.',
-          photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-        },
-        {
-          id: '2',
-          fullName: 'Fatima Ali Yusuf',
-          position: 'president',
-          department: 'Business Administration',
-          batch: '2023',
-          manifesto: 'Working to ensure our club becomes a beacon of integrity.',
-          photoUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-        },
-        {
-          id: '3',
-          fullName: 'Mohammed Ibrahim Seid',
-          position: 'vice_president',
-          department: 'Engineering',
-          batch: '2024',
-          manifesto: 'Supporting initiatives that promote ethical conduct.',
-          photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face'
-        }
-      ]);
-      
+      setCandidates(sortedCandidates);
+
+      // Check if user has already voted
+      if (user?.uid) {
+        const votesQuery = query(
+          collection(db, Collections.VOTES),
+          where('electionId', '==', currentElection.id),
+          where('userId', '==', user.uid)
+        );
+        const votesSnapshot = await getDocs(votesQuery);
+        const hasVotedResult = !votesSnapshot.empty;
+        console.log('🗳️ User has voted:', hasVotedResult);
+        setHasVoted(hasVotedResult);
+      }
+
+    } catch (error) {
+      console.error('❌ Error fetching election data:', error);
+      toast.error('Failed to load election data');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const handleCandidateSelect = (position: 'president' | 'vice_president' | 'secretary', candidateId: string) => {
+    setVoteForm(prev => ({
+      ...prev,
+      selectedCandidates: {
+        ...prev.selectedCandidates,
+        [position]: candidateId
+      }
+    }));
+  };
+
+  const validateForm = () => {
+    if (!voteForm.voterFullName || !voteForm.voterStudentId || !voteForm.voterDepartment || !voteForm.voterBatch) {
+      toast.error('Please fill in all voter details');
+      return false;
+    }
+
+    if (!voteForm.selectedCandidates.president || !voteForm.selectedCandidates.vice_president || !voteForm.selectedCandidates.secretary) {
+      toast.error('Please select a candidate for each position');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmitVote = () => {
+    if (!validateForm()) return;
+    setShowConfirmDialog(true);
+  };
+
+  const confirmVote = async () => {
+    setSubmitting(true);
+    setShowConfirmDialog(false);
+
+    try {
+      await FirestoreService.create(Collections.VOTES, {
+        electionId: election!.id,
+        userId: user!.uid,
+        voterFullName: voteForm.voterFullName,
+        voterStudentId: voteForm.voterStudentId,
+        voterDepartment: voteForm.voterDepartment,
+        voterBatch: voteForm.voterBatch,
+        presidentCandidateId: voteForm.selectedCandidates.president,
+        vicePresidentCandidateId: voteForm.selectedCandidates.vice_president,
+        secretaryCandidateId: voteForm.selectedCandidates.secretary,
+      });
+
+      toast.success('Your vote has been submitted successfully!');
+      setHasVoted(true);
+    } catch (error: any) {
+      console.error('Error submitting vote:', error);
+      toast.error('Failed to submit vote. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getSelectedCandidateName = (position: 'president' | 'vice_president' | 'secretary') => {
+    const candidateId = voteForm.selectedCandidates[position];
+    const candidate = candidates.find(c => c.id === candidateId);
+    return candidate?.fullName || 'None selected';
+  };
+
+  const getPositionLabel = (position: string) => {
+    switch (position) {
+      case 'president': return 'President';
+      case 'vice_president': return 'Vice President';
+      case 'secretary': return 'Secretary';
+      default: return position;
+    }
+  };
+
+  // Check if voting is disabled or user has voted
+  if (!votingEnabled || !electionOpen) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center py-12">
+              <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Voting Closed</h3>
+              <p className="text-muted-foreground">
+                Voting is currently disabled. Please check back later or contact the admin for more information.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (hasVoted) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-20">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center py-12">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Vote Submitted</h3>
+              <p className="text-muted-foreground">
+                Thank you for participating in the election. Your vote has been recorded successfully.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   // Redirect if not logged in
   if (!authLoading && !user) {
@@ -182,19 +328,35 @@ export default function VoteNew() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Full Name *</label>
-                    <Input placeholder="Enter your full name" />
+                    <Input 
+                      placeholder="Enter your full name" 
+                      value={voteForm.voterFullName}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterFullName: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Student ID *</label>
-                    <Input placeholder="Enter your student ID" />
+                    <Input 
+                      placeholder="Enter your student ID" 
+                      value={voteForm.voterStudentId}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterStudentId: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Department *</label>
-                    <Input placeholder="Enter your department" />
+                    <Input 
+                      placeholder="Enter your department" 
+                      value={voteForm.voterDepartment}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterDepartment: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Batch *</label>
-                    <Input placeholder="Enter your batch year" />
+                    <Input 
+                      placeholder="Enter your batch year" 
+                      value={voteForm.voterBatch}
+                      onChange={(e) => setVoteForm(prev => ({ ...prev, voterBatch: e.target.value }))}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -221,35 +383,50 @@ export default function VoteNew() {
                       </p>
                     ) : (
                       <div className="grid md:grid-cols-2 gap-4">
-                        {positionCandidates.map((candidate) => (
-                          <div
-                            key={candidate.id}
-                            className="border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
-                          >
-                            <div className="flex items-start gap-3 mb-4">
-                              {candidate.photoUrl ? (
-                                <img
-                                  src={candidate.photoUrl}
-                                  alt={candidate.fullName}
-                                  className="w-16 h-16 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <User className="w-8 h-8 text-primary" />
+                        {positionCandidates.map((candidate) => {
+                          const isSelected = voteForm.selectedCandidates[position as keyof typeof voteForm.selectedCandidates] === candidate.id;
+                          
+                          return (
+                            <div
+                              key={candidate.id}
+                              onClick={() => handleCandidateSelect(position as 'president' | 'vice_president' | 'secretary', candidate.id)}
+                              className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                                isSelected 
+                                  ? 'border-primary bg-primary/5 shadow-md' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3 mb-4">
+                                {candidate.photoUrl ? (
+                                  <img
+                                    src={candidate.photoUrl}
+                                    alt={candidate.fullName}
+                                    className="w-16 h-16 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="w-8 h-8 text-primary" />
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-foreground mb-1">{candidate.fullName}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {candidate.department} • {candidate.batch}
+                                  </p>
+                                  {isSelected && (
+                                    <div className="flex items-center gap-1 mt-2">
+                                      <CheckCircle className="w-4 h-4 text-primary" />
+                                      <span className="text-sm text-primary font-medium">Selected</span>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-foreground mb-1">{candidate.fullName}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {candidate.department} • {candidate.batch}
-                                </p>
                               </div>
+                              <p className="text-sm text-muted-foreground">
+                                {candidate.manifesto}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              {candidate.manifesto}
-                            </p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
@@ -267,12 +444,22 @@ export default function VoteNew() {
                   </div>
                   
                   <Button
-                    onClick={() => toast.success('Vote submitted successfully!')}
+                    onClick={handleSubmitVote}
+                    disabled={submitting}
                     size="lg"
                     className="gap-2"
                   >
-                    <VoteIcon className="w-5 h-5" />
-                    Submit Vote
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Submitting Vote...
+                      </>
+                    ) : (
+                      <>
+                        <VoteIcon className="w-5 h-5" />
+                        Submit Vote
+                      </>
+                    )}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground max-w-md mx-auto">
@@ -284,6 +471,48 @@ export default function VoteNew() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              Confirm Your Vote
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Please review your selections before submitting. Once submitted, your vote cannot be changed.
+            </p>
+            
+            <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+              <div>
+                <span className="font-medium">President:</span>
+                <p className="text-sm text-muted-foreground">{getSelectedCandidateName('president')}</p>
+              </div>
+              <div>
+                <span className="font-medium">Vice President:</span>
+                <p className="text-sm text-muted-foreground">{getSelectedCandidateName('vice_president')}</p>
+              </div>
+              <div>
+                <span className="font-medium">Secretary:</span>
+                <p className="text-sm text-muted-foreground">{getSelectedCandidateName('secretary')}</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmVote} disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Confirm Vote'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
