@@ -1,14 +1,33 @@
 import { Link } from "react-router-dom";
 import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 export function Footer() {
   const { isAdmin } = useAuth();
+  const { isVotingEnabled } = useSystemSettings();
 
   // Don't show footer for admin users
   if (isAdmin) {
     return null;
   }
+
+  const getQuickLinks = () => {
+    const baseLinks = [
+      { name: "Home", path: "/" },
+      { name: "About Us", path: "/about" },
+      { name: "Achievements", path: "/achievements" },
+      { name: "Programs", path: "/programs" },
+      { name: "Report Incident", path: "/report" },
+    ];
+    
+    // Add Vote link only if voting is enabled
+    if (isVotingEnabled) {
+      baseLinks.push({ name: "Vote", path: "/vote" });
+    }
+    
+    return baseLinks;
+  };
 
   return (
     <footer className="relative bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-black border-t border-gray-200/80 dark:border-gray-800">
@@ -53,14 +72,7 @@ export function Footer() {
               <div className="h-px flex-1 bg-gradient-to-r from-gray-300 dark:from-gray-700 to-transparent" />
             </h4>
             <ul className="space-y-3">
-              {[
-                { name: "Home", path: "/" },
-                { name: "About Us", path: "/about" },
-                { name: "Achievements", path: "/achievements" },
-                { name: "Programs", path: "/programs" },
-                { name: "Report Incident", path: "/report" },
-                { name: "Vote", path: "/vote" },
-              ].map((link) => (
+              {getQuickLinks().map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}

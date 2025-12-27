@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { SystemSettingsProvider } from "@/hooks/useSystemSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { VotingProtectedRoute } from "@/components/auth/VotingProtectedRoute";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Achievements from "./pages/Achievements";
@@ -52,10 +53,26 @@ const App = () => (
               <Route path="/report" element={<Report />} />
               <Route path="/join" element={<Join />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/vote" element={<VoteNew />} />
-              <Route path="/vote-simple" element={<SimpleVote />} />
-              <Route path="/vote-full" element={<Vote />} />
-              <Route path="/test-vote" element={<TestVote />} />
+              <Route path="/vote" element={
+                <VotingProtectedRoute>
+                  <VoteNew />
+                </VotingProtectedRoute>
+              } />
+              <Route path="/vote-simple" element={
+                <VotingProtectedRoute>
+                  <SimpleVote />
+                </VotingProtectedRoute>
+              } />
+              <Route path="/vote-full" element={
+                <VotingProtectedRoute>
+                  <Vote />
+                </VotingProtectedRoute>
+              } />
+              <Route path="/test-vote" element={
+                <VotingProtectedRoute>
+                  <TestVote />
+                </VotingProtectedRoute>
+              } />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/admin"

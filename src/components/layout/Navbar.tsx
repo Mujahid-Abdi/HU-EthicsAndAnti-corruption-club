@@ -14,7 +14,6 @@ const navLinks = [
   { name: "Gallery", path: "/gallery" },
   { name: "Achievements", path: "/achievements" },
   { name: "Programs", path: "/programs" },
-  { name: "Vote", path: "/vote" },
   { name: "Contact", path: "/contact" },
 ];
 
@@ -28,7 +27,7 @@ export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
-  const { isRegistrationEnabled } = useSystemSettings();
+  const { isRegistrationEnabled, isVotingEnabled } = useSystemSettings();
 
   // Handle scroll detection
   useEffect(() => {
@@ -46,6 +45,26 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const getNavLinks = () => {
+    const baseLinks = [
+      { name: "Home", path: "/" },
+      { name: "About", path: "/about" },
+      { name: "News", path: "/news" },
+      { name: "Gallery", path: "/gallery" },
+      { name: "Achievements", path: "/achievements" },
+      { name: "Programs", path: "/programs" },
+    ];
+    
+    // Add Vote link only if voting is enabled
+    if (isVotingEnabled) {
+      baseLinks.push({ name: "Vote", path: "/vote" });
+    }
+    
+    baseLinks.push({ name: "Contact", path: "/contact" });
+    
+    return baseLinks;
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -113,7 +132,7 @@ export function Navbar() {
               ))
             ) : (
               // Regular user navigation
-              navLinks.map((link) => (
+              getNavLinks().map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -208,7 +227,7 @@ export function Navbar() {
                 ))
               ) : (
                 // Regular user mobile navigation
-                navLinks.map((link) => (
+                getNavLinks().map((link) => (
                   <Link
                     key={link.path}
                     to={link.path}
