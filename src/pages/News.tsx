@@ -4,8 +4,56 @@ import { Layout } from '@/components/layout/Layout';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Newspaper, Calendar, ArrowRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Newspaper, Calendar, ArrowRight, Bell, Mail } from 'lucide-react';
 import { format } from 'date-fns';
+
+// Static news articles data
+const staticNewsArticles = [
+  {
+    id: 'static-1',
+    title: "Student Survey Reveals Strong Support for Anti-Corruption Initiatives",
+    excerpt: "A recent campus-wide survey shows that 87% of students support stronger measures to combat corruption and promote integrity in academic settings.",
+    category: "Research",
+    created_at: "2024-09-28",
+  },
+  {
+    id: 'static-2',
+    title: "Monthly Integrity Workshops Announced",
+    excerpt: "Starting in November, we will host monthly workshops covering various aspects of ethical conduct, transparency, and anti-corruption strategies.",
+    category: "Announcement",
+    created_at: "2024-10-15",
+  },
+  {
+    id: 'static-3',
+    title: "Club Recognized at National Student Leadership Conference",
+    excerpt: "Our club received recognition at the National Student Leadership Conference for outstanding contributions promoting academic integrity.",
+    category: "Achievement",
+    created_at: "2024-10-30",
+  },
+  {
+    id: 'static-4',
+    title: "Ethics Training Program Launch",
+    excerpt: "A new comprehensive training program has been developed to equip student leaders with ethical leadership skills and integrity tools.",
+    category: "Program Launch",
+    created_at: "2024-11-15",
+  },
+  {
+    id: 'static-5',
+    title: "New Partnership with National Anti-Corruption Body",
+    excerpt: "The club has formalized a partnership with the Federal Ethics and Anti-Corruption Commission to enhance our educational programs and reporting mechanisms.",
+    category: "Announcement",
+    created_at: "2024-11-25",
+  },
+  {
+    id: 'static-6',
+    title: "Club Successfully Hosts First Annual Integrity Forum",
+    excerpt: "Over 300 students and faculty members participated in our inaugural Integrity Forum, featuring keynote speeches and breakout sessions on ethical leadership.",
+    category: "Event Recap",
+    created_at: "2024-12-10",
+  },
+];
 
 interface NewsItem {
   id: string;
@@ -20,6 +68,8 @@ interface NewsItem {
 export default function News() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPublishedNews();
@@ -38,6 +88,22 @@ export default function News() {
     setIsLoading(false);
   };
 
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      toast({
+        title: "Successfully subscribed!",
+        description: "You'll receive updates about our latest news.",
+      });
+      setEmail("");
+    }
+  };
+
+  // Combine database news with static articles
+  const allNews = [...news, ...staticNewsArticles].sort((a, b) => 
+    new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+  );
+
   if (isLoading) {
     return (
       <Layout>
@@ -50,32 +116,23 @@ export default function News() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
-        </div>
-
-        <div className="container mx-auto px-4 pt-16 pb-16 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+      {/* News Grid */}
+      <section className="pt-24 pb-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <Newspaper className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">Latest Updates</span>
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Latest Updates
+              </span>
             </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               News & Announcements
             </h1>
-            <p className="text-base md:text-lg text-white/90">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Stay informed about our latest activities, events, and initiatives in promoting ethics and fighting corruption.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* News Grid */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
           {news.length === 0 ? (
             <Card className="max-w-md mx-auto">
               <CardContent className="py-16 text-center">

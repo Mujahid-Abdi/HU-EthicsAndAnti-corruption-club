@@ -96,8 +96,8 @@ export default function ReportPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Report an <span className="text-primary">Incident</span>
+            <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight text-gradient-hero">
+              Report an <span className="text-gradient-primary">Incident</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/90 mb-10 mx-auto max-w-2xl leading-relaxed">

@@ -72,64 +72,24 @@ export default function AboutPage() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
-        </div>
-
-        {/* Decorative Orange Shapes */}
-        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
-        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
-
-        <div className="container mx-auto px-4 pt-16 pb-16 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
-              <Award className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">
-                Established for Integrity
-              </span>
-            </div>
-
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              About Our <span className="text-primary">Club</span>
-            </h1>
-
-            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
-              Learn about our mission, vision, and the dedicated team working to
-              build a more transparent and ethical university community.
-            </p>
-
-            <div className="flex flex-wrap gap-4 justify-center">
-              <a href="#mission" className="inline-flex">
-                <Button
-                  size="lg"
-                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
-                >
-                  Our Mission
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </a>
-              <a href="#team" className="inline-flex">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-                >
-                  Meet the Team
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Vision & Mission */}
       <section id="mission" className="py-20 bg-background">
         <div className="container mx-auto px-4">
+          <div className="text-center mb-16 scroll-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+              <Award className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                About Our Club
+              </span>
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Our Mission & Vision
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Learn about our mission, vision, and the dedicated team working to
+              build a more transparent and ethical university community.
+            </p>
+          </div>
           <div className="grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
             <div className="lg:col-span-2 space-y-8">
               <div className="grid md:grid-cols-2 gap-8">

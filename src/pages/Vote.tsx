@@ -223,26 +223,29 @@ export default function VotePage() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative min-h-[25vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559223607-b4d0555ae227?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559223607-b4d0555ae227?w=1920')] bg-cover bg-center" />
         </div>
+
+        {/* Decorative Orange Shapes */}
+        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full z-0" />
+        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] z-0" />
 
         <div className="container mx-auto px-4 pt-16 pb-16 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <VoteIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/50 backdrop-blur-sm mb-4">
+              <VoteIcon className="w-4 h-4 text-white dark:text-gray-200" />
+              <span className="text-sm text-white dark:text-gray-200 font-medium">
                 Club Elections
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Cast Your <span className="text-primary">Vote</span>
+            <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight text-white dark:text-gray-100 drop-shadow-lg">
+              Cast Your <span className="text-primary-light dark:text-primary">Vote</span>
             </h1>
 
-            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-white/95 dark:text-gray-200 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
               Exercise your democratic right and help choose the next leaders of our ethics club.
             </p>
           </div>

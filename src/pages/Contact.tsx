@@ -110,58 +110,23 @@ const Contact = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521791055366-0d553872125f?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
-        </div>
-
-        {/* Decorative Orange Shapes */}
-        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
-        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
-
-        <div className="container mx-auto px-4 pt-16 pb-16 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
+      {/* Header Section */}
+      <section className="pt-24 pb-12 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <Send className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
                 Get in Touch
               </span>
             </div>
-
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Contact <span className="text-primary">Us</span>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Contact Us
             </h1>
-
-            <p className="text-base md:text-lg text-white/90 mb-8 mx-auto max-w-2xl leading-relaxed">
-              Have questions about our programs, want to report an issue, or
-              interested in collaboration? We're here to help and would love to
-              hear from you.
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Fill out the form below for general inquiries. For anonymous
+              reports, please use our secure reporting system.
             </p>
-
-            <div className="flex flex-wrap justify-center gap-4">
-              <a href="#contact-form" className="inline-flex">
-                <Button
-                  size="lg"
-                  className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-orange"
-                >
-                  Send a Message
-                  <Send className="w-5 h-5" />
-                </Button>
-              </a>
-              <a href="#contact-info" className="inline-flex">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-                >
-                  Contact Info
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -169,22 +134,6 @@ const Contact = () => {
       {/* Contact Content */}
       <section id="contact-form" className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
-              <Send className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
-                Get in Touch
-              </span>
-            </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Send Us a Message
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Fill out the form below for general inquiries. For anonymous
-              reports, please use our secure reporting system.
-            </p>
-          </div>
-
           <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Contact Form */}
             <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
@@ -354,59 +303,41 @@ const Contact = () => {
                           P.O. Box 138, Dire Dawa, Ethiopia
                         </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Student Center Building, Room 204
-                        <br />
-                        Haramaya University Main Campus
-                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-gold" />
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Email</p>
+                        <p className="text-sm text-muted-foreground">
+                          ethics.club@haramaya.edu.et
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">Address</p>
-                      <p className="text-sm text-muted-foreground">
-                        Haramaya University
-                        <br />
-                        P.O. Box 138, Dire Dawa, Ethiopia
-                      </p>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Phone</p>
+                        <p className="text-sm text-muted-foreground">
+                          +251 25 553 0325
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-5 h-5 text-gold" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Email</p>
-                      <p className="text-sm text-muted-foreground">
-                        ethics.club@haramaya.edu.et
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-5 h-5 text-gold" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Phone</p>
-                      <p className="text-sm text-muted-foreground">
-                        +251 25 553 0325
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-5 h-5 text-gold" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        Response Time
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        2-3 business days for general inquiries
-                      </p>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-5 h-5 text-gold" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          Response Time
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          2-3 business days for general inquiries
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -496,48 +427,6 @@ const Contact = () => {
               </p>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* Map Section */}
-      <section className="py-20 bg-muted">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-              Find Us on Campus
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Located in the heart of Haramaya University's main campus, our
-              office is easily accessible from all major campus buildings.
-            </p>
-          </div>
-
-          <div className="rounded-2xl overflow-hidden shadow-elegant border border-border">
-            <iframe
-              title="Haramaya University Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3933.4726851881867!2d42.03465731478507!3d9.424722493242986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1631d7b5f97a5b1f%3A0x4a7e7b4d8f1f3e2a!2sHaramaya%20University!5e0!3m2!1sen!2set!4v1620000000000!5m2!1sen!2set"
-              width="100%"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="w-full"
-            />
-          </div>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a
-              href="https://www.google.com/maps/dir//Haramaya+University"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button variant="forest" className="gap-2">
-                <MapPin className="w-4 h-4" />
-                Get Directions
-              </Button>
-            </a>
-          </div>
         </div>
       </section>
     </Layout>

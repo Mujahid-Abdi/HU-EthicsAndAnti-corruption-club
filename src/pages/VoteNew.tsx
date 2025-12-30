@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { VoteLayout } from '@/components/layout/VoteLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,10 +17,11 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Lock,
-  Clock
+  Clock,
+  ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 interface Election {
   id: string;
@@ -42,6 +43,7 @@ interface Candidate {
 export default function VoteNew() {
   const { user, isLoading: authLoading } = useAuth();
   const { votingEnabled, electionOpen } = useSystemSettings();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [election, setElection] = useState<Election | null>(null);
@@ -200,7 +202,7 @@ export default function VoteNew() {
   // Check if voting is disabled or user has voted
   if (!votingEnabled || !electionOpen) {
     return (
-      <Layout>
+      <VoteLayout>
         <div className="container mx-auto px-4 py-20">
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center py-12">
@@ -212,13 +214,13 @@ export default function VoteNew() {
             </CardContent>
           </Card>
         </div>
-      </Layout>
+      </VoteLayout>
     );
   }
 
   if (hasVoted) {
     return (
-      <Layout>
+      <VoteLayout>
         <div className="container mx-auto px-4 py-20">
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center py-12">
@@ -230,7 +232,7 @@ export default function VoteNew() {
             </CardContent>
           </Card>
         </div>
-      </Layout>
+      </VoteLayout>
     );
   }
 
@@ -241,19 +243,19 @@ export default function VoteNew() {
 
   if (loading || authLoading) {
     return (
-      <Layout>
+      <VoteLayout>
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading election...</p>
           </div>
         </div>
-      </Layout>
+      </VoteLayout>
     );
   }
 
   return (
-    <Layout>
+    <VoteLayout>
       {/* Hero Section */}
       <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
         <div className="absolute inset-0">
@@ -270,8 +272,8 @@ export default function VoteNew() {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Cast Your <span className="text-primary">Vote</span>
+            <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight text-gradient-hero">
+              Cast Your <span className="text-gradient-primary">Vote</span>
             </h1>
 
             <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
@@ -513,6 +515,6 @@ export default function VoteNew() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </VoteLayout>
   );
 }

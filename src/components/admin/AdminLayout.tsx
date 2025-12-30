@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { toast } from 'sonner';
 import { 
   FileText, 
@@ -36,18 +37,29 @@ const adminNavItems = [
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'news', label: 'News', icon: Newspaper },
   { id: 'resources', label: 'Resources', icon: BookOpen },
-  { id: 'elections', label: 'Elections', icon: Vote },
-  { id: 'candidates', label: 'Candidates', icon: Users },
   { id: 'executives', label: 'Executives', icon: UserCog },
   { id: 'users', label: 'Users', icon: User },
   { id: 'settings', label: 'System Settings', icon: Settings },
+];
+
+const votingNavItems = [
+  { id: 'elections', label: 'Elections', icon: Vote },
+  { id: 'candidates', label: 'Candidates', icon: Users },
 ];
 
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isVotingEnabled } = useSystemSettings();
   const navigate = useNavigate();
+
+  // Combine navigation items based on voting system status
+  const navigationItems = [
+    ...adminNavItems.slice(0, 5), // Dashboard through Resources
+    ...(isVotingEnabled ? votingNavItems : []), // Elections and Candidates only if voting enabled
+    ...adminNavItems.slice(5), // Executives, Users, Settings
+  ];
 
   const handleSignOut = async () => {
     try {
@@ -120,7 +132,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
             
             <ScrollArea className="flex-1 p-4">
               <nav className="space-y-2">
-                {adminNavItems.map((item) => {
+                {navigationItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Button

@@ -14,7 +14,6 @@ import {
   Target,
   Users,
   Calendar,
-  NewspaperIcon,
   Vote,
   Trophy,
   Bell,
@@ -45,51 +44,6 @@ const programStats = [
     icon: Calendar,
     number: "25+",
     label: "Events Hosted",
-  },
-  {
-    icon: NewspaperIcon,
-    number: "100+",
-    label: "News Articles",
-  },
-];
-
-// News Articles Data
-const newsArticles = [
-  {
-    title: "Student Survey Reveals Strong Support for Anti-Corruption Initiatives",
-    summary: "A recent campus-wide survey shows that 87% of students support stronger measures to combat corruption and promote integrity in academic settings.",
-    category: "Research",
-    date: "September 28, 2024",
-  },
-  {
-    title: "Monthly Integrity Workshops Announced",
-    summary: "Starting in November, we will host monthly workshops covering various aspects of ethical conduct, transparency, and anti-corruption strategies.",
-    category: "Announcement",
-    date: "October 15, 2024",
-  },
-  {
-    title: "Club Recognized at National Student Leadership Conference",
-    summary: "Our club received recognition at the National Student Leadership Conference for outstanding contributions promoting academic integrity.",
-    category: "Achievement",
-    date: "October 30, 2024",
-  },
-  {
-    title: "Ethics Training Program Launch",
-    summary: "A new comprehensive training program has been developed to equip student leaders with ethical leadership skills and integrity tools.",
-    category: "Program Launch",
-    date: "November 15, 2024",
-  },
-  {
-    title: "New Partnership with National Anti-Corruption Body",
-    summary: "The club has formalized a partnership with the Federal Ethics and Anti-Corruption Commission to enhance our educational programs and reporting mechanisms.",
-    category: "Announcement",
-    date: "November 25, 2024",
-  },
-  {
-    title: "Club Successfully Hosts First Annual Integrity Forum",
-    summary: "Over 300 students and faculty members participated in our inaugural Integrity Forum, featuring keynote speeches and breakout sessions on ethical leadership.",
-    category: "Event Recap",
-    date: "December 10, 2024",
   },
 ];
 
@@ -393,35 +347,23 @@ export default function Programs() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2084&q=80')] bg-cover bg-center opacity-30 dark:opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70"></div>
-        
-        {/* Background decorations */}
-        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0"></div>
-        <div className="absolute bottom-20 left-[20%] w-48 h-48 bg-orange-light/20 rounded-[40%] blur-2xl z-0"></div>
-        
-        <div className="container mx-auto px-4 pt-16 pb-20 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6 animate-fade-in">
+      {/* Navigation Tabs */}
+      <section className="pt-24 pb-8 bg-background border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <Target className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Our Programs & Initiatives</span>
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Our Programs & Initiatives
+              </span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
-              Programs & <span className="text-primary">Initiatives</span>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Programs & Initiatives
             </h1>
-            <p className="text-lg md:text-xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Explore our comprehensive programs designed to promote ethics, integrity, and transparency. 
-              From educational resources to engaging activities, we foster accountability within the university community.
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore our comprehensive programs designed to promote ethics, integrity, and transparency.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Navigation Tabs - Next section */}
-      <section className="py-8 bg-background border-b border-border">
-        <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="resources" className="w-full">
               <TabsList className="grid w-full grid-cols-3 bg-card border border-border rounded-xl p-1 max-w-2xl mx-auto">
@@ -432,10 +374,6 @@ export default function Programs() {
                 <TabsTrigger value="events" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
                   <Calendar className="w-4 h-4" />
                   Events
-                </TabsTrigger>
-                <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
-                  <NewspaperIcon className="w-4 h-4" />
-                  News
                 </TabsTrigger>
               </TabsList>
 
@@ -662,92 +600,6 @@ export default function Programs() {
 
                 {/* Election Results Section */}
                 <ElectionResults />
-              </TabsContent>
-
-              {/* News Tab Content */}
-              <TabsContent value="news" className="space-y-16 py-16">
-                <div className="max-w-5xl mx-auto">
-                  <div className="flex items-center gap-4 mb-10 scroll-animate">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-orange-dark flex items-center justify-center">
-                      <NewspaperIcon className="w-7 h-7 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                        Latest News
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Recent updates and announcements from our club
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {newsArticles.map((article, index) => (
-                      <Card key={index} className="bg-card rounded-xl p-6 border border-border shadow-sm hover:shadow-lg transition-shadow duration-300 group cursor-pointer">
-                        <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                            {article.category}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {article.date}
-                          </span>
-                        </div>
-                        <h4 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                          {article.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mb-4 rounded">{article.summary}</p>
-                        <span className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all">
-                          Read More
-                          <ArrowRight className="w-4 h-4" />
-                        </span>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Newsletter Signup for News */}
-                <section className="relative py-16 bg-gradient-to-br from-primary to-orange-dark rounded-3xl overflow-hidden">
-                  <div className="absolute inset-0 opacity-40">
-                    <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-light/20 rounded-full blur-3xl"></div>
-                  </div>
-                  <div className="relative z-10 px-4">
-                    <div className="max-w-3xl mx-auto text-center">
-                      <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-6">
-                        <Bell className="w-10 h-10 text-white" />
-                      </div>
-                      <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                        Stay Informed
-                      </h3>
-                      <p className="text-lg text-white/90 mb-8 max-w-xl mx-auto">
-                        Subscribe to our newsletter to receive the latest news and updates about upcoming events.
-                      </p>
-                      <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                        <div className="flex-1 relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-                          <Input
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="pl-12 h-14 bg-white border-gray-200 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg transition-all"
-                          />
-                        </div>
-                        <Button
-                          type="submit"
-                          size="lg"
-                          className="h-14 px-8 bg-gradient-to-r from-primary to-orange-dark hover:shadow-lg transition:shadow-xl rounded-xl font-semibold text-white"
-                        >
-                          Subscribe
-                        </Button>
-                      </form>
-                      <p className="text-sm text-white/70 mt-4 max-w-2xl mx-auto">
-                        We respect your privacy. Unsubscribe at any time.
-                      </p>
-                    </div>
-                  </div>
-                </section>
               </TabsContent>
             </Tabs>
           </div>

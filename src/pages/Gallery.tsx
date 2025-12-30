@@ -65,32 +65,23 @@ export default function Gallery() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[25vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
-        </div>
-
-        <div className="container mx-auto px-4 pt-16 pb-16 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+      {/* Gallery Section */}
+      <section className="pt-24 pb-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <ImageIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">Photo Gallery</span>
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Photo Gallery
+              </span>
             </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               Our Gallery
             </h1>
-            <p className="text-base md:text-lg text-white/90">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Explore moments from our events, campaigns, and activities promoting ethics and integrity.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Gallery Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
           {/* Category Filter */}
           {categories.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-8 justify-center">

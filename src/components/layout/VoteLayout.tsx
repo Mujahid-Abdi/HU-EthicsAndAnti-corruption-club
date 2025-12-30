@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 
@@ -12,7 +13,22 @@ interface VoteLayoutProps {
 
 export function VoteLayout({ children }: VoteLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut } = useAuth();
+  const { isVotingEnabled } = useSystemSettings();
+
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "News", path: "/news" },
+    { name: "Gallery", path: "/gallery" },
+    { name: "Achievements", path: "/achievements" },
+    { name: "Programs", path: "/programs" },
+    { name: "Vote", path: "/vote" },
+    { name: "Contact", path: "/contact" },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
 
   const handleSignOut = async () => {
     await signOut();
@@ -21,9 +37,9 @@ export function VoteLayout({ children }: VoteLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Voting Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/20 dark:bg-gray-900/30 backdrop-blur-lg border-b border-white/30 dark:border-gray-700/30 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/30 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
@@ -39,12 +55,30 @@ export function VoteLayout({ children }: VoteLayoutProps) {
                 <p className="font-display font-bold text-gray-900 dark:text-white leading-tight">
                   HUEC
                 </p>
-                <p className="text-xs text-gray-700 dark:text-gray-300">Voting System</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300">Ethics Club</p>
               </div>
             </Link>
 
-            {/* Voting Status */}
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive(link.path)
+                      ? "text-primary bg-primary/10 hover:bg-primary/15"
+                      : "text-gray-900 dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Side Actions */}
             <div className="flex items-center gap-4">
+              {/* Voting Status */}
               <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
@@ -71,37 +105,9 @@ export function VoteLayout({ children }: VoteLayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-16 md:pt-20">
+      <main className="pt-16 md:pt-20 min-h-screen">
         {children}
       </main>
-
-      {/* Voting Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Shield className="w-6 h-6 text-primary" />
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  Secure Voting System
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Your vote is anonymous and secure
-                </p>
-              </div>
-            </div>
-            
-            <div className="text-center md:text-right">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Haramaya University Ethics Club
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                © {new Date().getFullYear()} All rights reserved
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

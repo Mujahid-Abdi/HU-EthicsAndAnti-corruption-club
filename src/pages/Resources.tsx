@@ -160,8 +160,8 @@ export default function ResourcesPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              Resources & <span className="text-primary">Materials</span>
+            <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight text-gradient-hero">
+              Resources & <span className="text-gradient-primary">Materials</span>
             </h1>
 
             <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">

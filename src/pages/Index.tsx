@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useAuth } from "@/hooks/useAuth";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 import {
   Shield,
   AlertTriangle,
@@ -21,6 +22,7 @@ import {
   Trophy,
   FileText,
   Newspaper,
+  UserCog,
   UserCog,
   Vote,
   User,
@@ -64,6 +66,7 @@ const services = [
 
 export default function HomePage() {
   const { isAdmin, isLoading } = useAuth();
+  const { isVotingEnabled } = useSystemSettings();
   const [activeTab, setActiveTab] = useState('dashboard');
   useScrollAnimation();
 
@@ -84,9 +87,9 @@ export default function HomePage() {
         case 'resources':
           return <ResourcesTab />;
         case 'elections':
-          return <ElectionsTab />;
+          return isVotingEnabled ? <ElectionsTab /> : <DashboardTab />;
         case 'candidates':
-          return <CandidatesTab />;
+          return isVotingEnabled ? <CandidatesTab /> : <DashboardTab />;
         case 'executives':
           return <ExecutivesTab />;
         case 'users':
@@ -109,10 +112,9 @@ export default function HomePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Background Image with Overlay */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Background Image */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 via-gray-900/60 to-gray-900/50 dark:from-gray-950/85 dark:via-gray-950/75 dark:to-gray-950/65 z-10" />
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
             style={{
@@ -129,19 +131,19 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 pt-16 pb-24 relative z-20">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/30 mb-6 animate-fade-in">
-              <Shield className="w-4 h-4 text-white" />
-              <span className="text-sm text-white font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/50 backdrop-blur-sm mb-6 animate-fade-in">
+              <Shield className="w-4 h-4 text-white dark:text-gray-200" />
+              <span className="text-sm text-white dark:text-gray-200 font-medium">
                 Haramaya University Ethics Club
               </span>
             </div>
 
-            <h1 className="font-display text-2xl md:text-4xl font-bold text-white mb-6 leading-tight animate-slide-up">
-              Welcome to HU Ethics and Anti-Corruption Club
+            <h1 className="font-display text-2xl md:text-4xl font-bold mb-6 leading-tight animate-slide-up text-white dark:text-gray-100 drop-shadow-lg">
+              Welcome to HU <span className="text-primary-light dark:text-primary">Ethics and Anti-Corruption Club</span>
             </h1>
 
             <p
-              className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl animate-slide-up leading-relaxed"
+              className="text-lg md:text-xl text-white/95 dark:text-gray-200/90 mb-10 max-w-2xl animate-slide-up leading-relaxed drop-shadow-md"
               style={{ animationDelay: "0.1s" }}
             >
               We are committed to promoting ethical conduct, combating

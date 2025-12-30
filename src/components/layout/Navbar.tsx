@@ -78,8 +78,8 @@ export function Navbar() {
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
         isScrolled 
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/30 shadow-lg' 
-          : 'bg-transparent'
+          ? 'bg-white/90 dark:bg-black/90 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg' 
+          : 'bg-white/20 dark:bg-black/20 backdrop-blur-md border-b border-gray-200/30 dark:border-gray-700/30'
       }`}
     >
       <div className="container mx-auto px-4">
@@ -98,15 +98,15 @@ export function Navbar() {
             <div className="hidden sm:block">
               <p className={`font-display font-bold leading-tight transition-colors duration-300 ${
                 isScrolled 
-                  ? 'text-gray-900 dark:text-white' 
-                  : 'text-white drop-shadow-lg'
+                  ? 'text-black dark:text-white' 
+                  : 'text-black dark:text-white drop-shadow-lg'
               }`}>
                 HUEC
               </p>
               <p className={`text-xs transition-colors duration-300 ${
                 isScrolled 
                   ? 'text-gray-700 dark:text-gray-300' 
-                  : 'text-white/90 drop-shadow-md'
+                  : 'text-gray-800 dark:text-gray-200 drop-shadow-md'
               }`}>Ethics Club</p>
             </div>
           </Link>
@@ -121,10 +121,10 @@ export function Navbar() {
                   to={link.path}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(link.path)
-                      ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
+                      ? "text-primary bg-primary/10 hover:bg-primary/15"
                       : isScrolled 
-                        ? "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
-                        : "text-white/90 hover:text-white hover:bg-white/10 drop-shadow-md"
+                        ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                        : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
                   }`}
                 >
                   {link.name}
@@ -138,10 +138,10 @@ export function Navbar() {
                   to={link.path}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(link.path)
-                      ? "text-primary bg-white/15 dark:bg-gray-800/25 hover:bg-white/20 dark:hover:bg-gray-800/30"
+                      ? "text-primary bg-primary/10 hover:bg-primary/15"
                       : isScrolled 
-                        ? "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/10 dark:hover:bg-gray-800/20"
-                        : "text-white/90 hover:text-white hover:bg-white/10 drop-shadow-md"
+                        ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                        : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
                   }`}
                 >
                   {link.name}
@@ -193,8 +193,8 @@ export function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             className={`lg:hidden p-2 rounded-lg transition-colors ${
               isScrolled 
-                ? 'text-gray-800 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-gray-800/20'
-                : 'text-white hover:bg-white/10 drop-shadow-md'
+                ? 'text-black dark:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
+                : 'text-black dark:text-white hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md'
             }`}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -205,8 +205,8 @@ export function Navbar() {
         {isOpen && (
           <div className={`lg:hidden py-4 border-t animate-fade-in transition-all duration-300 ${
             isScrolled 
-              ? 'border-white/20 dark:border-gray-700/30 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg' 
-              : 'border-white/20 dark:border-gray-800/20 bg-black/20 dark:bg-gray-900/40 backdrop-blur-md'
+              ? 'border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-black/90 backdrop-blur-lg' 
+              : 'border-gray-200/30 dark:border-gray-700/30 bg-white/20 dark:bg-black/20 backdrop-blur-md'
           }`}>
             <div className="flex flex-col gap-2">
               {isAdmin ? (
@@ -219,7 +219,7 @@ export function Navbar() {
                     className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive(link.path)
                         ? "bg-primary/20 text-primary hover:bg-primary/25"
-                        : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/15 dark:hover:bg-gray-800/15"
+                        : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                     }`}
                   >
                     {link.name}
@@ -235,16 +235,16 @@ export function Navbar() {
                     className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive(link.path)
                         ? "bg-primary/20 text-primary hover:bg-primary/25"
-                        : "text-gray-800 dark:text-gray-200 hover:text-primary hover:bg-white/15 dark:hover:bg-gray-800/15"
+                        : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                     }`}
                   >
                     {link.name}
                   </Link>
                 ))
               )}
-              <div className="flex flex-col gap-2 pt-4 border-t border-white/20 dark:border-gray-800/20 mt-2">
+              <div className="flex flex-col gap-2 pt-4 border-t border-gray-200/30 dark:border-gray-700/30 mt-2">
                 <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-sm text-muted-foreground">Theme</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
                   <ThemeToggle />
                 </div>
                 {!isAdmin && (
