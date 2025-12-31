@@ -139,32 +139,20 @@ const glossary = [
 export default function ResourcesPage() {
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[30vh] flex items-center overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/70 to-gray-900/60 dark:from-gray-950/90 dark:via-gray-950/80 dark:to-gray-950/70 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1920')] bg-cover bg-center opacity-30 dark:opacity-20" />
-        </div>
-
-        {/* Decorative Shapes */}
-        <div className="absolute top-10 right-[10%] w-32 h-32 bg-primary/30 rounded-full blur-3xl z-0" />
-        <div className="absolute bottom-20 right-[20%] w-48 h-48 bg-primary/20 rounded-[40%] blur-2xl z-0" />
-
-        <div className="container mx-auto px-4 py-16 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
+      {/* Header Section */}
+      <section className="pt-24 pb-12 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
                 Knowledge Center
               </span>
             </div>
-
-            <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 leading-tight text-gradient-hero">
-              Resources & <span className="text-gradient-primary">Materials</span>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Resources & Materials
             </h1>
-
-            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Access our comprehensive collection of documents, policies, and
               educational materials on ethics and anti-corruption.
             </p>

@@ -67,18 +67,20 @@ export default function JoinPage() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-hero">
+      {/* Header Section */}
+      <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-6">
-              <Star className="w-4 h-4 text-gold" />
-              <span className="text-sm text-primary-foreground/80">Become a Member</span>
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+              <Star className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                Become a Member
+              </span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6 text-gradient-hero">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               Join Our Club
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Become an ambassador for integrity and help us build a more ethical 
               and transparent university community.
             </p>
