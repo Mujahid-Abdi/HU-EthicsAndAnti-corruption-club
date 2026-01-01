@@ -2,12 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { SystemSettingsProvider } from "@/hooks/useSystemSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VotingProtectedRoute } from "@/components/auth/VotingProtectedRoute";
+import { Button } from "@/components/ui/button";
+import { Home } from "lucide-react";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Achievements from "./pages/Achievements";
@@ -23,10 +25,29 @@ import VoteNew from "./pages/VoteNew";
 import SimpleVote from "./pages/SimpleVote";
 import TestVote from "./pages/TestVote";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function FloatingHomeButton() {
+  const location = useLocation();
+
+  if (location.pathname === "/") return null;
+
+  return (
+    <Link to="/" className="fixed bottom-6 left-6 z-50">
+      <Button
+        variant="glass"
+        size="icon"
+        className="rounded-full shadow-md hover:shadow-lg"
+        aria-label="Back to Home"
+        title="Back to Home"
+      >
+        <Home className="w-5 h-5" />
+      </Button>
+    </Link>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -42,6 +63,7 @@ const App = () => (
               v7_relativeSplatPath: true,
             }}
           >
+            <FloatingHomeButton />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
@@ -78,7 +100,7 @@ const App = () => (
                 path="/admin"
                 element={
                   <ProtectedRoute requireAdmin>
-                    <Admin />
+                    <Index />
                   </ProtectedRoute>
                 }
               />

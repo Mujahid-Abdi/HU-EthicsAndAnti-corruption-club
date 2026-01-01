@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,16 @@ export default function Auth() {
   
   const { user, signIn, signUp } = useAuth();
   const { isRegistrationEnabled, settings } = useSystemSettings();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const redirectTo = new URLSearchParams(location.search).get('redirectTo') || '/';
+
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>(() => {
+    const tab = new URLSearchParams(location.search).get('tab');
+    if (tab === 'signup' && isRegistrationEnabled) return 'signup';
+    return 'login';
+  });
 
   // Debug logging
   useEffect(() => {
@@ -46,9 +55,18 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(redirectTo);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTo]);
+
+  useEffect(() => {
+    const tab = new URLSearchParams(location.search).get('tab');
+    if (tab === 'signup' && isRegistrationEnabled) {
+      setActiveTab('signup');
+      return;
+    }
+    setActiveTab('login');
+  }, [location.search, isRegistrationEnabled]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +89,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Welcome back!');
-      navigate('/');
+      navigate(redirectTo);
     }
   };
 
@@ -102,7 +120,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Account created successfully!');
-      navigate('/');
+      navigate(redirectTo);
     }
   };
 
@@ -135,7 +153,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'signup')} className="w-full">
             <TabsList className={`grid w-full ${isRegistrationEnabled ? 'grid-cols-2' : 'grid-cols-1'} mb-6`}>
               <TabsTrigger value="login">Sign In</TabsTrigger>
               {isRegistrationEnabled && (

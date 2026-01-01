@@ -17,11 +17,10 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Lock,
-  Clock,
-  ArrowLeft
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface Election {
   id: string;
@@ -236,9 +235,31 @@ export default function VoteNew() {
     );
   }
 
-  // Redirect if not logged in
+  // Prompt if not logged in
   if (!authLoading && !user) {
-    return <Navigate to="/auth" replace />;
+    return (
+      <VoteLayout>
+        <div className="container mx-auto px-4 py-20">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center py-12">
+              <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Sign in required</h3>
+              <p className="text-muted-foreground mb-6">
+                Please sign in to access the voting page. You won&apos;t be able to vote without logging in.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => navigate('/auth?redirectTo=/vote')} className="rounded-full">
+                  Sign In
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/')} className="rounded-full">
+                  Back to Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </VoteLayout>
+    );
   }
 
   if (loading || authLoading) {

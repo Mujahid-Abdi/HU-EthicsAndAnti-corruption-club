@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useAuth } from "@/hooks/useAuth";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
 import {
   Shield,
   AlertTriangle,
@@ -23,9 +26,9 @@ import {
   FileText,
   Newspaper,
   UserCog,
-  UserCog,
   Vote,
   User,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import DashboardTab from '@/components/admin/DashboardTab';
@@ -65,13 +68,45 @@ const services = [
 ];
 
 export default function HomePage() {
-  const { isAdmin, isLoading } = useAuth();
+  const { isAdmin } = useAuth();
   const { isVotingEnabled } = useSystemSettings();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
   useScrollAnimation();
 
+  const [latestNews, setLatestNews] = useState<
+    {
+      id: string;
+      title: string;
+      excerpt: string | null;
+      image_url: string | null;
+      created_at: string | null;
+    }[]
+  >([]);
+  const [isLatestNewsLoading, setIsLatestNewsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestNews = async () => {
+      setIsLatestNewsLoading(true);
+      const { data, error } = await supabase
+        .from('news')
+        .select('id,title,excerpt,image_url,created_at')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (!error && data) {
+        setLatestNews(data);
+      }
+
+      setIsLatestNewsLoading(false);
+    };
+
+    fetchLatestNews();
+  }, []);
+
   // Show admin panel only for admins
-  if (isAdmin) {
+  if (isAdmin && location.pathname === "/admin") {
     const renderTabContent = () => {
       switch (activeTab) {
         case 'dashboard':
@@ -116,7 +151,7 @@ export default function HomePage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm scale-105" 
             style={{
               backgroundImage: "url('/ethics-hero.png'), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920')",
               backgroundSize: 'cover',
@@ -226,6 +261,84 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Latest News Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-12 scroll-fade-up">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                <Newspaper className="w-4 h-4 text-primary" />
+                <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                  Latest News
+                </span>
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+                Updates & Announcements
+              </h2>
+            </div>
+            <Link to="/news" className="shrink-0">
+              <Button variant="outline" className="gap-2">
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {isLatestNewsLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            </div>
+          ) : latestNews.length === 0 ? (
+            <Card className="max-w-md mx-auto">
+              <CardContent className="py-12 text-center">
+                <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No news yet. Check back soon.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {latestNews.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/news/${item.id}`}
+                  className="scroll-fade-up group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 border border-border"
+                >
+                  {item.image_url && (
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
+                  <div className={`p-6 ${!item.image_url ? 'pt-8' : ''}`}>
+                    {item.created_at && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                        <Calendar className="w-4 h-4" />
+                        {format(new Date(item.created_at), 'MMMM d, yyyy')}
+                      </div>
+                    )}
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                      {item.title}
+                    </h3>
+                    {item.excerpt && (
+                      <p className="text-muted-foreground line-clamp-3 mb-4">
+                        {item.excerpt}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                      Read More
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

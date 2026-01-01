@@ -18,7 +18,8 @@ const navLinks = [
 ];
 
 const adminNavLinks = [
-  { name: "Dashboard", path: "/" },
+  { name: "Home", path: "/" },
+  { name: "Admin", path: "/admin" },
 ];
 
 export function Navbar() {
@@ -28,6 +29,13 @@ export function Navbar() {
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
   const { isRegistrationEnabled, isVotingEnabled } = useSystemSettings();
+
+  const guestCta = (() => {
+    if (isRegistrationEnabled) {
+      return { to: "/auth?tab=signup", label: "Register" };
+    }
+    return { to: "/auth", label: "Sign In" };
+  })();
 
   // Handle scroll detection
   useEffect(() => {
@@ -176,15 +184,28 @@ export function Navbar() {
                 Sign Out
               </Button>
             ) : (
-              <Link to="/auth">
-                <Button
-                  variant="glass"
-                  size="default"
-                  className="gap-2 rounded-full"
-                >
-                  {isRegistrationEnabled ? "Join Us" : "Sign In"}
-                </Button>
-              </Link>
+              <>
+                {isVotingEnabled && (
+                  <Link to="/vote">
+                    <Button
+                      variant="glass"
+                      size="default"
+                      className="gap-2 rounded-full"
+                    >
+                      Vote Now
+                    </Button>
+                  </Link>
+                )}
+                <Link to={guestCta.to}>
+                  <Button
+                    variant={isVotingEnabled ? "outline" : "glass"}
+                    size="default"
+                    className="gap-2 rounded-full"
+                  >
+                    {guestCta.label}
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
 
@@ -268,11 +289,20 @@ export function Navbar() {
                     Sign Out
                   </Button>
                 ) : (
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button variant="glass" className="w-full gap-2">
-                      {isRegistrationEnabled ? "Join Us" : "Sign In"}
-                    </Button>
-                  </Link>
+                  <>
+                    {isVotingEnabled && (
+                      <Link to="/vote" onClick={() => setIsOpen(false)}>
+                        <Button variant="glass" className="w-full gap-2">
+                          Vote Now
+                        </Button>
+                      </Link>
+                    )}
+                    <Link to={guestCta.to} onClick={() => setIsOpen(false)}>
+                      <Button variant={isVotingEnabled ? "outline" : "glass"} className="w-full gap-2">
+                        {guestCta.label}
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

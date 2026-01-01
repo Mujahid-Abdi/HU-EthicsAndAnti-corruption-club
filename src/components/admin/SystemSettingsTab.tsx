@@ -26,9 +26,9 @@ interface SystemSettings {
   site_name: string;
   site_description: string;
   contact_email: string;
-  maintenance_mode: boolean;
-  registration_enabled: boolean;
-  voting_enabled: boolean;
+  maintenanceMode: boolean;
+  registrationEnabled: boolean;
+  votingEnabled: boolean;
   max_file_size: number;
   session_timeout: number;
 }
@@ -39,9 +39,9 @@ export default function SystemSettingsTab() {
     site_name: 'Haramaya University Ethics Club',
     site_description: 'Promoting integrity, transparency, and accountability',
     contact_email: 'ethics@haramaya.edu.et',
-    maintenance_mode: systemSettings.maintenance_mode,
-    registration_enabled: systemSettings.registration_enabled,
-    voting_enabled: systemSettings.voting_enabled,
+    maintenanceMode: systemSettings.maintenanceMode,
+    registrationEnabled: systemSettings.registrationEnabled,
+    votingEnabled: systemSettings.votingEnabled,
     max_file_size: 5,
     session_timeout: 30,
   });
@@ -50,22 +50,86 @@ export default function SystemSettingsTab() {
   useEffect(() => {
     setSettings(prev => ({
       ...prev,
-      maintenance_mode: systemSettings.maintenance_mode,
-      registration_enabled: systemSettings.registration_enabled,
-      voting_enabled: systemSettings.voting_enabled,
+      maintenanceMode: systemSettings.maintenanceMode,
+      registrationEnabled: systemSettings.registrationEnabled,
+      votingEnabled: systemSettings.votingEnabled,
     }));
   }, [systemSettings]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  const handleRegistrationToggle = async (checked: boolean) => {
+    if (checked && settings.votingEnabled) {
+      toast({
+        title: 'Cannot enable registration',
+        description: 'Disable voting first. Registration and voting cannot run at the same time.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSettings((prev) => ({
+      ...prev,
+      registrationEnabled: checked,
+    }));
+
+    try {
+      await updateSettings({ registrationEnabled: checked });
+      toast({
+        title: checked ? "Registration enabled" : "Registration disabled",
+        description: checked
+          ? "Users can now create new accounts."
+          : "Users can no longer create new accounts.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update registration",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVotingToggle = async (checked: boolean) => {
+    if (checked && settings.registrationEnabled) {
+      toast({
+        title: 'Cannot enable voting',
+        description: 'Disable registration first. Voting can start after registration is finished.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSettings((prev) => ({
+      ...prev,
+      votingEnabled: checked,
+    }));
+
+    try {
+      await updateSettings({ votingEnabled: checked });
+      toast({
+        title: checked ? "Voting enabled" : "Voting disabled",
+        description: checked
+          ? "Voting is now active."
+          : "Voting routes are now blocked.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update voting",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
       // Update system settings
-      updateSettings({
-        maintenance_mode: settings.maintenance_mode,
-        registration_enabled: settings.registration_enabled,
-        voting_enabled: settings.voting_enabled,
+      await updateSettings({
+        maintenanceMode: settings.maintenanceMode,
+        registrationEnabled: settings.registrationEnabled,
+        votingEnabled: settings.votingEnabled,
       });
       
       // Simulate API call
@@ -75,10 +139,10 @@ export default function SystemSettingsTab() {
         title: "Settings saved successfully",
         description: "System settings have been updated.",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "Error saving settings",
-        description: "Please try again later.",
+        description: (error as Error).message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -91,9 +155,9 @@ export default function SystemSettingsTab() {
       site_name: 'Haramaya University Ethics Club',
       site_description: 'Promoting integrity, transparency, and accountability',
       contact_email: 'ethics@haramaya.edu.et',
-      maintenance_mode: false,
-      registration_enabled: true,
-      voting_enabled: true,
+      maintenanceMode: false,
+      registrationEnabled: true,
+      votingEnabled: false,
       max_file_size: 5,
       session_timeout: 30,
     });
@@ -196,36 +260,24 @@ export default function SystemSettingsTab() {
                 <div className="space-y-1">
                   <Label>Registration Enabled</Label>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Allow new users to register accounts (disables voting)
+                    Allow new users to register accounts
                   </p>
                 </div>
                 <Switch
-                  checked={settings.registration_enabled}
-                  onCheckedChange={(checked) => {
-                    setSettings(prev => ({ 
-                      ...prev, 
-                      registration_enabled: checked,
-                      voting_enabled: checked ? false : prev.voting_enabled
-                    }));
-                  }}
+                  checked={settings.registrationEnabled}
+                  onCheckedChange={handleRegistrationToggle}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>Voting System</Label>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Enable voting functionality (disables registration)
+                    Enable voting functionality
                   </p>
                 </div>
                 <Switch
-                  checked={settings.voting_enabled}
-                  onCheckedChange={(checked) => {
-                    setSettings(prev => ({ 
-                      ...prev, 
-                      voting_enabled: checked,
-                      registration_enabled: checked ? false : prev.registration_enabled
-                    }));
-                  }}
+                  checked={settings.votingEnabled}
+                  onCheckedChange={handleVotingToggle}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -289,8 +341,8 @@ export default function SystemSettingsTab() {
                   </div>
                 </div>
                 <Switch
-                  checked={settings.maintenance_mode}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, maintenance_mode: checked }))}
+                  checked={settings.maintenanceMode}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, maintenanceMode: checked }))}
                 />
               </div>
               
