@@ -1,7 +1,9 @@
-import { Layout } from "@/components/layout/Layout";
+
 import { Button } from "@/components/ui/button";
 import { StickyEthicsPrinciples } from "@/components/layout/StickyEthicsPrinciples";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useState, useEffect } from "react";
+import { FirestoreService, Collections } from "@/lib/firestore";
 import {
   Shield,
   Target,
@@ -15,6 +17,19 @@ import {
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
+
+interface AboutContent {
+  id: string;
+  mission: string;
+  vision: string;
+  history: string;
+  values: string[];
+  pillars: Array<{
+    title: string;
+    description: string;
+    icon: string;
+  }>;
+}
 
 const pillars = [
   {
@@ -68,10 +83,37 @@ const leadership = [
 ];
 
 export default function AboutPage() {
+  const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useScrollAnimation();
 
+  useEffect(() => {
+    fetchAboutContent();
+  }, []);
+
+  const fetchAboutContent = async () => {
+    try {
+      const data = await FirestoreService.get(Collections.CONTENT, 'about-content');
+      if (data) {
+        setAboutContent(data as AboutContent);
+      }
+    } catch (error) {
+      console.error('Error fetching about content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use fetched content or fallback to default
+  const mission = aboutContent?.mission || 'To cultivate a culture of integrity by educating students about ethical conduct, advocating for transparent policies, providing secure channels for reporting concerns, and collaborating with all stakeholders to prevent and address corruption within our university.';
+  const vision = aboutContent?.vision || 'To establish Haramaya University as a beacon of ethical excellence in higher education, where integrity is the foundation of all academic, administrative, and social interactions, inspiring a generation of principled leaders committed to building a corruption-free society.';
+  const history = aboutContent?.history || 'The Haramaya University Ethics and Anti-Corruption Club was founded by a group of dedicated students who recognized the vital importance of ethical conduct in academic settings. Inspired by national and international efforts to combat corruption, the club was established to serve as a student-led initiative promoting integrity.';
+  const displayValues = aboutContent?.values || ['Integrity', 'Transparency', 'Accountability', 'Education'];
+  const displayPillars = aboutContent?.pillars || pillars;
+
   return (
-    <Layout>
+    <>
       {/* Vision & Mission */}
       <section id="mission" className="py-20 bg-background">
         <div className="container mx-auto px-4">
@@ -101,11 +143,7 @@ export default function AboutPage() {
                     Our Vision
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    To establish Haramaya University as a beacon of ethical
-                    excellence in higher education, where integrity is the
-                    foundation of all academic, administrative, and social
-                    interactions, inspiring a generation of principled leaders
-                    committed to building a corruption-free society.
+                    {vision}
                   </p>
                 </div>
 
@@ -117,11 +155,7 @@ export default function AboutPage() {
                     Our Mission
                   </h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    To cultivate a culture of integrity by educating students about
-                    ethical conduct, advocating for transparent policies, providing
-                    secure channels for reporting concerns, and collaborating with
-                    all stakeholders to prevent and address corruption within our
-                    university.
+                    {mission}
                   </p>
                 </div>
               </div>
@@ -158,12 +192,7 @@ export default function AboutPage() {
             </h2>
             <div className="prose prose-lg mx-auto text-muted-foreground">
               <p className="leading-relaxed mb-6">
-                The Haramaya University Ethics and Anti-Corruption Club was
-                founded by a group of dedicated students who recognized the
-                vital importance of ethical conduct in academic settings.
-                Inspired by national and international efforts to combat
-                corruption, the club was established to serve as a student-led
-                initiative promoting integrity.
+                {history}
               </p>
               <p className="leading-relaxed mb-6">
                 Our founding principles are rooted in the belief that education
@@ -198,22 +227,27 @@ export default function AboutPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pillars.map((pillar, index) => (
-              <div
-                key={index}
-                className="scroll-fade-up bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
-              >
-                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <pillar.icon className="w-8 h-8 text-primary" />
+            {displayPillars.map((pillar, index) => {
+              const IconComponent = pillar.icon === 'BookOpen' ? BookOpen : 
+                                   pillar.icon === 'Scale' ? Scale : 
+                                   pillar.icon === 'Users' ? Users : BookOpen;
+              return (
+                <div
+                  key={index}
+                  className="scroll-fade-up bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border group"
+                >
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <IconComponent className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-4">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {pillar.description}
+                  </p>
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-4">
-                  {pillar.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {pillar.description}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -228,19 +262,22 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {values.map((value, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                  <value.icon className="w-8 h-8 text-primary" />
+            {displayValues.map((valueName, index) => {
+              const value = values.find(v => v.title === valueName) || values[index % values.length];
+              return (
+                <div key={index} className="text-center group">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                    <value.icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-display font-semibold text-foreground mb-2">
+                    {valueName}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {value.description}
+                  </p>
                 </div>
-                <h3 className="font-display font-semibold text-foreground mb-2">
-                  {value.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {value.description}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -281,6 +318,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

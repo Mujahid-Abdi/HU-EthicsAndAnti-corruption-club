@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Newspaper, Database } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Newspaper, Database, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -142,7 +142,7 @@ interface NewsItem {
   content: string;
   image_url: string | null;
   published: boolean | null;
-  created_at: string | null;
+  created_at: any;
 }
 
 export default function NewsTab() {
@@ -151,6 +151,7 @@ export default function NewsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -167,15 +168,12 @@ export default function NewsTab() {
   }, []);
 
   const fetchNews = async () => {
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await FirestoreService.getAll(Collections.NEWS);
+      setNews(data as NewsItem[]);
+    } catch (error) {
+      console.error('Error fetching news:', error);
       toast.error('Failed to fetch news');
-    } else {
-      setNews(data || []);
     }
     setIsLoading(false);
   };
@@ -185,15 +183,14 @@ export default function NewsTab() {
     let successCount = 0;
     
     for (const article of sampleNewsArticles) {
-      const { error } = await supabase
-        .from('news')
-        .insert({
+      try {
+        await FirestoreService.create(Collections.NEWS, {
           ...article,
-          created_by: user?.id,
+          created_by: user?.uid,
         });
-      
-      if (!error) {
         successCount++;
+      } catch (error) {
+        console.error('Error seeding article:', error);
       }
     }
     
@@ -247,32 +244,27 @@ export default function NewsTab() {
       content: formData.content,
       image_url: formData.image_url || null,
       published: formData.published,
-      created_by: user?.id,
+      created_by: user?.uid,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
 
-    if (editingNews) {
-      const { error } = await supabase
-        .from('news')
-        .update(newsData)
-        .eq('id', editingNews.id);
-
-      if (error) {
-        toast.error('Failed to update news');
-      } else {
+    try {
+      if (editingNews) {
+        await FirestoreService.update(Collections.NEWS, editingNews.id, {
+          ...newsData,
+          updated_at: new Date(),
+        });
         toast.success('News updated successfully');
-        setIsDialogOpen(false);
-        fetchNews();
-      }
-    } else {
-      const { error } = await supabase.from('news').insert(newsData);
-
-      if (error) {
-        toast.error('Failed to create news');
       } else {
+        await FirestoreService.create(Collections.NEWS, newsData);
         toast.success('News created successfully');
-        setIsDialogOpen(false);
-        fetchNews();
       }
+      setIsDialogOpen(false);
+      fetchNews();
+    } catch (error) {
+      console.error('Error saving news:', error);
+      toast.error('Failed to save news');
     }
     setIsSaving(false);
   };
@@ -280,13 +272,13 @@ export default function NewsTab() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this news article?')) return;
 
-    const { error } = await supabase.from('news').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Failed to delete news');
-    } else {
+    try {
+      await FirestoreService.delete(Collections.NEWS, id);
       toast.success('News deleted successfully');
       fetchNews();
+    } catch (error) {
+      console.error('Error deleting news:', error);
+      toast.error('Failed to delete news');
     }
   };
 
@@ -329,6 +321,9 @@ export default function NewsTab() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingNews ? 'Edit Article' : 'Create Article'}</DialogTitle>
+            <DialogDescription>
+              {editingNews ? 'Update the news article details below.' : 'Create a new news article or announcement.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
@@ -359,12 +354,67 @@ export default function NewsTab() {
               />
             </div>
             <div>
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-              />
+              <Label htmlFor="image">Image</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={imageInputType === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputType('url')}
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={imageInputType === 'file' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputType('file')}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload File
+                  </Button>
+                </div>
+                
+                {imageInputType === 'url' ? (
+                  <Input
+                    id="image_url"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  />
+                ) : (
+                  <Input
+                    id="image_file"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setFormData({ ...formData, image_url: e.target?.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                )}
+                
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/400x200?text=Invalid+Image';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="published">Published</Label>
@@ -405,7 +455,7 @@ export default function NewsTab() {
                     <CardTitle className="text-lg">{item.title}</CardTitle>
                     {item.created_at && (
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(item.created_at), 'PPP')}
+                        {format(new Date(item.created_at.seconds * 1000), 'PPP')}
                       </p>
                     )}
                   </div>

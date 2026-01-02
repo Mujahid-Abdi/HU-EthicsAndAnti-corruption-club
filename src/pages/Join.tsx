@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,7 +65,7 @@ export default function JoinPage() {
   };
 
   return (
-    <Layout>
+    <>
       {/* Header Section */}
       <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
@@ -228,6 +227,6 @@ export default function JoinPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

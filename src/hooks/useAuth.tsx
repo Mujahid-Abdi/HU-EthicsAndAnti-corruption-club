@@ -79,18 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName: fullName,
       });
 
-      // Check if this is the first user (make them admin)
-      const usersSnapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
-      const isFirstUser = !usersSnapshot.exists();
-
-      // Create user profile in Firestore
+      // Create user profile in Firestore - always register as member
       const userProfile: Omit<User, 'id'> = {
         email,
         fullName,
         department: department || '',
         batch: batch || '',
         isApproved: true, // Auto-approve for now (change to false for production)
-        role: isFirstUser ? 'admin' : 'member',
+        role: 'member', // Always register new users as members
         createdAt: new Date() as any,
         updatedAt: new Date() as any,
       };

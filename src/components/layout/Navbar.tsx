@@ -13,7 +13,7 @@ const navLinks = [
   { name: "News", path: "/news" },
   { name: "Gallery", path: "/gallery" },
   { name: "Achievements", path: "/achievements" },
-  { name: "Programs", path: "/programs" },
+  { name: "Events", path: "/programs" },
   { name: "Contact", path: "/contact" },
 ];
 
@@ -61,7 +61,7 @@ export function Navbar() {
       { name: "News", path: "/news" },
       { name: "Gallery", path: "/gallery" },
       { name: "Achievements", path: "/achievements" },
-      { name: "Programs", path: "/programs" },
+      { name: "Events", path: "/programs" },
     ];
     
     // Add Vote link only if voting is enabled

@@ -7,21 +7,31 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { toast } from 'sonner';
 import { 
-  FileText, 
-  Calendar, 
-  Newspaper, 
-  BookOpen, 
-  Vote, 
-  Users, 
-  UserCog, 
-  User, 
-  Settings,
+  Shield,
+  FileText,
+  Calendar,
+  Newspaper,
+  BookOpen,
+  Scale,
+  Users,
+  Award,
+  Heart,
+  Lightbulb,
+  ArrowRight,
+  ChevronRight,
   Menu,
   X,
-  Shield,
   LogOut,
   Moon,
-  Sun
+  Sun,
+  Image,
+  Award as AwardIcon,
+  Settings,
+  UserCog,
+  User,
+  Vote,
+  Info,
+  Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -36,15 +46,18 @@ const adminNavItems = [
   { id: 'reports', label: 'Reports', icon: FileText },
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'news', label: 'News', icon: Newspaper },
+  { id: 'gallery', label: 'Gallery', icon: Image },
+  { id: 'achievements', label: 'Achievements', icon: Award },
   { id: 'resources', label: 'Resources', icon: BookOpen },
+  { id: 'about', label: 'About Page', icon: Info },
+  { id: 'contact', label: 'Contact Page', icon: Phone },
   { id: 'executives', label: 'Executives', icon: UserCog },
   { id: 'users', label: 'Users', icon: User },
   { id: 'settings', label: 'System Settings', icon: Settings },
 ];
 
 const votingNavItems = [
-  { id: 'elections', label: 'Elections', icon: Vote },
-  { id: 'candidates', label: 'Candidates', icon: Users },
+  { id: 'vote-management', label: 'Vote Management', icon: Vote },
 ];
 
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
@@ -56,9 +69,9 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
 
   // Combine navigation items based on voting system status
   const navigationItems = [
-    ...adminNavItems.slice(0, 5), // Dashboard through Resources
+    ...adminNavItems.slice(0, 7), // Dashboard through Resources
     ...(isVotingEnabled ? votingNavItems : []), // Elections and Candidates only if voting enabled
-    ...adminNavItems.slice(5), // Executives, Users, Settings
+    ...adminNavItems.slice(7), // Executives, Users, Settings
   ];
 
   const handleSignOut = async () => {

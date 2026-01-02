@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -75,7 +74,7 @@ export default function EventsPage() {
   };
 
   return (
-    <Layout>
+    <>
       {/* Header Section */}
       <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
@@ -235,6 +234,6 @@ export default function EventsPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

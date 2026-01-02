@@ -50,7 +50,7 @@ export class FirestoreService {
   }
 
   // Get a single document
-  static async getById(collectionName: string, id: string) {
+  static async get(collectionName: string, id: string) {
     try {
       const docRef = doc(db, collectionName, id);
       const docSnap = await getDoc(docRef);
@@ -62,6 +62,39 @@ export class FirestoreService {
       }
     } catch (error) {
       console.error('Error getting document:', error);
+      throw error;
+    }
+  }
+
+  // Get a single document (alias for backward compatibility)
+  static async getById(collectionName: string, id: string) {
+    return this.get(collectionName, id);
+  }
+
+  // Create or update a document with a specific ID
+  static async createOrUpdate(collectionName: string, id: string, data: any) {
+    try {
+      const docRef = doc(db, collectionName, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        // Update existing document
+        await updateDoc(docRef, {
+          ...data,
+          updatedAt: Timestamp.now(),
+        });
+      } else {
+        // Create new document with specific ID
+        await updateDoc(docRef, {
+          ...data,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        });
+      }
+      
+      return { id, ...data };
+    } catch (error) {
+      console.error('Error creating/updating document:', error);
       throw error;
     }
   }
@@ -118,8 +151,10 @@ export const Collections = {
   NEWS: 'news',
   GALLERY: 'gallery',
   RESOURCES: 'resources',
+  ACHIEVEMENTS: 'achievements',
   ELECTIONS: 'elections',
   CANDIDATES: 'candidates',
   VOTES: 'votes',
   EXECUTIVES: 'executives',
+  CONTENT: 'content',
 } as const;

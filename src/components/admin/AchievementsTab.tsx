@@ -10,35 +10,36 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Image as ImageIcon, Upload, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Award, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 
-interface GalleryItem {
+interface Achievement {
   id: string;
   title: string;
   description: string | null;
-  image_url: string;
+  image_url: string | null;
   category: string | null;
+  date_achieved: any;
   published: boolean | null;
   created_at: any;
 }
 
 const categories = [
-  'Events',
-  'Workshops',
-  'Campaigns',
-  'Meetings',
-  'Community Outreach',
   'Awards & Recognition',
+  'Community Impact',
+  'Academic Excellence',
+  'Leadership',
+  'Innovation',
+  'Partnership',
   'Other'
 ];
 
-export default function GalleryTab() {
-  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+export default function AchievementsTab() {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
+  const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
   const { user } = useAuth();
@@ -48,20 +49,21 @@ export default function GalleryTab() {
     description: '',
     image_url: '',
     category: '',
+    date_achieved: '',
     published: false,
   });
 
   useEffect(() => {
-    fetchGallery();
+    fetchAchievements();
   }, []);
 
-  const fetchGallery = async () => {
+  const fetchAchievements = async () => {
     try {
-      const data = await FirestoreService.getAll(Collections.GALLERY);
-      setGallery(data as GalleryItem[]);
+      const data = await FirestoreService.getAll(Collections.ACHIEVEMENTS);
+      setAchievements(data as Achievement[]);
     } catch (error) {
-      console.error('Error fetching gallery:', error);
-      toast.error('Failed to fetch gallery');
+      console.error('Error fetching achievements:', error);
+      toast.error('Failed to fetch achievements');
     }
     setIsLoading(false);
   };
@@ -72,9 +74,10 @@ export default function GalleryTab() {
       description: '',
       image_url: '',
       category: '',
+      date_achieved: '',
       published: false,
     });
-    setEditingItem(null);
+    setEditingAchievement(null);
   };
 
   const openCreateDialog = () => {
@@ -82,30 +85,32 @@ export default function GalleryTab() {
     setIsDialogOpen(true);
   };
 
-  const openEditDialog = (item: GalleryItem) => {
-    setEditingItem(item);
+  const openEditDialog = (achievement: Achievement) => {
+    setEditingAchievement(achievement);
     setFormData({
-      title: item.title,
-      description: item.description || '',
-      image_url: item.image_url,
-      category: item.category || '',
-      published: item.published || false,
+      title: achievement.title,
+      description: achievement.description || '',
+      image_url: achievement.image_url || '',
+      category: achievement.category || '',
+      date_achieved: achievement.date_achieved ? format(new Date(achievement.date_achieved.seconds * 1000), "yyyy-MM-dd") : '',
+      published: achievement.published || false,
     });
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.image_url) {
-      toast.error('Title and image URL are required');
+    if (!formData.title || !formData.date_achieved) {
+      toast.error('Title and date achieved are required');
       return;
     }
 
     setIsSaving(true);
-    const galleryData = {
+    const achievementData = {
       title: formData.title,
       description: formData.description || null,
-      image_url: formData.image_url,
+      image_url: formData.image_url || null,
       category: formData.category || null,
+      date_achieved: new Date(formData.date_achieved),
       published: formData.published,
       created_by: user?.uid,
       created_at: new Date(),
@@ -113,35 +118,35 @@ export default function GalleryTab() {
     };
 
     try {
-      if (editingItem) {
-        await FirestoreService.update(Collections.GALLERY, editingItem.id, {
-          ...galleryData,
+      if (editingAchievement) {
+        await FirestoreService.update(Collections.ACHIEVEMENTS, editingAchievement.id, {
+          ...achievementData,
           updated_at: new Date(),
         });
-        toast.success('Gallery item updated successfully');
+        toast.success('Achievement updated successfully');
       } else {
-        await FirestoreService.create(Collections.GALLERY, galleryData);
-        toast.success('Gallery item created successfully');
+        await FirestoreService.create(Collections.ACHIEVEMENTS, achievementData);
+        toast.success('Achievement created successfully');
       }
       setIsDialogOpen(false);
-      fetchGallery();
+      fetchAchievements();
     } catch (error) {
-      console.error('Error saving gallery item:', error);
-      toast.error('Failed to save gallery item');
+      console.error('Error saving achievement:', error);
+      toast.error('Failed to save achievement');
     }
     setIsSaving(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this gallery item?')) return;
+    if (!confirm('Are you sure you want to delete this achievement?')) return;
 
     try {
-      await FirestoreService.delete(Collections.GALLERY, id);
-      toast.success('Gallery item deleted successfully');
-      fetchGallery();
+      await FirestoreService.delete(Collections.ACHIEVEMENTS, id);
+      toast.success('Achievement deleted successfully');
+      fetchAchievements();
     } catch (error) {
-      console.error('Error deleting gallery item:', error);
-      toast.error('Failed to delete gallery item');
+      console.error('Error deleting achievement:', error);
+      toast.error('Failed to delete achievement');
     }
   };
 
@@ -156,19 +161,19 @@ export default function GalleryTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Gallery Management</h2>
+        <h2 className="text-xl font-semibold">Achievements Management</h2>
         <Button onClick={openCreateDialog}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Photo
+          Add Achievement
         </Button>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Photo' : 'Add Photo'}</DialogTitle>
+            <DialogTitle>{editingAchievement ? 'Edit Achievement' : 'Create Achievement'}</DialogTitle>
             <DialogDescription>
-              {editingItem ? 'Update the photo details below.' : 'Upload a new photo to the gallery.'}
+              {editingAchievement ? 'Update the achievement details below.' : 'Add a new achievement to showcase club accomplishments.'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -187,11 +192,10 @@ export default function GalleryTab() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                placeholder="Brief description of the photo"
               />
             </div>
             <div>
-              <Label htmlFor="image">Image *</Label>
+              <Label htmlFor="image">Image</Label>
               <div className="space-y-3">
                 <div className="flex gap-2">
                   <Button
@@ -244,9 +248,9 @@ export default function GalleryTab() {
                     <img 
                       src={formData.image_url} 
                       alt="Preview" 
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-32 object-cover rounded-lg"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL';
+                        e.currentTarget.src = 'https://via.placeholder.com/400x200?text=Invalid+Image';
                       }}
                     />
                   </div>
@@ -268,6 +272,15 @@ export default function GalleryTab() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="date_achieved">Date Achieved *</Label>
+              <Input
+                id="date_achieved"
+                type="date"
+                value={formData.date_achieved}
+                onChange={(e) => setFormData({ ...formData, date_achieved: e.target.value })}
+              />
+            </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="published">Published</Label>
               <Switch
@@ -283,63 +296,65 @@ export default function GalleryTab() {
                   Saving...
                 </>
               ) : (
-                'Save Photo'
+                'Save Achievement'
               )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {gallery.length === 0 ? (
+      {achievements.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No gallery items yet</p>
+            <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No achievements yet</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {gallery.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+          {achievements.map((achievement) => (
+            <Card key={achievement.id} className="overflow-hidden">
+              {achievement.image_url && (
+                <div className="aspect-video overflow-hidden">
+                  <img
+                    src={achievement.image_url}
+                    alt={achievement.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-base line-clamp-1">{item.title}</CardTitle>
-                    {item.category && (
+                    <CardTitle className="text-base line-clamp-1">{achievement.title}</CardTitle>
+                    {achievement.category && (
                       <Badge variant="outline" className="mt-1 text-xs">
-                        {item.category}
+                        {achievement.category}
                       </Badge>
                     )}
                   </div>
-                  <Badge variant={item.published ? 'default' : 'secondary'} className="ml-2">
-                    {item.published ? 'Published' : 'Draft'}
+                  <Badge variant={achievement.published ? 'default' : 'secondary'} className="ml-2">
+                    {achievement.published ? 'Published' : 'Draft'}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {item.description && (
+                {achievement.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {item.description}
+                    {achievement.description}
                   </p>
                 )}
-                {item.created_at && (
+                {achievement.date_achieved && (
                   <p className="text-xs text-muted-foreground mb-3">
-                    {format(new Date(item.created_at.seconds * 1000), 'PPP')}
+                    Achieved: {format(new Date(achievement.date_achieved.seconds * 1000), 'PPP')}
                   </p>
                 )}
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                  <Button variant="outline" size="sm" onClick={() => openEditDialog(achievement)}>
                     <Pencil className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(achievement.id)}>
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
                   </Button>

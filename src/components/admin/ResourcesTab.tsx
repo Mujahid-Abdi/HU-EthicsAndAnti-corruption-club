@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, BookOpen, Lock, Globe } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, BookOpen, Lock, Globe, Upload, Link as LinkIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Resource {
@@ -20,7 +20,7 @@ interface Resource {
   file_url: string | null;
   category: string | null;
   is_member_only: boolean | null;
-  created_at: string | null;
+  created_at: any;
 }
 
 const categories = [
@@ -38,6 +38,7 @@ export default function ResourcesTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [fileInputType, setFileInputType] = useState<'url' | 'file'>('url');
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -53,15 +54,12 @@ export default function ResourcesTab() {
   }, []);
 
   const fetchResources = async () => {
-    const { data, error } = await supabase
-      .from('resources')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await FirestoreService.getAll(Collections.RESOURCES);
+      setResources(data as Resource[]);
+    } catch (error) {
+      console.error('Error fetching resources:', error);
       toast.error('Failed to fetch resources');
-    } else {
-      setResources(data || []);
     }
     setIsLoading(false);
   };
@@ -107,32 +105,27 @@ export default function ResourcesTab() {
       file_url: formData.file_url || null,
       category: formData.category || null,
       is_member_only: formData.is_member_only,
-      created_by: user?.id,
+      created_by: user?.uid,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
 
-    if (editingResource) {
-      const { error } = await supabase
-        .from('resources')
-        .update(resourceData)
-        .eq('id', editingResource.id);
-
-      if (error) {
-        toast.error('Failed to update resource');
-      } else {
+    try {
+      if (editingResource) {
+        await FirestoreService.update(Collections.RESOURCES, editingResource.id, {
+          ...resourceData,
+          updated_at: new Date(),
+        });
         toast.success('Resource updated successfully');
-        setIsDialogOpen(false);
-        fetchResources();
-      }
-    } else {
-      const { error } = await supabase.from('resources').insert(resourceData);
-
-      if (error) {
-        toast.error('Failed to create resource');
       } else {
+        await FirestoreService.create(Collections.RESOURCES, resourceData);
         toast.success('Resource created successfully');
-        setIsDialogOpen(false);
-        fetchResources();
       }
+      setIsDialogOpen(false);
+      fetchResources();
+    } catch (error) {
+      console.error('Error saving resource:', error);
+      toast.error('Failed to save resource');
     }
     setIsSaving(false);
   };
@@ -140,13 +133,13 @@ export default function ResourcesTab() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this resource?')) return;
 
-    const { error } = await supabase.from('resources').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Failed to delete resource');
-    } else {
+    try {
+      await FirestoreService.delete(Collections.RESOURCES, id);
       toast.success('Resource deleted successfully');
       fetchResources();
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      toast.error('Failed to delete resource');
     }
   };
 
@@ -172,6 +165,9 @@ export default function ResourcesTab() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingResource ? 'Edit Resource' : 'Create Resource'}</DialogTitle>
+            <DialogDescription>
+              {editingResource ? 'Update the resource details below.' : 'Add a new resource document or link.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
@@ -192,13 +188,58 @@ export default function ResourcesTab() {
               />
             </div>
             <div>
-              <Label htmlFor="file_url">File URL</Label>
-              <Input
-                id="file_url"
-                value={formData.file_url}
-                onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
-                placeholder="https://..."
-              />
+              <Label htmlFor="file">File</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={fileInputType === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFileInputType('url')}
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={fileInputType === 'file' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFileInputType('file')}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload File
+                  </Button>
+                </div>
+                
+                {fileInputType === 'url' ? (
+                  <Input
+                    id="file_url"
+                    placeholder="https://example.com/document.pdf"
+                    value={formData.file_url}
+                    onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                  />
+                ) : (
+                  <Input
+                    id="file_upload"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // For now, we'll use the file name as a placeholder
+                        // In production, you'd upload to Firebase Storage
+                        setFormData({ ...formData, file_url: `uploaded_${file.name}` });
+                      }
+                    }}
+                  />
+                )}
+                
+                {formData.file_url && (
+                  <div className="mt-2 p-2 bg-muted rounded text-sm">
+                    File: {formData.file_url}
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="category">Category</Label>

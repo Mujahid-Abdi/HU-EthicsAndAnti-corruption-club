@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Calendar } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Calendar, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -17,13 +17,13 @@ interface Event {
   id: string;
   title: string;
   description: string | null;
-  event_date: string;
-  end_date: string | null;
+  event_date: any;
+  end_date: any;
   location: string | null;
   image_url: string | null;
   max_attendees: number | null;
   is_published: boolean | null;
-  created_at: string | null;
+  created_at: any;
 }
 
 export default function EventsTab() {
@@ -32,6 +32,7 @@ export default function EventsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -50,15 +51,12 @@ export default function EventsTab() {
   }, []);
 
   const fetchEvents = async () => {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('event_date', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await FirestoreService.getAll(Collections.EVENTS);
+      setEvents(data as Event[]);
+    } catch (error) {
+      console.error('Error fetching events:', error);
       toast.error('Failed to fetch events');
-    } else {
-      setEvents(data || []);
     }
     setIsLoading(false);
   };
@@ -87,8 +85,8 @@ export default function EventsTab() {
     setFormData({
       title: event.title,
       description: event.description || '',
-      event_date: event.event_date ? format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm") : '',
-      end_date: event.end_date ? format(new Date(event.end_date), "yyyy-MM-dd'T'HH:mm") : '',
+      event_date: event.event_date ? format(new Date(event.event_date.seconds * 1000), "yyyy-MM-dd'T'HH:mm") : '',
+      end_date: event.end_date ? format(new Date(event.end_date.seconds * 1000), "yyyy-MM-dd'T'HH:mm") : '',
       location: event.location || '',
       image_url: event.image_url || '',
       max_attendees: event.max_attendees?.toString() || '',
@@ -107,38 +105,33 @@ export default function EventsTab() {
     const eventData = {
       title: formData.title,
       description: formData.description || null,
-      event_date: new Date(formData.event_date).toISOString(),
-      end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+      event_date: new Date(formData.event_date),
+      end_date: formData.end_date ? new Date(formData.end_date) : null,
       location: formData.location || null,
       image_url: formData.image_url || null,
       max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
       is_published: formData.is_published,
-      created_by: user?.id,
+      created_by: user?.uid,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
 
-    if (editingEvent) {
-      const { error } = await supabase
-        .from('events')
-        .update(eventData)
-        .eq('id', editingEvent.id);
-
-      if (error) {
-        toast.error('Failed to update event');
-      } else {
+    try {
+      if (editingEvent) {
+        await FirestoreService.update(Collections.EVENTS, editingEvent.id, {
+          ...eventData,
+          updated_at: new Date(),
+        });
         toast.success('Event updated successfully');
-        setIsDialogOpen(false);
-        fetchEvents();
-      }
-    } else {
-      const { error } = await supabase.from('events').insert(eventData);
-
-      if (error) {
-        toast.error('Failed to create event');
       } else {
+        await FirestoreService.create(Collections.EVENTS, eventData);
         toast.success('Event created successfully');
-        setIsDialogOpen(false);
-        fetchEvents();
       }
+      setIsDialogOpen(false);
+      fetchEvents();
+    } catch (error) {
+      console.error('Error saving event:', error);
+      toast.error('Failed to save event');
     }
     setIsSaving(false);
   };
@@ -146,13 +139,13 @@ export default function EventsTab() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
 
-    const { error } = await supabase.from('events').delete().eq('id', id);
-
-    if (error) {
-      toast.error('Failed to delete event');
-    } else {
+    try {
+      await FirestoreService.delete(Collections.EVENTS, id);
       toast.success('Event deleted successfully');
       fetchEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
     }
   };
 
@@ -178,6 +171,9 @@ export default function EventsTab() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingEvent ? 'Edit Event' : 'Create Event'}</DialogTitle>
+            <DialogDescription>
+              {editingEvent ? 'Update the event details below.' : 'Fill in the details to create a new event.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
@@ -226,12 +222,69 @@ export default function EventsTab() {
               />
             </div>
             <div>
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-              />
+              <Label htmlFor="image">Image</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={imageInputType === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputType('url')}
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={imageInputType === 'file' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputType('file')}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload File
+                  </Button>
+                </div>
+                
+                {imageInputType === 'url' ? (
+                  <Input
+                    id="image_url"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  />
+                ) : (
+                  <Input
+                    id="image_file"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // For now, we'll convert to a data URL for preview
+                        // In production, you'd upload to Firebase Storage
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setFormData({ ...formData, image_url: e.target?.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                )}
+                
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/400x200?text=Invalid+Image';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="max_attendees">Max Attendees</Label>
@@ -280,7 +333,7 @@ export default function EventsTab() {
                   <div>
                     <CardTitle className="text-lg">{event.title}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(event.event_date), 'PPP p')}
+                      {event.event_date && format(new Date(event.event_date.seconds * 1000), 'PPP p')}
                     </p>
                   </div>
                   <Badge variant={event.is_published ? 'default' : 'secondary'}>

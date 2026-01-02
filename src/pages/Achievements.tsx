@@ -1,6 +1,7 @@
-import { Layout } from "@/components/layout/Layout";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { FirestoreService, Collections } from "@/lib/firestore";
 import {
   Award,
   Trophy,
@@ -14,70 +15,19 @@ import {
   Globe,
   ArrowRight,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
-const achievements = [
-  {
-    id: 1,
-    title: "National Ethics Excellence Award",
-    description: "Recognized by the Federal Ethics and Anti-Corruption Commission for outstanding contribution to promoting integrity in higher education.",
-    date: "December 2024",
-    category: "National Recognition",
-    icon: Trophy,
-    impact: "First university club to receive this prestigious award",
-    image: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800",
-  },
-  {
-    id: 2,
-    title: "Successfully Hosted First Annual Integrity Forum",
-    description: "Organized a comprehensive forum with over 300 participants including students, faculty, and external stakeholders.",
-    date: "November 2024",
-    category: "Event Success",
-    icon: Users,
-    impact: "300+ participants, 15 speakers, 5 workshops",
-    image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800",
-  },
-  {
-    id: 3,
-    title: "Partnership with National Anti-Corruption Body",
-    description: "Established formal collaboration with the Federal Ethics and Anti-Corruption Commission for enhanced educational programs.",
-    date: "October 2024",
-    category: "Strategic Partnership",
-    icon: Handshake,
-    impact: "Access to expert resources and training materials",
-    image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800",
-  },
-  {
-    id: 4,
-    title: "Ethics Training Program Launch",
-    description: "Developed and launched comprehensive ethics training curriculum for student leaders across all departments.",
-    date: "September 2024",
-    category: "Program Development",
-    icon: BookOpen,
-    impact: "50+ student leaders trained, 12 departments covered",
-    image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800",
-  },
-  {
-    id: 5,
-    title: "Student Leadership Conference Recognition",
-    description: "Received outstanding club award at the National Student Leadership Conference for innovative anti-corruption initiatives.",
-    date: "August 2024",
-    category: "Conference Award",
-    icon: Medal,
-    impact: "Recognized among 200+ student organizations nationwide",
-    image: "https://images.unsplash.com/photo-1559223607-b4d0555ae227?w=800",
-  },
-  {
-    id: 6,
-    title: "Campus-Wide Ethics Survey Success",
-    description: "Conducted comprehensive survey revealing 87% student support for stronger anti-corruption measures.",
-    date: "July 2024",
-    category: "Research Impact",
-    icon: Target,
-    impact: "1,200+ responses, influenced university policy changes",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
-  },
-];
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  category: string;
+  impact: string;
+  imageUrl?: string;
+  createdAt?: any;
+}
 
 const milestones = [
   { number: "500+", label: "Students Engaged", icon: Users },
@@ -108,10 +58,84 @@ const upcomingGoals = [
 ];
 
 export default function AchievementsPage() {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   useScrollAnimation();
 
+  useEffect(() => {
+    fetchAchievements();
+  }, []);
+
+  const fetchAchievements = async () => {
+    try {
+      const data = await FirestoreService.getAll(Collections.ACHIEVEMENTS);
+      const sortedAchievements = data
+        .sort((a: any, b: any) => {
+          const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.date || '');
+          const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.date || '');
+          return dateB.getTime() - dateA.getTime();
+        });
+      setAchievements(sortedAchievements as Achievement[]);
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fallback static achievements if no data from Firebase
+  const staticAchievements = achievements.length === 0 ? [
+    {
+      id: "1",
+      title: "National Ethics Excellence Award",
+      description: "Recognized by the Federal Ethics and Anti-Corruption Commission for outstanding contribution to promoting integrity in higher education.",
+      date: "December 2024",
+      category: "National Recognition",
+      impact: "First university club to receive this prestigious award",
+      imageUrl: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800",
+    },
+    {
+      id: "2",
+      title: "Successfully Hosted First Annual Integrity Forum",
+      description: "Organized a comprehensive forum with over 300 participants including students, faculty, and external stakeholders.",
+      date: "November 2024",
+      category: "Event Success",
+      impact: "300+ participants, 15 speakers, 5 workshops",
+      imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800",
+    },
+    {
+      id: "3",
+      title: "Partnership with National Anti-Corruption Body",
+      description: "Established formal collaboration with the Federal Ethics and Anti-Corruption Commission for enhanced educational programs.",
+      date: "October 2024",
+      category: "Strategic Partnership",
+      impact: "Access to expert resources and training materials",
+      imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800",
+    },
+  ] : achievements;
+
+  const getIconForCategory = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'national recognition':
+        return Trophy;
+      case 'event success':
+        return Users;
+      case 'strategic partnership':
+        return Handshake;
+      case 'program development':
+        return BookOpen;
+      case 'conference award':
+        return Medal;
+      case 'research impact':
+        return Target;
+      default:
+        return Award;
+    }
+  };
+
   return (
-    <Layout>
+    <>
       {/* Milestones Section */}
       <section className="pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4">
@@ -163,62 +187,71 @@ export default function AchievementsPage() {
             </p>
           </div>
 
-          <div className="max-w-6xl mx-auto space-y-8">
-            {achievements.map((achievement, index) => (
-              <div
-                key={achievement.id}
-                className={`scroll-fade-up grid lg:grid-cols-2 gap-8 items-center ${
-                  index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
-                }`}
-              >
-                {/* Image */}
-                <div className={`relative ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
-                  <div className="aspect-video rounded-xl overflow-hidden shadow-lg">
-                    <img
-                      src={achievement.image}
-                      alt={achievement.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="absolute top-4 left-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center">
-                      <achievement.icon className="w-6 h-6 text-white" />
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="max-w-6xl mx-auto space-y-8">
+              {staticAchievements.map((achievement, index) => {
+                const IconComponent = getIconForCategory(achievement.category);
+                return (
+                  <div
+                    key={achievement.id}
+                    className={`scroll-fade-up grid lg:grid-cols-2 gap-8 items-center ${
+                      index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
+                    }`}
+                  >
+                    {/* Image */}
+                    <div className={`relative ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
+                      <div className="aspect-video rounded-xl overflow-hidden shadow-lg">
+                        <img
+                          src={achievement.imageUrl || "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800"}
+                          alt={achievement.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute top-4 left-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center">
+                          <IconComponent className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Content */}
-                <div className={`${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                      {achievement.category}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {achievement.date}
-                    </span>
-                  </div>
-                  
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-4">
-                    {achievement.title}
-                  </h3>
-                  
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    {achievement.description}
-                  </p>
-                  
-                  <div className="bg-card rounded-lg p-4 border border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Impact</span>
+                    {/* Content */}
+                    <div className={`${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                          {achievement.category}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {achievement.date}
+                        </span>
+                      </div>
+                      
+                      <h3 className="font-display text-2xl font-bold text-foreground mb-4">
+                        {achievement.title}
+                      </h3>
+                      
+                      <p className="text-muted-foreground leading-relaxed mb-4">
+                        {achievement.description}
+                      </p>
+                      
+                      <div className="bg-card rounded-lg p-4 border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">Impact</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {achievement.impact}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {achievement.impact}
-                    </p>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -311,6 +344,6 @@ export default function AchievementsPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

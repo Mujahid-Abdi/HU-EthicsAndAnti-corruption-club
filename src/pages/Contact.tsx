@@ -1,4 +1,3 @@
-import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +15,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { FirestoreService, Collections } from "@/lib/firestore";
 
 const officeHours = [
   { day: "Monday - Friday", hours: "8:00 AM - 5:00 PM" },
@@ -26,13 +25,14 @@ const officeHours = [
 
 interface ExecutiveMember {
   id: string;
-  full_name: string;
+  fullName: string;
   position: string;
   email: string | null;
   phone: string | null;
   bio: string | null;
-  image_url: string | null;
-  display_order: number;
+  imageUrl: string | null;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 const Contact = () => {
@@ -43,52 +43,27 @@ const Contact = () => {
     subject: "",
     message: "",
   });
-  const [executives, setExecutives] = useState<ExecutiveMember[]>([
-    {
-      id: '1',
-      full_name: 'Sarah Johnson',
-      position: 'President',
-      email: 'sarah.johnson@haramaya.edu.et',
-      phone: '+251-911-123456',
-      bio: 'Dedicated to promoting ethics and transparency in our university community.',
-      image_url: null,
-      display_order: 1,
-    },
-    {
-      id: '2',
-      full_name: 'Michael Chen',
-      position: 'Vice President',
-      email: 'michael.chen@haramaya.edu.et',
-      phone: '+251-911-234567',
-      bio: 'Passionate about student rights and anti-corruption initiatives.',
-      image_url: null,
-      display_order: 2,
-    },
-    {
-      id: '3',
-      full_name: 'Aisha Mohammed',
-      position: 'Secretary',
-      email: 'aisha.mohammed@haramaya.edu.et',
-      phone: '+251-911-345678',
-      bio: 'Committed to maintaining accurate records and transparent communication.',
-      image_url: null,
-      display_order: 3,
-    }
-  ]);
+  const [executives, setExecutives] = useState<ExecutiveMember[]>([]);
 
   useEffect(() => {
     fetchExecutives();
   }, []);
 
   const fetchExecutives = async () => {
-    const { data } = await supabase
-      .from('executive_members')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
-    
-    if (data) {
-      setExecutives(data);
+    try {
+      const data = await FirestoreService.getAll(Collections.EXECUTIVES, [
+        // Add any filters if needed, e.g., where('isActive', '==', true)
+      ]);
+      
+      if (data) {
+        // Sort by display order
+        const sortedData = (data as ExecutiveMember[])
+          .filter(exec => exec.isActive !== false)
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        setExecutives(sortedData);
+      }
+    } catch (error) {
+      console.error('Error fetching executives:', error);
     }
   };
 
@@ -109,7 +84,7 @@ const Contact = () => {
   };
 
   return (
-    <Layout>
+    <>
       {/* Header Section */}
       <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
@@ -372,10 +347,10 @@ const Contact = () => {
                 className="bg-card rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border text-center"
               >
                 <div className="mb-4">
-                  {member.image_url ? (
+                  {member.imageUrl ? (
                     <img
-                      src={member.image_url}
-                      alt={member.full_name}
+                      src={member.imageUrl}
+                      alt={member.fullName}
                       className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-primary/10"
                     />
                   ) : (
@@ -385,7 +360,7 @@ const Contact = () => {
                   )}
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                  {member.full_name}
+                  {member.fullName}
                 </h3>
                 <p className="text-sm text-primary font-medium mb-3">
                   {member.position}
@@ -429,7 +404,7 @@ const Contact = () => {
           )}
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

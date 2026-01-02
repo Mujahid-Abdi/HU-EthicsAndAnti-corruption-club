@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,16 +54,16 @@ export default function Gallery() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <>
         <div className="min-h-[60vh] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
+    <>
       {/* Gallery Section */}
       <section className="pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4">
@@ -182,6 +181,6 @@ export default function Gallery() {
           )}
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 }

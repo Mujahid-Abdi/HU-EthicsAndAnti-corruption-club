@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Eye, Loader2, AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,14 +14,14 @@ interface Report {
   id: string;
   report_type: string;
   description: string;
-  incident_date: string | null;
+  incident_date: any | null;
   location: string | null;
   contact_method: string | null;
   contact_info: string | null;
   evidence_urls: string[] | null;
   status: string;
   internal_notes: string | null;
-  created_at: string;
+  created_at: any;
 }
 
 const statusColors: Record<string, string> = {
@@ -51,15 +51,12 @@ export default function ReportsTab() {
   }, []);
 
   const fetchReports = async () => {
-    const { data, error } = await supabase
-      .from('anonymous_reports')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await FirestoreService.getAll(Collections.REPORTS);
+      setReports(data as Report[]);
+    } catch (error) {
+      console.error('Error fetching reports:', error);
       toast.error('Failed to fetch reports');
-    } else {
-      setReports(data || []);
     }
     setIsLoading(false);
   };
@@ -68,21 +65,18 @@ export default function ReportsTab() {
     if (!selectedReport) return;
     setIsUpdating(true);
 
-    const { error } = await supabase
-      .from('anonymous_reports')
-      .update({
+    try {
+      await FirestoreService.update(Collections.REPORTS, selectedReport.id, {
         status: newStatus || selectedReport.status,
         internal_notes: internalNotes,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', selectedReport.id);
-
-    if (error) {
-      toast.error('Failed to update report');
-    } else {
+        reviewed_at: new Date(),
+      });
       toast.success('Report updated successfully');
       fetchReports();
       setSelectedReport(null);
+    } catch (error) {
+      console.error('Error updating report:', error);
+      toast.error('Failed to update report');
     }
     setIsUpdating(false);
   };
@@ -157,6 +151,9 @@ export default function ReportsTab() {
                       <DialogTitle className="capitalize">
                         {report.report_type.replace('_', ' ')} Report
                       </DialogTitle>
+                      <DialogDescription>
+                        View detailed information about this anonymous report.
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                       <div>

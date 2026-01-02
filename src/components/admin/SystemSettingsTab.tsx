@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { FirestoreService, Collections } from '@/lib/firestore';
+import { User as UserType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Settings, 
   Database, 
@@ -18,9 +22,12 @@ import {
   Save,
   RefreshCw,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  UserCog,
+  Search
 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+import UsersTab from './UsersTab';
 
 interface SystemSettings {
   site_name: string;
@@ -35,6 +42,8 @@ interface SystemSettings {
 
 export default function SystemSettingsTab() {
   const { settings: systemSettings, updateSettings } = useSystemSettings();
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [settings, setSettings] = useState<SystemSettings>({
     site_name: 'Haramaya University Ethics Club',
     site_description: 'Promoting integrity, transparency, and accountability',
@@ -55,16 +64,10 @@ export default function SystemSettingsTab() {
       votingEnabled: systemSettings.votingEnabled,
     }));
   }, [systemSettings]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const handleRegistrationToggle = async (checked: boolean) => {
     if (checked && settings.votingEnabled) {
-      toast({
-        title: 'Cannot enable registration',
-        description: 'Disable voting first. Registration and voting cannot run at the same time.',
-        variant: 'destructive',
-      });
+      toast.error('Cannot enable registration. Disable voting first. Registration and voting cannot run at the same time.');
       return;
     }
 
@@ -75,28 +78,15 @@ export default function SystemSettingsTab() {
 
     try {
       await updateSettings({ registrationEnabled: checked });
-      toast({
-        title: checked ? "Registration enabled" : "Registration disabled",
-        description: checked
-          ? "Users can now create new accounts."
-          : "Users can no longer create new accounts.",
-      });
+      toast.success(checked ? "Registration enabled. Users can now create new accounts." : "Registration disabled. Users can no longer create new accounts.");
     } catch (error: any) {
-      toast({
-        title: "Failed to update registration",
-        description: error?.message || "Please try again.",
-        variant: "destructive",
-      });
+      toast.error(`Failed to update registration: ${error?.message || "Please try again."}`);
     }
   };
 
   const handleVotingToggle = async (checked: boolean) => {
     if (checked && settings.registrationEnabled) {
-      toast({
-        title: 'Cannot enable voting',
-        description: 'Disable registration first. Voting can start after registration is finished.',
-        variant: 'destructive',
-      });
+      toast.error('Cannot enable voting. Disable registration first. Voting can start after registration is finished.');
       return;
     }
 
@@ -107,18 +97,9 @@ export default function SystemSettingsTab() {
 
     try {
       await updateSettings({ votingEnabled: checked });
-      toast({
-        title: checked ? "Voting enabled" : "Voting disabled",
-        description: checked
-          ? "Voting is now active."
-          : "Voting routes are now blocked.",
-      });
+      toast.success(checked ? "Voting enabled. Voting is now active." : "Voting disabled. Voting routes are now blocked.");
     } catch (error: any) {
-      toast({
-        title: "Failed to update voting",
-        description: error?.message || "Please try again.",
-        variant: "destructive",
-      });
+      toast.error(`Failed to update voting: ${error?.message || "Please try again."}`);
     }
   };
 
@@ -135,16 +116,9 @@ export default function SystemSettingsTab() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setLastSaved(new Date());
-      toast({
-        title: "Settings saved successfully",
-        description: "System settings have been updated.",
-      });
+      toast.success("Settings saved successfully. System settings have been updated.");
     } catch (error: unknown) {
-      toast({
-        title: "Error saving settings",
-        description: (error as Error).message || "Please try again later.",
-        variant: "destructive",
-      });
+      toast.error(`Error saving settings: ${(error as Error).message || "Please try again later."}`);
     } finally {
       setIsLoading(false);
     }
@@ -161,10 +135,7 @@ export default function SystemSettingsTab() {
       max_file_size: 5,
       session_timeout: 30,
     });
-    toast({
-      title: "Settings reset",
-      description: "All settings have been reset to defaults.",
-    });
+    toast.success("Settings reset. All settings have been reset to defaults.");
   };
 
   return (
@@ -187,7 +158,7 @@ export default function SystemSettingsTab() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="w-4 h-4" />
             General
@@ -195,6 +166,10 @@ export default function SystemSettingsTab() {
           <TabsTrigger value="security" className="gap-2">
             <Shield className="w-4 h-4" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="users" className="gap-2">
+            <UserCog className="w-4 h-4" />
+            Admin Roles
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
@@ -302,6 +277,10 @@ export default function SystemSettingsTab() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          <UsersTab adminOnly={true} />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -210,7 +209,7 @@ export default function VoteComplete() {
   // Check if voting is disabled
   if (!votingEnabled || !electionOpen) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-20">
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center py-12">

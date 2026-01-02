@@ -1,106 +1,83 @@
 import { useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, FileText, Calendar, Newspaper, BookOpen, Users, UserCog, Vote, User, Image } from 'lucide-react';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
 import GalleryTab from '@/components/admin/GalleryTab';
+import AchievementsTab from '@/components/admin/AchievementsTab';
 import ResourcesTab from '@/components/admin/ResourcesTab';
+import AboutTab from '@/components/admin/AboutTab';
+import ContactTab from '@/components/admin/ContactTab';
 import UsersTab from '@/components/admin/UsersTab';
 import ExecutivesTab from '@/components/admin/ExecutivesTab';
-import ElectionsTab from '@/components/admin/ElectionsTab';
-import CandidatesTab from '@/components/admin/CandidatesTab';
+import VoteManagementTab from '@/components/admin/VoteManagementTab';
+import ContentManagementTab from '@/components/admin/ContentManagementTab';
+import SystemSettingsTab from '@/components/admin/SystemSettingsTab';
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState('reports');
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Total Reports</h3>
+                <p className="text-3xl font-bold text-primary">24</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">+3 this week</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Active Events</h3>
+                <p className="text-3xl font-bold text-primary">8</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">2 upcoming</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">News Articles</h3>
+                <p className="text-3xl font-bold text-primary">15</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">5 published</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Total Users</h3>
+                <p className="text-3xl font-bold text-primary">156</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">+12 this month</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'reports':
+        return <ReportsTab />;
+      case 'events':
+        return <EventsTab />;
+      case 'news':
+        return <NewsTab />;
+      case 'gallery':
+        return <GalleryTab />;
+      case 'achievements':
+        return <AchievementsTab />;
+      case 'resources':
+        return <ResourcesTab />;
+      case 'about':
+        return <AboutTab />;
+      case 'contact':
+        return <ContactTab />;
+      case 'vote-management':
+        return <VoteManagementTab />;
+      case 'executives':
+        return <ExecutivesTab />;
+      case 'users':
+        return <UsersTab />;
+      case 'settings':
+        return <SystemSettingsTab />;
+      default:
+        return <ReportsTab />;
+    }
+  };
 
   return (
-    <Layout>
-      <div className="bg-gradient-hero py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-8 w-8 text-gold" />
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-primary-foreground">
-              Admin Dashboard
-            </h1>
-          </div>
-          <p className="text-primary-foreground/80">
-            Manage reports, events, news, gallery, resources, elections, candidates, executives, and users
-          </p>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Reports</span>
-            </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Events</span>
-            </TabsTrigger>
-            <TabsTrigger value="news" className="flex items-center gap-2">
-              <Newspaper className="h-4 w-4" />
-              <span className="hidden sm:inline">News</span>
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              <span className="hidden sm:inline">Gallery</span>
-            </TabsTrigger>
-            <TabsTrigger value="resources" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Resources</span>
-            </TabsTrigger>
-            <TabsTrigger value="elections" className="flex items-center gap-2">
-              <Vote className="h-4 w-4" />
-              <span className="hidden sm:inline">Elections</span>
-            </TabsTrigger>
-            <TabsTrigger value="candidates" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Candidates</span>
-            </TabsTrigger>
-            <TabsTrigger value="executives" className="flex items-center gap-2">
-              <UserCog className="h-4 w-4" />
-              <span className="hidden sm:inline">Executives</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="reports">
-            <ReportsTab />
-          </TabsContent>
-          <TabsContent value="events">
-            <EventsTab />
-          </TabsContent>
-          <TabsContent value="news">
-            <NewsTab />
-          </TabsContent>
-          <TabsContent value="gallery">
-            <GalleryTab />
-          </TabsContent>
-          <TabsContent value="resources">
-            <ResourcesTab />
-          </TabsContent>
-          <TabsContent value="elections">
-            <ElectionsTab />
-          </TabsContent>
-          <TabsContent value="candidates">
-            <CandidatesTab />
-          </TabsContent>
-          <TabsContent value="executives">
-            <ExecutivesTab />
-          </TabsContent>
-          <TabsContent value="users">
-            <UsersTab />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </Layout>
+    <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderTabContent()}
+    </AdminLayout>
   );
 }

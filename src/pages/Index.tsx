@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Layout } from "@/components/layout/Layout";
+
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { useAuth } from "@/hooks/useAuth";
-import { useSystemSettings } from "@/hooks/useSystemSettings";
-import { supabase } from "@/integrations/supabase/client";
+import { FirestoreService, Collections } from "@/lib/firestore";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import {
@@ -23,25 +21,8 @@ import {
   Phone,
   CheckCircle2,
   Trophy,
-  FileText,
-  Newspaper,
-  UserCog,
-  Vote,
-  User,
   Loader2,
 } from "lucide-react";
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import DashboardTab from '@/components/admin/DashboardTab';
-import ReportsTab from '@/components/admin/ReportsTab';
-import EventsTab from '@/components/admin/EventsTab';
-import NewsTab from '@/components/admin/NewsTab';
-import GalleryTab from '@/components/admin/GalleryTab';
-import ResourcesTab from '@/components/admin/ResourcesTab';
-import UsersTab from '@/components/admin/UsersTab';
-import ExecutivesTab from '@/components/admin/ExecutivesTab';
-import ElectionsTab from '@/components/admin/ElectionsTab';
-import CandidatesTab from '@/components/admin/CandidatesTab';
-import SystemSettingsTab from '@/components/admin/SystemSettingsTab';
 
 const services = [
   {
@@ -68,10 +49,6 @@ const services = [
 ];
 
 export default function HomePage() {
-  const { isAdmin } = useAuth();
-  const { isVotingEnabled } = useSystemSettings();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const location = useLocation();
   useScrollAnimation();
 
   const [latestNews, setLatestNews] = useState<
@@ -79,8 +56,8 @@ export default function HomePage() {
       id: string;
       title: string;
       excerpt: string | null;
-      image_url: string | null;
-      created_at: string | null;
+      imageUrl: string | null;
+      createdAt: any;
     }[]
   >([]);
   const [isLatestNewsLoading, setIsLatestNewsLoading] = useState(true);
@@ -88,64 +65,30 @@ export default function HomePage() {
   useEffect(() => {
     const fetchLatestNews = async () => {
       setIsLatestNewsLoading(true);
-      const { data, error } = await supabase
-        .from('news')
-        .select('id,title,excerpt,image_url,created_at')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(3);
+      try {
+        const data = await FirestoreService.getAll(Collections.NEWS);
+        const publishedNews = data
+          .filter((item: any) => item.published)
+          .sort((a: any, b: any) => {
+            const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+            const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, 3);
 
-      if (!error && data) {
-        setLatestNews(data);
+        setLatestNews(publishedNews);
+      } catch (error) {
+        console.error('Error fetching news:', error);
       }
-
       setIsLatestNewsLoading(false);
     };
 
     fetchLatestNews();
   }, []);
 
-  // Show admin panel only for admins
-  if (isAdmin && location.pathname === "/admin") {
-    const renderTabContent = () => {
-      switch (activeTab) {
-        case 'dashboard':
-          return <DashboardTab />;
-        case 'reports':
-          return <ReportsTab />;
-        case 'events':
-          return <EventsTab />;
-        case 'news':
-          return <NewsTab />;
-        case 'gallery':
-          return <GalleryTab />;
-        case 'resources':
-          return <ResourcesTab />;
-        case 'elections':
-          return isVotingEnabled ? <ElectionsTab /> : <DashboardTab />;
-        case 'candidates':
-          return isVotingEnabled ? <CandidatesTab /> : <DashboardTab />;
-        case 'executives':
-          return <ExecutivesTab />;
-        case 'users':
-          return <UsersTab />;
-        case 'settings':
-          return <SystemSettingsTab />;
-        default:
-          return <DashboardTab />;
-      }
-    };
-
-    return (
-      <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
-        {renderTabContent()}
-      </AdminLayout>
-    );
-  }
-
-  // Show regular homepage for non-admin users
+  // Show regular homepage
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         {/* Background Image */}
@@ -306,20 +249,20 @@ export default function HomePage() {
                   to={`/news/${item.id}`}
                   className="scroll-fade-up group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 border border-border"
                 >
-                  {item.image_url && (
+                  {item.imageUrl && (
                     <div className="aspect-video overflow-hidden">
                       <img
-                        src={item.image_url}
+                        src={item.imageUrl}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   )}
-                  <div className={`p-6 ${!item.image_url ? 'pt-8' : ''}`}>
-                    {item.created_at && (
+                  <div className={`p-6 ${!item.imageUrl ? 'pt-8' : ''}`}>
+                    {item.createdAt && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                         <Calendar className="w-4 h-4" />
-                        {format(new Date(item.created_at), 'MMMM d, yyyy')}
+                        {format(new Date(item.createdAt.seconds * 1000), 'MMMM d, yyyy')}
                       </div>
                     )}
                     <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
@@ -608,6 +551,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, Calendar, ArrowLeft, Newspaper } from 'lucide-react';
@@ -47,17 +46,17 @@ export default function NewsDetail() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <>
         <div className="min-h-[60vh] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (notFound || !article) {
     return (
-      <Layout>
+      <>
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center">
             <Newspaper className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -73,12 +72,12 @@ export default function NewsDetail() {
             </Link>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
+    <>
       <article className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           {/* Back Button */}
@@ -146,6 +145,6 @@ export default function NewsDetail() {
           </div>
         </div>
       </article>
-    </Layout>
+    </>
   );
 }

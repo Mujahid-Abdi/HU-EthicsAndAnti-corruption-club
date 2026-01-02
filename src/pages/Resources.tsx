@@ -1,4 +1,3 @@
-import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
@@ -138,7 +137,7 @@ const glossary = [
 
 export default function ResourcesPage() {
   return (
-    <Layout>
+    <>
       {/* Header Section */}
       <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
@@ -268,6 +267,6 @@ export default function ResourcesPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

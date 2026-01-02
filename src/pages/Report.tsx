@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ReportForm } from "@/components/report/ReportForm";
 import {
@@ -74,7 +73,7 @@ const faqs = [
 
 export default function ReportPage() {
   return (
-    <Layout>
+    <>
       {/* Header Section */}
       <section className="pt-24 pb-12 bg-background">
         <div className="container mx-auto px-4">
@@ -276,6 +275,6 @@ export default function ReportPage() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

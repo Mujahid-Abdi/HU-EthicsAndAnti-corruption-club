@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useAuth } from '@/hooks/useAuth';
 import { FirestoreService, Collections } from '@/lib/firestore';
@@ -53,13 +54,21 @@ interface VoteForm {
 
 export default function VotePage() {
   const { user, isLoading: authLoading } = useAuth();
+  const { isVotingEnabled } = useSystemSettings();
   const [election, setElection] = useState<Election | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  console.log('🔍 Vote Page State:', { user: !!user, authLoading, loading, election: !!election, candidatesCount: candidates.length });
+  console.log('🔍 Vote Page State:', { 
+    user: !!user, 
+    authLoading, 
+    loading, 
+    election: !!election, 
+    candidatesCount: candidates.length,
+    isVotingEnabled 
+  });
   const [voteForm, setVoteForm] = useState<VoteForm>({
     voterFullName: '',
     voterStudentId: '',
@@ -253,13 +262,32 @@ export default function VotePage() {
       </section>
 
       <div className="container mx-auto px-4 py-12">
-        {!election ? (
+        {!isVotingEnabled ? (
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="text-center py-12">
+              <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Voting System Closed</h3>
+              <p className="text-muted-foreground mb-4">
+                The voting system is currently closed. To enable voting:
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 text-left max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground">
+                  <strong>For Admins:</strong><br />
+                  1. Go to Admin Panel → Settings<br />
+                  2. Enable "Voting System" toggle<br />
+                  3. Create elections in Vote Management<br />
+                  4. Add candidates to elections
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : !election ? (
           <Card className="max-w-2xl mx-auto">
             <CardContent className="text-center py-12">
               <Clock className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-semibold text-foreground mb-2">No Active Election</h3>
               <p className="text-muted-foreground">
-                There are currently no open elections. Check back later or contact the admin for more information.
+                The voting system is open but there are currently no active elections. Contact the admin for more information.
               </p>
             </CardContent>
           </Card>

@@ -5,19 +5,73 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Loader2, Users, CheckCircle, XCircle, Shield, User } from 'lucide-react';
+import { Loader2, Users, CheckCircle, XCircle, Shield, User, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function UsersTab() {
+export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean }) {
   const [users, setUsers] = useState<UserType[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUsers, setUpdatingUsers] = useState<Set<string>>(new Set());
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('all');
+  const [filterBatch, setFilterBatch] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // Get unique departments and batches for filter options
+  const departments = Array.from(new Set(users.map(user => user.department).filter(Boolean)));
+  const batches = Array.from(new Set(users.map(user => user.batch).filter(Boolean)));
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Filter users based on search and filter criteria
+  useEffect(() => {
+    let filtered = users;
+
+    // Filter by admin role if adminOnly is true
+    if (adminOnly) {
+      filtered = filtered.filter(user => user.role === 'admin');
+    }
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.batch?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Department filter
+    if (filterDepartment !== 'all') {
+      filtered = filtered.filter(user => user.department === filterDepartment);
+    }
+
+    // Batch filter
+    if (filterBatch !== 'all') {
+      filtered = filtered.filter(user => user.batch === filterBatch);
+    }
+
+    // Status filter
+    if (filterStatus !== 'all') {
+      if (filterStatus === 'approved') {
+        filtered = filtered.filter(user => user.isApproved);
+      } else if (filterStatus === 'pending') {
+        filtered = filtered.filter(user => !user.isApproved);
+      }
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, filterDepartment, filterBatch, filterStatus, adminOnly]);
 
   const fetchUsers = async () => {
     try {
@@ -56,30 +110,7 @@ export default function UsersTab() {
     }
   };
 
-  const handleAdminToggle = async (userId: string, currentRole: string) => {
-    setUpdatingUsers((prev) => new Set(prev).add(userId));
-
-    try {
-      const newRole = currentRole === 'admin' ? 'member' : 'admin';
-      await FirestoreService.update(Collections.USERS, userId, {
-        role: newRole
-      });
-      
-      toast.success(`User role updated to ${newRole}`);
-      setUsers((prev) =>
-        prev.map((user) => (user.id === userId ? { ...user, role: newRole } : user))
-      );
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      toast.error('Failed to update user role');
-    } finally {
-      setUpdatingUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-  };
+  // Remove the handleAdminToggle function since only admins can promote users from settings
 
   if (isLoading) {
     return (
@@ -93,20 +124,116 @@ export default function UsersTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">User Management</h2>
-          <p className="text-muted-foreground">Manage user approvals and admin roles</p>
+          <h2 className="text-2xl font-semibold text-foreground">
+            {adminOnly ? 'Admin Management' : 'User Management'}
+          </h2>
+          <p className="text-muted-foreground">
+            {adminOnly ? 'Manage admin users and their permissions' : 'Manage user approvals and view user information'}
+          </p>
         </div>
         <Badge variant="outline" className="gap-2">
           <Users className="w-4 h-4" />
-          {users.length} users
+          {filteredUsers.length} of {users.length} users
         </Badge>
       </div>
 
-      {users.length === 0 ? (
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Department Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Department</label>
+              <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Batch/Year Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Batch/Year</label>
+              <Select value={filterBatch} onValueChange={setFilterBatch}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {batches.map(batch => (
+                    <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Clear Filters */}
+          {(searchTerm || filterDepartment !== 'all' || filterBatch !== 'all' || filterStatus !== 'all') && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm('');
+                setFilterDepartment('all');
+                setFilterBatch('all');
+                setFilterStatus('all');
+              }}
+              className="w-full md:w-auto"
+            >
+              Clear Filters
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {filteredUsers.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No users registered yet</p>
+            <p className="text-muted-foreground">
+              {users.length === 0 ? 'No users registered yet' : 'No users match the current filters'}
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -123,7 +250,7 @@ export default function UsersTab() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Year</TableHead>
+                  <TableHead>Batch/Year</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Role</TableHead>
@@ -131,7 +258,7 @@ export default function UsersTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -192,23 +319,13 @@ export default function UsersTab() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium">Approve</span>
-                          <Switch
-                            checked={user.isApproved || false}
-                            onCheckedChange={() => handleApprovalToggle(user.id, user.isApproved || false)}
-                            disabled={updatingUsers.has(user.id)}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium">Admin</span>
-                          <Switch
-                            checked={user.role === 'admin'}
-                            onCheckedChange={() => handleAdminToggle(user.id, user.role)}
-                            disabled={updatingUsers.has(user.id)}
-                          />
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">Approve</span>
+                        <Switch
+                          checked={user.isApproved || false}
+                          onCheckedChange={() => handleApprovalToggle(user.id, user.isApproved || false)}
+                          disabled={updatingUsers.has(user.id)}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
