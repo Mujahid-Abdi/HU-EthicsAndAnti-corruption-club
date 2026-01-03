@@ -24,6 +24,9 @@ function normalizeSystemSettings(raw: any): SystemSettings {
     telegramEnabled: raw?.telegramEnabled ?? raw?.telegram_enabled ?? false,
     homeHeroTitle: raw?.homeHeroTitle ?? raw?.home_hero_title ?? 'Integrity and Transparency',
     homeHeroSubtitle: raw?.homeHeroSubtitle ?? raw?.home_hero_subtitle ?? 'The Official Ethics and Anti-Corruption Club of Haramaya University',
+    site_name: raw?.site_name ?? 'HUEC',
+    site_description: raw?.site_description ?? 'Haramaya University Ethics and Anti-Corruption Club',
+    contact_email: raw?.contact_email ?? 'info@huec.edu.et',
   };
 
   if (normalized.votingEnabled && normalized.registrationEnabled) {

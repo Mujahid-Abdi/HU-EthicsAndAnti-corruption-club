@@ -10,8 +10,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, BookOpen, Lock, Globe, Upload, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, BookOpen, Lock, Globe, Upload, Link as LinkIcon, Send } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { TelegramService } from '@/lib/telegram';
 
 interface Resource {
   id: string;
@@ -31,6 +33,7 @@ interface Resource {
   url?: string; // For external links
   term?: string; // For glossary items
   definition?: string; // For glossary items
+  telegramMessageIds?: Record<string, string>;
 }
 
 const categories = [
@@ -55,6 +58,7 @@ export default function ResourcesTab() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fileInputType, setFileInputType] = useState<'url' | 'file'>('url');
+  const { settings: systemSettings } = useSystemSettings();
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -67,6 +71,7 @@ export default function ResourcesTab() {
     size: '',
     term: '',
     definition: '',
+    postToTelegram: false,
   });
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -127,6 +132,7 @@ export default function ResourcesTab() {
       size: '',
       term: '',
       definition: '',
+      postToTelegram: false,
     });
     setEditingResource(null);
   };
@@ -148,6 +154,7 @@ export default function ResourcesTab() {
       size: (resource as any).size || '',
       term: (resource as any).term || '',
       definition: (resource as any).definition || '',
+      postToTelegram: !!(resource.telegramMessageIds && Object.keys(resource.telegramMessageIds).length > 0),
     });
     setIsDialogOpen(true);
   };
@@ -178,15 +185,53 @@ export default function ResourcesTab() {
     };
 
     try {
+      let currentTelegramIds = editingResource?.telegramMessageIds || {};
+
+      // Post/Update to Telegram
+      if (formData.postToTelegram && systemSettings.telegramEnabled) {
+        const telegramContent = {
+          title: formData.title,
+          text: formData.description || (formData.type === 'glossary' ? formData.definition : ''),
+          imageUrl: formData.type !== 'glossary' ? formData.fileUrl : undefined,
+          type: 'Resource' as const,
+          link: formData.fileUrl || `${window.location.origin}/news` 
+        };
+
+        if (Object.keys(currentTelegramIds).length > 0) {
+          currentTelegramIds = await TelegramService.updatePost(systemSettings, currentTelegramIds, telegramContent);
+        } else {
+          currentTelegramIds = await TelegramService.sendPost(systemSettings, telegramContent);
+        }
+      } else if (!formData.postToTelegram && Object.keys(currentTelegramIds).length > 0) {
+        await TelegramService.deletePost(systemSettings, currentTelegramIds);
+        currentTelegramIds = {};
+      }
+
+      const finalResourceData = {
+        ...resourceData,
+        telegramMessageIds: currentTelegramIds
+      };
+
       if (editingResource) {
-        await FirestoreService.update(Collections.RESOURCES, editingResource.id, {
-          ...resourceData,
-          updated_at: new Date(),
-        });
-        toast.success('Resource updated successfully');
+        await FirestoreService.update(Collections.RESOURCES, editingResource.id, finalResourceData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Resource updated, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Resource updated successfully' + (telegramAdded ? ' and synced with Telegram' : ''));
+        }
       } else {
-        await FirestoreService.create(Collections.RESOURCES, resourceData);
-        toast.success('Resource created successfully');
+        await FirestoreService.create(Collections.RESOURCES, finalResourceData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Resource created, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Resource created successfully' + (telegramAdded ? ' and posted to Telegram' : ''));
+        }
       }
       setIsDialogOpen(false);
       fetchResources();
@@ -197,12 +242,17 @@ export default function ResourcesTab() {
     setIsSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (resource: Resource) => {
     if (!confirm('Are you sure you want to delete this resource?')) return;
 
     try {
-      await FirestoreService.delete(Collections.RESOURCES, id);
-      toast.success('Resource deleted successfully');
+      // Delete from Telegram if exists
+      if (resource.telegramMessageIds && Object.keys(resource.telegramMessageIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, resource.telegramMessageIds);
+      }
+
+      await FirestoreService.delete(Collections.RESOURCES, resource.id);
+      toast.success('Resource and corresponding Telegram posts deleted successfully');
       fetchResources();
     } catch (error) {
       console.error('Error deleting resource:', error);
@@ -408,6 +458,21 @@ export default function ResourcesTab() {
                 onCheckedChange={(checked) => setFormData({ ...formData, isMemberOnly: checked })}
               />
             </div>
+            
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-dashed border-primary/20">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-primary" />
+                <div>
+                  <Label htmlFor="postToTelegram" className="text-sm font-medium">Post to Telegram</Label>
+                  <p className="text-[10px] text-muted-foreground">Broadcast to linked Telegram channels</p>
+                </div>
+              </div>
+              <Switch
+                id="postToTelegram"
+                checked={formData.postToTelegram}
+                onCheckedChange={(checked) => setFormData({ ...formData, postToTelegram: checked })}
+              />
+            </div>
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
               {isSaving ? (
                 <>
@@ -503,7 +568,7 @@ export default function ResourcesTab() {
                     <Pencil className="h-3.5 w-3.5 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10" onClick={() => handleDelete(resource.id)}>
+                  <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10" onClick={() => handleDelete(resource)}>
                     <Trash2 className="h-3.5 w-3.5 mr-2" />
                     Delete
                   </Button>

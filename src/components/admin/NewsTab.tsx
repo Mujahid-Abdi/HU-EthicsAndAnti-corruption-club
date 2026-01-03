@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FirestoreService, Collections } from '@/lib/firestore';
+import { TelegramService } from '@/lib/telegram';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Newspaper, Database, Upload, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Newspaper, Database, Upload, Link as LinkIcon, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { TelegramService } from '@/lib/telegram';
+import { compressImage } from '@/lib/utils';
 
 const sampleNewsArticles = [
   {
@@ -166,6 +167,7 @@ export default function NewsTab() {
     content: '',
     image_url: '',
     published: false,
+    postToTelegram: false,
   });
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -216,6 +218,7 @@ export default function NewsTab() {
       content: '',
       image_url: '',
       published: false,
+      postToTelegram: false,
     });
     setEditingNews(null);
   };
@@ -233,6 +236,7 @@ export default function NewsTab() {
       content: item.content,
       image_url: item.imageUrl || '',
       published: item.published || false,
+      postToTelegram: false,
     });
     setIsDialogOpen(true);
   };
@@ -254,64 +258,58 @@ export default function NewsTab() {
     };
 
     try {
-      let docId = editingNews?.id;
+      let currentTelegramIds = editingNews?.telegramMessageIds || {};
+      
+      // Post/Update to Telegram if enabled
+      if (formData.published && formData.postToTelegram && systemSettings.telegramEnabled) {
+        const telegramContent = {
+          title: formData.title,
+          text: formData.excerpt || formData.content.substring(0, 150) + '...',
+          imageUrl: formData.image_url,
+          type: 'News' as const,
+          link: `${window.location.origin}/news`
+        };
+
+        if (Object.keys(currentTelegramIds).length > 0) {
+          // Update existing
+          currentTelegramIds = await TelegramService.updatePost(systemSettings, currentTelegramIds, telegramContent);
+        } else {
+          // Send new
+          currentTelegramIds = await TelegramService.sendPost(systemSettings, telegramContent);
+        }
+      } else if (!formData.published && Object.keys(currentTelegramIds).length > 0) {
+        // If unpublished, delete from telegram
+        await TelegramService.deletePost(systemSettings, currentTelegramIds);
+        currentTelegramIds = {};
+      }
+
+      const finalNewsData = {
+         ...newsData,
+         telegramMessageIds: currentTelegramIds
+      };
 
       if (editingNews) {
-        await FirestoreService.update(Collections.NEWS, editingNews.id, newsData);
+        await FirestoreService.update(Collections.NEWS, editingNews.id, finalNewsData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
         
-        // Handle Telegram Update
-        if (formData.published && systemSettings.telegramEnabled) {
-          const content = {
-            title: formData.title,
-            text: formData.content,
-            imageUrl: formData.image_url,
-            type: 'News' as const,
-            link: `${window.location.origin}/news`,
-          };
-
-          const currentIds: Record<string, string> = editingNews.telegramMessageIds || (editingNews.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingNews.telegramMessageId } : {});
-          const updatedIds = await TelegramService.updatePost(systemSettings, currentIds, content);
-          
-          if (Object.keys(updatedIds).length > 0) {
-            await FirestoreService.update(Collections.NEWS, editingNews.id, { 
-              telegramMessageIds: updatedIds,
-              telegramMessageId: Object.values(updatedIds)[0] // Keep for backward compatibility
-            });
-          }
-        } else if (!formData.published && (editingNews.telegramMessageIds || editingNews.telegramMessageId) && systemSettings.telegramEnabled) {
-          const currentIds: Record<string, string> = editingNews.telegramMessageIds || (editingNews.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingNews.telegramMessageId } : {});
-          await TelegramService.deletePost(systemSettings, currentIds);
-          await FirestoreService.update(Collections.NEWS, editingNews.id, { 
-            telegramMessageIds: null,
-            telegramMessageId: null 
-          });
+        if (telegramFailed) {
+          toast.warning('News updated, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('News updated successfully' + (telegramAdded ? ' and synced with Telegram' : ''));
         }
-        
-        toast.success('News updated successfully');
       } else {
-        const docRef = await FirestoreService.create(Collections.NEWS, newsData);
-        docId = (docRef as any).id;
-        
-        // Handle Telegram Create
-        if (formData.published && systemSettings.telegramEnabled) {
-          const results = await TelegramService.sendPost(systemSettings, {
-            title: formData.title,
-            text: formData.content,
-            imageUrl: formData.image_url,
-            type: 'News',
-            link: `${window.location.origin}/news`,
-          });
-          
-          if (Object.keys(results).length > 0) {
-            await FirestoreService.update(Collections.NEWS, docId, { 
-              telegramMessageIds: results,
-              telegramMessageId: Object.values(results)[0]
-            });
-          }
+        await FirestoreService.create(Collections.NEWS, finalNewsData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('News created, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('News created successfully' + (telegramAdded ? ' and posted to Telegram' : ''));
         }
-        
-        toast.success('News created successfully');
       }
+
       setIsDialogOpen(false);
       fetchNews();
     } catch (error) {
@@ -326,13 +324,12 @@ export default function NewsTab() {
 
     try {
       // Delete from Telegram if exists
-      const currentIds = item.telegramMessageIds || (item.telegramMessageId ? { [systemSettings.telegramChannelId || '']: item.telegramMessageId } : {});
-      if (Object.keys(currentIds).length > 0 && systemSettings.telegramEnabled) {
-        await TelegramService.deletePost(systemSettings, currentIds);
+      if (item.telegramMessageIds && Object.keys(item.telegramMessageIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, item.telegramMessageIds);
       }
       
       await FirestoreService.delete(Collections.NEWS, item.id);
-      toast.success('News deleted successfully');
+      toast.success('News article and corresponding Telegram posts deleted successfully');
       fetchNews();
     } catch (error) {
       console.error('Error deleting news:', error);
@@ -443,21 +440,33 @@ export default function NewsTab() {
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                   />
                 ) : (
-                  <Input
-                    id="image_file"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                          setFormData({ ...formData, image_url: e.target?.result as string });
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                  />
+                    <Input
+                      id="image_file"
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = async (e) => {
+                            const base64 = e.target?.result as string;
+                            if (base64) {
+                              try {
+                                const toastId = toast.loading('Compressing image...');
+                                const compressed = await compressImage(base64);
+                                setFormData({ ...formData, image_url: compressed });
+                                toast.dismiss(toastId);
+                                toast.success('Image compressed and ready');
+                              } catch (err) {
+                                console.error('Compression failed:', err);
+                                toast.error('Failed to process image');
+                              }
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
                 )}
                 
                 {formData.image_url && (
@@ -482,6 +491,21 @@ export default function NewsTab() {
                 onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
               />
             </div>
+            {formData.published && (
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="postToTelegram">Post to Telegram</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Share this news on Telegram channel
+                  </p>
+                </div>
+                <Switch
+                  id="postToTelegram"
+                  checked={formData.postToTelegram}
+                  onCheckedChange={(checked) => setFormData({ ...formData, postToTelegram: checked })}
+                />
+              </div>
+            )}
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
               {isSaving ? (
                 <>

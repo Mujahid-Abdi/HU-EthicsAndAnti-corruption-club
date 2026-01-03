@@ -151,4 +151,7 @@ export interface SystemSettings {
   telegramEnabled?: boolean;
   homeHeroTitle?: string;
   homeHeroSubtitle?: string;
+  site_name?: string;
+  site_description?: string;
+  contact_email?: string;
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { FirestoreService, Collections } from '@/lib/firestore';
+import { TelegramService } from '@/lib/telegram';
 import { seedVotingData, clearVotingData } from '@/lib/seedVotingData';
 import { User as UserType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ import {
   UserCog,
   Search,
   Plus,
-  Trash2
+  Trash2,
+  Send as SendIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import UsersTab from './UsersTab';
@@ -78,6 +80,11 @@ export default function SystemSettingsTab() {
       registrationEnabled: systemSettings.registrationEnabled,
       votingEnabled: systemSettings.votingEnabled,
       electionOpen: systemSettings.electionOpen,
+      telegramBotToken: systemSettings.telegramBotToken || '',
+      telegramChannelId: systemSettings.telegramChannelId || '',
+      telegramEnabled: systemSettings.telegramEnabled || false,
+      homeHeroTitle: systemSettings.homeHeroTitle || '',
+      homeHeroSubtitle: systemSettings.homeHeroSubtitle || '',
     }));
   }, [systemSettings]);
 
@@ -133,19 +140,53 @@ export default function SystemSettingsTab() {
     }
   };
 
+  const handleTestTelegram = async () => {
+    if (!settings.telegramBotToken || !settings.telegramChannelId) {
+      toast.error("Please enter a Bot Token and at least one Channel ID first.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await TelegramService.testConnection(
+        settings.telegramBotToken,
+        settings.telegramChannelId
+      );
+      if (result.success) {
+        if (result.successfulCount === result.totalCount) {
+          toast.success(`Success! Test message sent to all ${result.totalCount} channels.`);
+        } else {
+          toast.warning(`Partial Success: Sent to ${result.successfulCount} out of ${result.totalCount} channels. Please check the IDs/permissions for the failed ones.`);
+        }
+      } else {
+        toast.error("Telegram connection failed. Please check your Bot Token and ensure the Bot is an Admin in your channels.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while testing the connection.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
-      // Update system settings
+      // Update system settings including Telegram and Hero content
       await updateSettings({
         maintenanceMode: settings.maintenanceMode,
         registrationEnabled: settings.registrationEnabled,
         votingEnabled: settings.votingEnabled,
         electionOpen: settings.electionOpen,
+        telegramEnabled: settings.telegramEnabled,
+        telegramBotToken: settings.telegramBotToken,
+        telegramChannelId: settings.telegramChannelId,
+        homeHeroTitle: settings.homeHeroTitle,
+        homeHeroSubtitle: settings.homeHeroSubtitle,
+        site_name: settings.site_name,
+        contact_email: settings.contact_email,
+        site_description: settings.site_description,
       });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
       setLastSaved(new Date());
       toast.success("Settings saved successfully. System settings have been updated.");
     } catch (error: unknown) {
@@ -403,17 +444,67 @@ export default function SystemSettingsTab() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="channel_id">Telegram Channel ID(s)</Label>
-                  <Input
-                    id="channel_id"
-                    placeholder="@chan1, @chan2 or -100123, -100456"
-                    value={settings.telegramChannelId}
-                    onChange={(e) => setSettings(prev => ({ ...prev, telegramChannelId: e.target.value }))}
-                  />
+                <div className="space-y-3">
+                  <Label>Telegram Channel IDs</Label>
+                  <div className="space-y-2">
+                    {settings.telegramChannelId ? (
+                      settings.telegramChannelId.split(',').map((id, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            placeholder="@channel_username or -100123456"
+                            value={id}
+                            onChange={(e) => {
+                              const channels = settings.telegramChannelId.split(',');
+                              channels[index] = e.target.value;
+                              setSettings(prev => ({ ...prev, telegramChannelId: channels.join(',') }));
+                            }}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              const channels = settings.telegramChannelId.split(',').filter((_, i) => i !== index);
+                              setSettings(prev => ({ ...prev, telegramChannelId: channels.join(',') }));
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No channels added yet.</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 mt-2"
+                    onClick={() => {
+                      const current = settings.telegramChannelId?.trim() || '';
+                      const newVal = current ? `${current}, ` : ' ';
+                      setSettings(prev => ({ ...prev, telegramChannelId: newVal }));
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Channel
+                  </Button>
                   <p className="text-xs text-muted-foreground">
-                    Support for multiple channels: separate IDs with commas. Make sure the bot is an administrator in all of them.
+                    The bot will broadcast to ALL channels listed above. Make sure the bot is an administrator in each.
                   </p>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleTestTelegram}
+                    disabled={isLoading}
+                  >
+                    <SendIcon className="w-4 h-4" />
+                    Test Bot Connection
+                  </Button>
                 </div>
 
                 <div className="p-4 bg-muted/50 rounded-lg space-y-2">

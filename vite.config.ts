@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8081,
+    proxy: {
+      "/api-telegram": {
+        target: "https://api.telegram.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-telegram/, ""),
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

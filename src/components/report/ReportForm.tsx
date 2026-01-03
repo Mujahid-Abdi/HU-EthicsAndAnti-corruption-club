@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FirestoreService, Collections } from "@/lib/firestore";
+import { TelegramService } from "@/lib/telegram";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { where, query, collection, getDocs, Timestamp } from "firebase/firestore";
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { 
   Shield, 
   Upload, 
@@ -47,6 +49,7 @@ const contactMethods = [
 
 export function ReportForm() {
   const { toast } = useToast();
+  const { settings: systemSettings } = useSystemSettings();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -200,6 +203,18 @@ export function ReportForm() {
       
       const result = await FirestoreService.create(Collections.REPORTS, reportData);
       console.log('Report created successfully:', result);
+
+      // Send Telegram notification to admins
+      try {
+        await TelegramService.notifyNewReport(systemSettings, {
+          title: reportData.title,
+          category: reportData.category,
+          priority: reportData.priority,
+        });
+      } catch (telegramError) {
+        console.error('Telegram notification failed:', telegramError);
+        // Don't fail the submission if Telegram fails
+      }
 
       // Update daily count
       setDailyReportCount(prev => prev + 1);

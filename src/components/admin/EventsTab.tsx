@@ -9,11 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Calendar, Upload, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Calendar, Upload, Link as LinkIcon, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { TelegramService } from '@/lib/telegram';
+import { compressImage } from '@/lib/utils';
 
 interface Event {
   id: string;
@@ -53,6 +54,7 @@ export default function EventsTab() {
     image_url: '',
     max_attendees: '',
     published: false,
+    postToTelegram: false,
   });
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function EventsTab() {
       image_url: '',
       max_attendees: '',
       published: false,
+      postToTelegram: false,
     });
     setEditingEvent(null);
   };
@@ -100,6 +103,7 @@ export default function EventsTab() {
       image_url: event.imageUrl || '',
       max_attendees: event.maxAttendees?.toString() || '',
       published: event.published || false,
+      postToTelegram: !!(event.telegramMessageIds && Object.keys(event.telegramMessageIds).length > 0),
     });
     setIsDialogOpen(true);
   };
@@ -124,62 +128,53 @@ export default function EventsTab() {
     };
 
     try {
-      let docId = editingEvent?.id;
-      if (editingEvent) {
-        await FirestoreService.update(Collections.EVENTS, editingEvent.id, eventData);
-        
-        // Handle Telegram Update
-        if (formData.published && systemSettings.telegramEnabled) {
-          const content = {
-            title: formData.title,
-            text: formData.description || '',
-            imageUrl: formData.image_url,
-            type: 'Event' as const,
-            link: `${window.location.origin}/events`,
-          };
+      let currentTelegramIds = editingEvent?.telegramMessageIds || {};
 
-          const currentIds: Record<string, string> = editingEvent.telegramMessageIds || (editingEvent.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingEvent.telegramMessageId } : {});
-          const updatedIds = await TelegramService.updatePost(systemSettings, currentIds, content);
-          
-          if (Object.keys(updatedIds).length > 0) {
-            await FirestoreService.update(Collections.EVENTS, editingEvent.id, { 
-              telegramMessageIds: updatedIds,
-              telegramMessageId: Object.values(updatedIds)[0]
-            });
-          }
-        } else if (!formData.published && (editingEvent.telegramMessageIds || editingEvent.telegramMessageId) && systemSettings.telegramEnabled) {
-          const currentIds: Record<string, string> = editingEvent.telegramMessageIds || (editingEvent.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingEvent.telegramMessageId } : {});
-          await TelegramService.deletePost(systemSettings, currentIds);
-          await FirestoreService.update(Collections.EVENTS, editingEvent.id, { 
-            telegramMessageIds: null,
-            telegramMessageId: null 
-          });
+      // Post/Update to Telegram if enabled
+      if (formData.published && formData.postToTelegram && systemSettings.telegramEnabled) {
+        const telegramContent = {
+          title: formData.title,
+          text: (formData.description || '') + `\n📅 Date: ${formData.event_date}\n📍 Location: ${formData.location || 'N/A'}`,
+          imageUrl: formData.image_url,
+          type: 'Event' as const,
+          link: `${window.location.origin}/programs`
+        };
+
+        if (Object.keys(currentTelegramIds).length > 0) {
+          currentTelegramIds = await TelegramService.updatePost(systemSettings, currentTelegramIds, telegramContent);
+        } else {
+          currentTelegramIds = await TelegramService.sendPost(systemSettings, telegramContent);
         }
-        
-        toast.success('Event updated successfully');
+      } else if (!formData.published && Object.keys(currentTelegramIds).length > 0) {
+        await TelegramService.deletePost(systemSettings, currentTelegramIds);
+        currentTelegramIds = {};
+      }
+
+      const finalEventData = {
+        ...eventData,
+        telegramMessageIds: currentTelegramIds
+      };
+
+      if (editingEvent) {
+        await FirestoreService.update(Collections.EVENTS, editingEvent.id, finalEventData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Event updated, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Event updated successfully' + (telegramAdded ? ' and synced with Telegram' : ''));
+        }
       } else {
-        const docRef = await FirestoreService.create(Collections.EVENTS, eventData);
-        docId = (docRef as any).id;
-        
-        // Handle Telegram Create
-        if (formData.published && systemSettings.telegramEnabled) {
-          const results = await TelegramService.sendPost(systemSettings, {
-            title: formData.title,
-            text: formData.description || '',
-            imageUrl: formData.image_url,
-            type: 'Event',
-            link: `${window.location.origin}/events`,
-          });
-          
-          if (Object.keys(results).length > 0) {
-            await FirestoreService.update(Collections.EVENTS, docId, { 
-              telegramMessageIds: results,
-              telegramMessageId: Object.values(results)[0]
-            });
-          }
+        await FirestoreService.create(Collections.EVENTS, finalEventData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Event created, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Event created successfully' + (telegramAdded ? ' and posted to Telegram' : ''));
         }
-        
-        toast.success('Event created successfully');
       }
       setIsDialogOpen(false);
       fetchEvents();
@@ -194,14 +189,13 @@ export default function EventsTab() {
     if (!confirm('Are you sure you want to delete this event?')) return;
 
     try {
-      // Delete from Telegram if exists
-      const currentIds = event.telegramMessageIds || (event.telegramMessageId ? { [systemSettings.telegramChannelId || '']: event.telegramMessageId } : {});
-      if (Object.keys(currentIds).length > 0 && systemSettings.telegramEnabled) {
-        await TelegramService.deletePost(systemSettings, currentIds);
+      // Sync delete with Telegram
+      if (event.telegramMessageIds && Object.keys(event.telegramMessageIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, event.telegramMessageIds);
       }
       
       await FirestoreService.delete(Collections.EVENTS, event.id);
-      toast.success('Event deleted successfully');
+      toast.success('Event and corresponding Telegram posts deleted successfully');
       fetchEvents();
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -317,14 +311,24 @@ export default function EventsTab() {
                     id="image_file"
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        // For now, we'll convert to a data URL for preview
-                        // In production, you'd upload to Firebase Storage
                         const reader = new FileReader();
-                        reader.onload = (e) => {
-                          setFormData({ ...formData, image_url: e.target?.result as string });
+                        reader.onload = async (e) => {
+                          const base64 = e.target?.result as string;
+                          if (base64) {
+                            try {
+                              const toastId = toast.loading('Compressing image...');
+                              const compressed = await compressImage(base64);
+                              setFormData({ ...formData, image_url: compressed });
+                              toast.dismiss(toastId);
+                              toast.success('Image compressed and ready');
+                            } catch (err) {
+                              console.error('Compression failed:', err);
+                              toast.error('Failed to process image');
+                            }
+                          }
                         };
                         reader.readAsDataURL(file);
                       }
@@ -363,6 +367,22 @@ export default function EventsTab() {
                 onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
               />
             </div>
+            {formData.published && (
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-dashed border-primary/20">
+                <div className="flex items-center gap-2">
+                  <Send className="w-4 h-4 text-primary" />
+                  <div>
+                    <Label htmlFor="postToTelegram" className="text-sm font-medium">Post to Telegram</Label>
+                    <p className="text-[10px] text-muted-foreground">Sync this event with Telegram channels</p>
+                  </div>
+                </div>
+                <Switch
+                  id="postToTelegram"
+                  checked={formData.postToTelegram}
+                  onCheckedChange={(checked) => setFormData({ ...formData, postToTelegram: checked })}
+                />
+              </div>
+            )}
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
               {isSaving ? (
                 <>

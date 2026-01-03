@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FirestoreService, Collections } from '@/lib/firestore';
+import { TelegramService } from '@/lib/telegram';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,11 +11,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Megaphone, Upload, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Megaphone, Upload, Link as LinkIcon, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { TelegramService } from '@/lib/telegram';
 import { Announcement } from '@/types';
 
 type PriorityType = 'low' | 'medium' | 'high' | 'urgent';
@@ -41,6 +41,7 @@ export default function AnnouncementsTab() {
     priority: 'medium' as PriorityType,
     published: false,
     expiresAt: '',
+    postToTelegram: false,
   });
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function AnnouncementsTab() {
       priority: 'medium',
       published: false,
       expiresAt: '',
+      postToTelegram: false,
     });
     setEditingAnnouncement(null);
   };
@@ -87,6 +89,7 @@ export default function AnnouncementsTab() {
       published: announcement.published || false,
       expiresAt: announcement.expiresAt ? 
         new Date(announcement.expiresAt.seconds * 1000).toISOString().split('T')[0] : '',
+      postToTelegram: false,
     });
     setIsDialogOpen(true);
   };
@@ -108,61 +111,57 @@ export default function AnnouncementsTab() {
     };
 
     try {
-      let docId = editingAnnouncement?.id;
-      if (editingAnnouncement) {
-        await FirestoreService.update('announcements', editingAnnouncement.id, announcementData);
-        
-        // Handle Telegram Update
-        if (formData.published && systemSettings.telegramEnabled) {
-          const content = {
-            title: formData.title,
-            text: formData.content,
-            type: 'Announcement' as const,
-            link: `${window.location.origin}/`,
-          };
+      let currentTelegramIds = editingAnnouncement?.telegramMessageIds || {};
 
-          const currentIds: Record<string, string> = editingAnnouncement.telegramMessageIds || (editingAnnouncement.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingAnnouncement.telegramMessageId } : {});
-          const updatedIds = await TelegramService.updatePost(systemSettings, currentIds, content);
-          
-          if (Object.keys(updatedIds).length > 0) {
-            await FirestoreService.update('announcements', editingAnnouncement.id, { 
-              telegramMessageIds: updatedIds,
-              telegramMessageId: Object.values(updatedIds)[0]
-            });
-          }
-        } else if (!formData.published && (editingAnnouncement.telegramMessageIds || editingAnnouncement.telegramMessageId) && systemSettings.telegramEnabled) {
-          const currentIds: Record<string, string> = editingAnnouncement.telegramMessageIds || (editingAnnouncement.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingAnnouncement.telegramMessageId } : {});
-          await TelegramService.deletePost(systemSettings, currentIds);
-          await FirestoreService.update('announcements', editingAnnouncement.id, { 
-            telegramMessageIds: null,
-            telegramMessageId: null 
-          });
+      // Post/Update to Telegram if enabled
+      if (formData.published && formData.postToTelegram && systemSettings.telegramEnabled) {
+        const telegramContent = {
+          title: formData.title,
+          text: formData.content,
+          type: 'Announcement' as const,
+          link: `${window.location.origin}/news`
+        };
+
+        if (Object.keys(currentTelegramIds).length > 0) {
+          // Update existing
+          currentTelegramIds = await TelegramService.updatePost(systemSettings, currentTelegramIds, telegramContent);
+        } else {
+          // Send new
+          currentTelegramIds = await TelegramService.sendPost(systemSettings, telegramContent);
         }
-        
-        toast.success('Announcement updated successfully');
-      } else {
-        const docRef = await FirestoreService.create('announcements', announcementData);
-        docId = (docRef as any).id;
-        
-        // Handle Telegram Create
-        if (formData.published && systemSettings.telegramEnabled) {
-          const results = await TelegramService.sendPost(systemSettings, {
-            title: formData.title,
-            text: formData.content,
-            type: 'Announcement',
-            link: `${window.location.origin}/`,
-          });
-          
-          if (Object.keys(results).length > 0) {
-            await FirestoreService.update('announcements', docId, { 
-              telegramMessageIds: results,
-              telegramMessageId: Object.values(results)[0]
-            });
-          }
-        }
-        
-        toast.success('Announcement created successfully');
+      } else if (!formData.published && Object.keys(currentTelegramIds).length > 0) {
+        // If unpublished, delete from telegram
+        await TelegramService.deletePost(systemSettings, currentTelegramIds);
+        currentTelegramIds = {};
       }
+
+      const finalAnnouncementData = {
+        ...announcementData,
+        telegramMessageIds: currentTelegramIds
+      };
+
+      if (editingAnnouncement) {
+        await FirestoreService.update('announcements', editingAnnouncement.id, finalAnnouncementData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Announcement updated, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Announcement updated successfully' + (telegramAdded ? ' and synced with Telegram' : ''));
+        }
+      } else {
+        await FirestoreService.create('announcements', finalAnnouncementData);
+        const telegramAdded = formData.postToTelegram && Object.keys(currentTelegramIds).length > 0;
+        const telegramFailed = formData.postToTelegram && Object.keys(currentTelegramIds).length === 0;
+
+        if (telegramFailed) {
+          toast.warning('Announcement created, but Telegram posting failed. Please check your bot token and channel IDs.');
+        } else {
+          toast.success('Announcement created successfully' + (telegramAdded ? ' and posted to Telegram' : ''));
+        }
+      }
+
       setIsDialogOpen(false);
       fetchAnnouncements();
     } catch (error) {
@@ -177,13 +176,12 @@ export default function AnnouncementsTab() {
 
     try {
       // Delete from Telegram if exists
-      const currentIds: Record<string, string> = announcement.telegramMessageIds || (announcement.telegramMessageId ? { [systemSettings.telegramChannelId || '']: announcement.telegramMessageId } : {});
-      if (Object.keys(currentIds).length > 0 && systemSettings.telegramEnabled) {
-        await TelegramService.deletePost(systemSettings, currentIds);
+      if (announcement.telegramMessageIds && Object.keys(announcement.telegramMessageIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, announcement.telegramMessageIds);
       }
-      
+
       await FirestoreService.delete('announcements', announcement.id);
-      toast.success('Announcement deleted successfully');
+      toast.success('Announcement and corresponding Telegram posts deleted successfully');
       fetchAnnouncements();
     } catch (error) {
       console.error('Error deleting announcement:', error);
@@ -275,6 +273,22 @@ export default function AnnouncementsTab() {
                 onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
               />
             </div>
+            {formData.published && (
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-dashed border-primary/20">
+                <div className="flex items-center gap-2">
+                  <Send className="w-4 h-4 text-primary" />
+                  <div>
+                    <Label htmlFor="postToTelegram" className="text-sm font-medium">Post to Telegram</Label>
+                    <p className="text-[10px] text-muted-foreground">Sync this announcement with Telegram</p>
+                  </div>
+                </div>
+                <Switch
+                  id="postToTelegram"
+                  checked={formData.postToTelegram}
+                  onCheckedChange={(checked) => setFormData({ ...formData, postToTelegram: checked })}
+                />
+              </div>
+            )}
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
               {isSaving ? (
                 <>
