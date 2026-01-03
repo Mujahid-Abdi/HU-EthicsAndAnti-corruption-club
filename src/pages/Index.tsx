@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Trophy,
   Loader2,
+  Newspaper,
 } from "lucide-react";
 
 const services = [

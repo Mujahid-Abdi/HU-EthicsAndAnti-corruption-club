@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { SystemSettingsProvider } from "@/hooks/useSystemSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { VotingProtectedRoute } from "@/components/auth/VotingProtectedRoute";
-import { SidebarLayout } from "@/components/layout/SidebarLayout";
+import { Layout } from "@/components/layout/Layout";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import About from "./pages/About";
@@ -54,7 +54,7 @@ const App = () => (
                 }
               />
               
-              {/* Auth route without sidebar */}
+              {/* Auth route without navbar */}
               <Route path="/auth" element={<Auth />} />
               
               {/* Voting routes with VoteLayout */}
@@ -79,9 +79,9 @@ const App = () => (
                 </VotingProtectedRoute>
               } />
               
-              {/* All other routes with SidebarLayout */}
+              {/* All other routes with Layout */}
               <Route path="/*" element={
-                <SidebarLayout>
+                <Layout>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/about" element={<About />} />
@@ -96,7 +96,7 @@ const App = () => (
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </SidebarLayout>
+                </Layout>
               } />
             </Routes>
           </BrowserRouter>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { FirestoreService, Collections } from '@/lib/firestore';
+import { seedVotingData, clearVotingData } from '@/lib/seedVotingData';
 import { User as UserType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   UserCog,
-  Search
+  Search,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import UsersTab from './UsersTab';
@@ -36,6 +39,7 @@ interface SystemSettings {
   maintenanceMode: boolean;
   registrationEnabled: boolean;
   votingEnabled: boolean;
+  electionOpen: boolean;
   max_file_size: number;
   session_timeout: number;
 }
@@ -51,6 +55,7 @@ export default function SystemSettingsTab() {
     maintenanceMode: systemSettings.maintenanceMode,
     registrationEnabled: systemSettings.registrationEnabled,
     votingEnabled: systemSettings.votingEnabled,
+    electionOpen: systemSettings.electionOpen,
     max_file_size: 5,
     session_timeout: 30,
   });
@@ -62,6 +67,7 @@ export default function SystemSettingsTab() {
       maintenanceMode: systemSettings.maintenanceMode,
       registrationEnabled: systemSettings.registrationEnabled,
       votingEnabled: systemSettings.votingEnabled,
+      electionOpen: systemSettings.electionOpen,
     }));
   }, [systemSettings]);
 
@@ -103,6 +109,20 @@ export default function SystemSettingsTab() {
     }
   };
 
+  const handleElectionToggle = async (checked: boolean) => {
+    setSettings((prev) => ({
+      ...prev,
+      electionOpen: checked,
+    }));
+
+    try {
+      await updateSettings({ electionOpen: checked });
+      toast.success(checked ? "Election opened. Users can now vote." : "Election closed. Voting is no longer available.");
+    } catch (error: any) {
+      toast.error(`Failed to update election status: ${error?.message || "Please try again."}`);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
@@ -111,6 +131,7 @@ export default function SystemSettingsTab() {
         maintenanceMode: settings.maintenanceMode,
         registrationEnabled: settings.registrationEnabled,
         votingEnabled: settings.votingEnabled,
+        electionOpen: settings.electionOpen,
       });
       
       // Simulate API call
@@ -132,6 +153,7 @@ export default function SystemSettingsTab() {
       maintenanceMode: false,
       registrationEnabled: true,
       votingEnabled: false,
+      electionOpen: false,
       max_file_size: 5,
       session_timeout: 30,
     });
@@ -255,6 +277,19 @@ export default function SystemSettingsTab() {
                   onCheckedChange={handleVotingToggle}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Election Status</Label>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Open/close the current election for voting
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.electionOpen}
+                  onCheckedChange={handleElectionToggle}
+                  disabled={!settings.votingEnabled}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="session_timeout">Session Timeout (minutes)</Label>
@@ -340,6 +375,65 @@ export default function SystemSettingsTab() {
                     <p className="text-2xl font-bold text-green-600">2.4 GB</p>
                   </div>
                 </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Voting System Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Test Data Management</h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                  Use these tools to populate or clear voting data for testing purposes.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        await seedVotingData();
+                        toast.success("Sample voting data created successfully! Election and candidates are now available.");
+                      } catch (error) {
+                        toast.error("Failed to create voting data. Please check the console for details.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Sample Data
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        await clearVotingData();
+                        toast.success("All voting data cleared successfully!");
+                      } catch (error) {
+                        toast.error("Failed to clear voting data. Please check the console for details.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="gap-2 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Clear All Data
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
