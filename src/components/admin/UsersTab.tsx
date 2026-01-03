@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Loader2, Users, CheckCircle, XCircle, Shield, User, Search, Filter } from 'lucide-react';
+import { Loader2, Users, CheckCircle, XCircle, Shield, User, UserCog, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean }) {
@@ -36,10 +36,8 @@ export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean })
   useEffect(() => {
     let filtered = users;
 
-    // Filter by admin role if adminOnly is true
-    if (adminOnly) {
-      filtered = filtered.filter(user => user.role === 'admin');
-    }
+    // No longer filtering by role even if adminOnly is true, 
+    // to allow admins to see and promote any user.
 
     // Search filter
     if (searchTerm) {
@@ -85,7 +83,6 @@ export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean })
       setIsLoading(false);
     }
   };
-
   const handleApprovalToggle = async (userId: string, currentApproval: boolean) => {
     setUpdatingUsers((prev) => new Set(prev).add(userId));
 
@@ -101,6 +98,30 @@ export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean })
     } catch (error) {
       console.error('Error updating user approval:', error);
       toast.error('Failed to update user approval');
+    } finally {
+      setUpdatingUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserType['role']) => {
+    setUpdatingUsers((prev) => new Set(prev).add(userId));
+
+    try {
+      await FirestoreService.update(Collections.USERS, userId, {
+        role: newRole
+      });
+      
+      toast.success(`User role updated to ${newRole.replace('_', ' ')} successfully`);
+      setUsers((prev) =>
+        prev.map((user) => (user.id === userId ? { ...user, role: newRole } : user))
+      );
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast.error('Failed to update user role');
     } finally {
       setUpdatingUsers((prev) => {
         const next = new Set(prev);
@@ -314,20 +335,51 @@ export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean })
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'outline'} className="gap-1">
-                        {user.role === 'admin' ? (
-                          <>
-                            <Shield className="h-3 w-3" />
-                            Admin
-                          </>
-                        ) : (
-                          'Member'
-                        )}
-                      </Badge>
+                      <Select 
+                        value={user.role || 'member'} 
+                        onValueChange={(value) => handleRoleChange(user.id, value as UserType['role'])}
+                        disabled={updatingUsers.has(user.id)}
+                      >
+                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">
+                            <div className="flex items-center gap-2">
+                              <User className="h-3 w-3" />
+                              Member
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="secretary">
+                            <div className="flex items-center gap-2 text-blue-600">
+                              <UserCog className="h-3 w-3" />
+                              Secretary
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="vice_president">
+                            <div className="flex items-center gap-2 text-orange-600">
+                              <Shield className="h-3 w-3" />
+                              Vice President
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="president">
+                            <div className="flex items-center gap-2 text-purple-600">
+                              <Shield className="h-3 w-3" />
+                              President
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="admin">
+                            <div className="flex items-center gap-2 text-red-600">
+                              <Shield className="h-3 w-3" />
+                              Admin
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium">Approve</span>
+                        <span className="text-xs font-medium">{user.isApproved ? 'Approved' : 'Approve'}</span>
                         <Switch
                           checked={user.isApproved || false}
                           onCheckedChange={() => handleApprovalToggle(user.id, user.isApproved || false)}

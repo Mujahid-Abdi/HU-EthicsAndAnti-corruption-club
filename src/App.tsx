@@ -17,10 +17,12 @@ import Programs from "./pages/Programs";
 import Report from "./pages/Report";
 import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
+import Announcements from "./pages/Announcements";
 import Gallery from "./pages/Gallery";
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
 import Vote from "./pages/Vote";
+import VoteProgress from "./pages/VoteProgress";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +68,7 @@ const App = () => (
                     <Route path="/programs" element={<Programs />} />
                     <Route path="/news" element={<News />} />
                     <Route path="/news/:id" element={<NewsDetail />} />
+                    <Route path="/announcements" element={<Announcements />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/report" element={<Report />} />
                     <Route path="/vote" element={

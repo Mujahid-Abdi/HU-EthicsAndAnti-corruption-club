@@ -19,6 +19,11 @@ function normalizeSystemSettings(raw: any): SystemSettings {
     registrationEnabled: raw?.registrationEnabled ?? raw?.registration_enabled ?? true,
     electionOpen: raw?.electionOpen ?? raw?.election_open ?? false,
     maintenanceMode: raw?.maintenanceMode ?? raw?.maintenance_mode ?? false,
+    telegramBotToken: raw?.telegramBotToken ?? raw?.telegram_bot_token ?? '',
+    telegramChannelId: raw?.telegramChannelId ?? raw?.telegram_channel_id ?? '',
+    telegramEnabled: raw?.telegramEnabled ?? raw?.telegram_enabled ?? false,
+    homeHeroTitle: raw?.homeHeroTitle ?? raw?.home_hero_title ?? 'Integrity and Transparency',
+    homeHeroSubtitle: raw?.homeHeroSubtitle ?? raw?.home_hero_subtitle ?? 'The Official Ethics and Anti-Corruption Club of Haramaya University',
   };
 
   if (normalized.votingEnabled && normalized.registrationEnabled) {

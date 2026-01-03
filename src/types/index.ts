@@ -16,7 +16,7 @@ export interface User extends BaseDocument {
   yearOfStudy?: string;
   phone?: string;
   isApproved: boolean;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'president' | 'vice_president' | 'secretary';
   position?: string;
 }
 
@@ -44,6 +44,8 @@ export interface Event extends BaseDocument {
   published: boolean;
   maxAttendees?: number;
   registeredAttendees: string[];
+  telegramMessageId?: string;
+  telegramMessageIds?: Record<string, string>;
 }
 
 // News types
@@ -55,6 +57,19 @@ export interface News extends BaseDocument {
   published: boolean;
   author: string;
   tags?: string[];
+  telegramMessageId?: string;
+  telegramMessageIds?: Record<string, string>;
+}
+
+// Announcement types
+export interface Announcement extends BaseDocument {
+  title: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  published: boolean;
+  expiresAt: Timestamp | null;
+  telegramMessageId?: string;
+  telegramMessageIds?: Record<string, string>;
 }
 
 // Gallery types
@@ -131,4 +146,9 @@ export interface SystemSettings {
   registrationEnabled: boolean;
   electionOpen: boolean;
   maintenanceMode: boolean;
+  telegramBotToken?: string;
+  telegramChannelId?: string;
+  telegramEnabled?: boolean;
+  homeHeroTitle?: string;
+  homeHeroSubtitle?: string;
 }

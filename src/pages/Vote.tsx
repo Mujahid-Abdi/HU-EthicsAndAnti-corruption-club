@@ -18,7 +18,8 @@ import {
   AlertTriangle, 
   Lock,
   Clock,
-  Loader2
+  Loader2,
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -279,9 +280,17 @@ export default function VotePage() {
         <h1 className="font-display text-3xl md:text-4xl font-bold mb-4 text-foreground">
           Cast Your Vote
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
           Exercise your democratic right and help choose the next leaders of our ethics club.
         </p>
+        <div className="flex justify-center gap-4">
+          <Link to="/vote/progress">
+            <Button variant="outline" className="gap-2 rounded-full px-6">
+              <Activity className="w-4 h-4 text-primary" />
+              View Live Progress
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {!isVotingEnabled ? (
@@ -348,10 +357,15 @@ export default function VotePage() {
         <Card className="max-w-2xl mx-auto">
           <CardContent className="text-center py-12">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Vote Submitted</h3>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               Thank you for participating in the election. Your vote has been recorded successfully.
             </p>
+            <Link to="/vote/progress">
+              <Button className="gap-2">
+                <Activity className="w-4 h-4" />
+                View Real-time Results
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       ) : (

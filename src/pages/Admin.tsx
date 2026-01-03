@@ -3,6 +3,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
+import AnnouncementsTab from '@/components/admin/AnnouncementsTab';
 import GalleryTab from '@/components/admin/GalleryTab';
 import AchievementsTab from '@/components/admin/AchievementsTab';
 import ResourcesTab from '@/components/admin/ResourcesTab';
@@ -52,6 +53,8 @@ export default function Admin() {
         return <EventsTab />;
       case 'news':
         return <NewsTab />;
+      case 'announcements':
+        return <AnnouncementsTab />;
       case 'gallery':
         return <GalleryTab />;
       case 'achievements':

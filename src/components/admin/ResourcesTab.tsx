@@ -25,6 +25,12 @@ interface Resource {
   file_url?: string;
   is_member_only?: boolean;
   created_at?: any;
+  // Additional fields for different resource types
+  type?: string; // 'document' | 'link' | 'glossary'
+  size?: string; // For documents
+  url?: string; // For external links
+  term?: string; // For glossary items
+  definition?: string; // For glossary items
 }
 
 const categories = [
@@ -33,8 +39,14 @@ const categories = [
   'Research Papers',
   'Guidelines',
   'Templates',
+  'University Policies',
+  'Club Documents',
+  'External Links',
+  'Glossary',
   'Other',
 ];
+
+// Default data removed, now stored in Firestore
 
 export default function ResourcesTab() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -51,7 +63,12 @@ export default function ResourcesTab() {
     fileUrl: '',
     category: '',
     isMemberOnly: false,
+    type: 'document' as 'document' | 'link' | 'glossary',
+    size: '',
+    term: '',
+    definition: '',
   });
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
     fetchResources();
@@ -74,6 +91,31 @@ export default function ResourcesTab() {
     setIsLoading(false);
   };
 
+  const seedDefaultResources = async () => {
+    setIsSeeding(true);
+    let successCount = 0;
+    
+    for (const resource of defaultResourcesData) {
+      try {
+        await FirestoreService.create(Collections.RESOURCES, {
+          ...resource,
+          createdBy: user?.uid,
+        });
+        successCount++;
+      } catch (error) {
+        console.error('Error seeding resource:', error);
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Added ${successCount} default resources`);
+      fetchResources();
+    } else {
+      toast.error('Failed to add default resources');
+    }
+    setIsSeeding(false);
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -81,6 +123,10 @@ export default function ResourcesTab() {
       fileUrl: '',
       category: '',
       isMemberOnly: false,
+      type: 'document',
+      size: '',
+      term: '',
+      definition: '',
     });
     setEditingResource(null);
   };
@@ -98,6 +144,10 @@ export default function ResourcesTab() {
       fileUrl: resource.fileUrl || '',
       category: resource.category || '',
       isMemberOnly: resource.isMemberOnly || false,
+      type: (resource.type as any) || 'document',
+      size: (resource as any).size || '',
+      term: (resource as any).term || '',
+      definition: (resource as any).definition || '',
     });
     setIsDialogOpen(true);
   };
@@ -108,6 +158,11 @@ export default function ResourcesTab() {
       return;
     }
 
+    if (formData.type === 'glossary' && (!formData.term || !formData.definition)) {
+      toast.error('Term and definition are required for glossary items');
+      return;
+    }
+
     setIsSaving(true);
     const resourceData = {
       title: formData.title,
@@ -115,6 +170,10 @@ export default function ResourcesTab() {
       fileUrl: formData.fileUrl || null,
       category: formData.category || null,
       isMemberOnly: formData.isMemberOnly,
+      type: formData.type,
+      ...(formData.size && { size: formData.size }),
+      ...(formData.term && { term: formData.term }),
+      ...(formData.definition && { definition: formData.definition }),
       createdBy: user?.uid,
     };
 
@@ -163,10 +222,27 @@ export default function ResourcesTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">Resources Management</h2>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Resource
-        </Button>
+        <div className="flex gap-2">
+          {resources.length === 0 && (
+            <Button variant="outline" onClick={seedDefaultResources} disabled={isSeeding}>
+              {isSeeding ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Add Default Resources
+                </>
+              )}
+            </Button>
+          )}
+          <Button onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Resource
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -179,76 +255,128 @@ export default function ResourcesTab() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
+              <Label htmlFor="type">Resource Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => setFormData({ ...formData, type: value as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="document">Document (PDF/Word)</SelectItem>
+                  <SelectItem value="link">External Link / Website</SelectItem>
+                  <SelectItem value="glossary">Glossary Term</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="file">File</Label>
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={fileInputType === 'url' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFileInputType('url')}
-                  >
-                    <LinkIcon className="w-4 h-4 mr-2" />
-                    URL
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={fileInputType === 'file' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setFileInputType('file')}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload File
-                  </Button>
+
+            {formData.type === 'glossary' ? (
+              <>
+                <div>
+                  <Label htmlFor="term">Term *</Label>
+                  <Input
+                    id="term"
+                    value={formData.term}
+                    onChange={(e) => setFormData({ ...formData, term: e.target.value, title: e.target.value })}
+                    placeholder="e.g. Integrity"
+                  />
                 </div>
-                
-                {fileInputType === 'url' ? (
-                  <Input
-                    id="fileUrl"
-                    placeholder="https://example.com/document.pdf"
-                    value={formData.fileUrl}
-                    onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                <div>
+                  <Label htmlFor="definition">Definition *</Label>
+                  <Textarea
+                    id="definition"
+                    value={formData.definition}
+                    onChange={(e) => setFormData({ ...formData, definition: e.target.value, description: e.target.value })}
+                    rows={4}
+                    placeholder="Provide a clear definition of the term..."
                   />
-                ) : (
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
-                    id="file_upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        // For now, we'll use the file name as a placeholder
-                        // In production, you'd upload to Firebase Storage
-                        setFormData({ ...formData, fileUrl: `uploaded_${file.name}` });
-                      }
-                    }}
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   />
-                )}
-                
-                {formData.fileUrl && (
-                  <div className="mt-2 p-2 bg-muted rounded text-sm">
-                    File: {formData.fileUrl}
-                  </div>
-                )}
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            {formData.type === 'document' && (
+              <div>
+                <Label htmlFor="size">File Size (optional)</Label>
+                <Input
+                  id="size"
+                  value={formData.size}
+                  onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                  placeholder="e.g. 1.2 MB"
+                />
               </div>
-            </div>
+            )}
+
+            {formData.type !== 'glossary' && (
+              <div>
+                <Label htmlFor="file">{formData.type === 'link' ? 'External Link URL' : 'File'}</Label>
+                <div className="space-y-3">
+                  {formData.type === 'document' && (
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={fileInputType === 'url' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFileInputType('url')}
+                      >
+                        <LinkIcon className="w-4 h-4 mr-2" />
+                        URL
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={fileInputType === 'file' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFileInputType('file')}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload File
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {(fileInputType === 'url' || formData.type === 'link') ? (
+                    <Input
+                      id="fileUrl"
+                      placeholder={formData.type === 'link' ? "https://www.example.org" : "https://example.com/document.pdf"}
+                      value={formData.fileUrl}
+                      onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                    />
+                  ) : (
+                    <Input
+                      id="file_upload"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, fileUrl: `uploaded_${file.name}` });
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
             <div>
               <Label htmlFor="category">Category</Label>
               <Select
@@ -307,23 +435,42 @@ export default function ResourcesTab() {
             <Card key={resource.id}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{resource.title}</CardTitle>
-                    {resource.category && (
-                      <Badge variant="outline" className="mt-1">
-                        {resource.category}
-                      </Badge>
-                    )}
+                  <div className="flex items-center gap-2">
+                    {resource.type === 'document' && <BookOpen className="h-5 w-5 text-blue-500" />}
+                    {resource.type === 'link' && <LinkIcon className="h-5 w-5 text-green-500" />}
+                    {resource.type === 'glossary' && <Globe className="h-5 w-5 text-orange-500" />}
+                    <div>
+                      <CardTitle className="text-lg">
+                        {resource.type === 'glossary' ? resource.term : resource.title}
+                      </CardTitle>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {resource.category && (
+                          <Badge variant="outline">
+                            {resource.category}
+                          </Badge>
+                        )}
+                        {resource.type && (
+                          <Badge variant="secondary" className="capitalize">
+                            {resource.type}
+                          </Badge>
+                        )}
+                        {resource.type === 'document' && resource.size && (
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {resource.size}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <Badge variant={resource.isMemberOnly ? 'secondary' : 'default'}>
                     {resource.isMemberOnly ? (
-                      <span className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
+                      <span className="flex items-center gap-1 text-[10px]">
+                        <Lock className="h-2.5 w-2.5" />
                         Members
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1">
-                        <Globe className="h-3 w-3" />
+                      <span className="flex items-center gap-1 text-[10px]">
+                        <Globe className="h-2.5 w-2.5" />
                         Public
                       </span>
                     )}
@@ -331,18 +478,33 @@ export default function ResourcesTab() {
                 </div>
               </CardHeader>
               <CardContent>
-                {resource.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    {resource.description}
-                  </p>
+                {resource.type === 'glossary' ? (
+                  <div className="bg-orange-50/50 dark:bg-orange-900/10 p-3 rounded-lg border border-orange-100 dark:border-orange-800 mb-4">
+                    <p className="text-sm italic text-foreground">
+                      {resource.definition || resource.description}
+                    </p>
+                  </div>
+                ) : (
+                  resource.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      {resource.description}
+                    </p>
+                  )
                 )}
+                
+                {resource.type === 'link' && resource.fileUrl && (
+                  <div className="mb-4 text-xs text-blue-600 truncate underline">
+                    {resource.fileUrl}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditDialog(resource)}>
-                    <Pencil className="h-4 w-4 mr-2" />
+                  <Button variant="ghost" size="sm" className="h-8" onClick={() => openEditDialog(resource)}>
+                    <Pencil className="h-3.5 w-3.5 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(resource.id)}>
-                    <Trash2 className="h-4 w-4 mr-2" />
+                  <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10" onClick={() => handleDelete(resource.id)}>
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
                     Delete
                   </Button>
                 </div>

@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (userDoc.exists()) {
             const profile = { id: userDoc.id, ...userDoc.data() } as User;
             setUserProfile(profile);
-            setIsAdmin(profile.role === 'admin');
+            setIsAdmin(['admin', 'president', 'vice_president', 'secretary'].includes(profile.role));
           } else {
             setUserProfile(null);
             setIsAdmin(false);

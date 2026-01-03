@@ -42,6 +42,11 @@ interface SystemSettings {
   electionOpen: boolean;
   max_file_size: number;
   session_timeout: number;
+  telegramBotToken: string;
+  telegramChannelId: string;
+  telegramEnabled: boolean;
+  homeHeroTitle: string;
+  homeHeroSubtitle: string;
 }
 
 export default function SystemSettingsTab() {
@@ -58,6 +63,11 @@ export default function SystemSettingsTab() {
     electionOpen: systemSettings.electionOpen,
     max_file_size: 5,
     session_timeout: 30,
+    telegramBotToken: systemSettings.telegramBotToken || '',
+    telegramChannelId: systemSettings.telegramChannelId || '',
+    telegramEnabled: systemSettings.telegramEnabled || false,
+    homeHeroTitle: systemSettings.homeHeroTitle || 'Integrity and Transparency',
+    homeHeroSubtitle: systemSettings.homeHeroSubtitle || 'The Official Ethics and Anti-Corruption Club of Haramaya University',
   });
 
   // Sync local state with context when system settings change
@@ -156,6 +166,11 @@ export default function SystemSettingsTab() {
       electionOpen: false,
       max_file_size: 5,
       session_timeout: 30,
+      telegramBotToken: '',
+      telegramChannelId: '',
+      telegramEnabled: false,
+      homeHeroTitle: 'Integrity and Transparency',
+      homeHeroSubtitle: 'The Official Ethics and Anti-Corruption Club of Haramaya University',
     });
     toast.success("Settings reset. All settings have been reset to defaults.");
   };
@@ -180,10 +195,14 @@ export default function SystemSettingsTab() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="w-4 h-4" />
             General
+          </TabsTrigger>
+          <TabsTrigger value="home" className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Home
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="w-4 h-4" />
@@ -195,7 +214,7 @@ export default function SystemSettingsTab() {
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
-            Notifications
+            Telegram
           </TabsTrigger>
           <TabsTrigger value="system" className="gap-2">
             <Database className="w-4 h-4" />
@@ -244,6 +263,35 @@ export default function SystemSettingsTab() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="home" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Home Page Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="hero_title">Hero Title</Label>
+                <Input
+                  id="hero_title"
+                  value={settings.homeHeroTitle}
+                  onChange={(e) => setSettings(prev => ({ ...prev, homeHeroTitle: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hero_subtitle">Hero Subtitle</Label>
+                <Textarea
+                  id="hero_subtitle"
+                  value={settings.homeHeroSubtitle}
+                  onChange={(e) => setSettings(prev => ({ ...prev, homeHeroSubtitle: e.target.value }))}
+                  rows={2}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
@@ -323,13 +371,60 @@ export default function SystemSettingsTab() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="w-5 h-5" />
-                Notification Settings
+                Telegram Integration
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Notification settings will be available in future updates.</p>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Enable Telegram Bot</Label>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Automatically post updates to your Telegram channel
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.telegramEnabled}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, telegramEnabled: checked }))}
+                />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div className="space-y-2">
+                  <Label htmlFor="bot_token">Telegram Bot Token</Label>
+                  <Input
+                    id="bot_token"
+                    type="password"
+                    placeholder="723456789:ABCDefgh..."
+                    value={settings.telegramBotToken}
+                    onChange={(e) => setSettings(prev => ({ ...prev, telegramBotToken: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Get from <a href="https://t.me/botfather" target="_blank" rel="noreferrer" className="text-primary hover:underline">@BotFather</a>
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="channel_id">Telegram Channel ID(s)</Label>
+                  <Input
+                    id="channel_id"
+                    placeholder="@chan1, @chan2 or -100123, -100456"
+                    value={settings.telegramChannelId}
+                    onChange={(e) => setSettings(prev => ({ ...prev, telegramChannelId: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Support for multiple channels: separate IDs with commas. Make sure the bot is an administrator in all of them.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                  <h4 className="text-sm font-semibold">Automatic Posting Features:</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                    <li>Send new News articles as posts</li>
+                    <li>Send new Announcements to the channel</li>
+                    <li>Synchronize edits from the dashboard to the channel</li>
+                    <li>Delete Telegram posts when deleted from dashboard</li>
+                  </ul>
+                </div>
               </div>
             </CardContent>
           </Card>

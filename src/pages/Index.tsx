@@ -24,6 +24,7 @@ import {
   Loader2,
   Newspaper,
 } from "lucide-react";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 const services = [
   {
@@ -51,6 +52,7 @@ const services = [
 
 export default function HomePage() {
   useScrollAnimation();
+  const { settings: systemSettings } = useSystemSettings();
 
   const [latestNews, setLatestNews] = useState<
     {
@@ -123,16 +125,14 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-display text-2xl md:text-4xl font-bold mb-6 leading-tight animate-slide-up text-white dark:text-gray-100 drop-shadow-lg">
-              Welcome to HU <span className="text-primary-light dark:text-primary">Ethics and Anti-Corruption Club</span>
+              {systemSettings.homeHeroTitle || "Welcome to HU Ethics and Anti-Corruption Club"}
             </h1>
 
             <p
               className="text-lg md:text-xl text-white/95 dark:text-gray-200/90 mb-10 max-w-2xl animate-slide-up leading-relaxed drop-shadow-md"
               style={{ animationDelay: "0.1s" }}
             >
-              We are committed to promoting ethical conduct, combating
-              corruption, and fostering accountability within our university
-              community through education, advocacy, and action.
+              {systemSettings.homeHeroSubtitle || "We are committed to promoting ethical conduct, combating corruption, and fostering accountability within our university community through education, advocacy, and action."}
             </p>
 
             <div

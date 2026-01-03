@@ -59,6 +59,7 @@ export function Navbar() {
       { name: "Home", path: "/" },
       { name: "About", path: "/about" },
       { name: "News", path: "/news" },
+      { name: "Announcements", path: "/announcements" },
       { name: "Gallery", path: "/gallery" },
       { name: "Achievements", path: "/achievements" },
       { name: "Events", path: "/programs" },

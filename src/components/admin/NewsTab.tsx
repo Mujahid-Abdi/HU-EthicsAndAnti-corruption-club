@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Loader2, Newspaper, Database, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { TelegramService } from '@/lib/telegram';
 
 const sampleNewsArticles = [
   {
@@ -144,11 +146,14 @@ interface NewsItem {
   published: boolean | null;
   createdAt: any;
   updatedAt: any;
+  telegramMessageId?: string;
+  telegramMessageIds?: Record<string, string>;
 }
 
 export default function NewsTab() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { settings: systemSettings } = useSystemSettings();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -249,11 +254,62 @@ export default function NewsTab() {
     };
 
     try {
+      let docId = editingNews?.id;
+
       if (editingNews) {
         await FirestoreService.update(Collections.NEWS, editingNews.id, newsData);
+        
+        // Handle Telegram Update
+        if (formData.published && systemSettings.telegramEnabled) {
+          const content = {
+            title: formData.title,
+            text: formData.content,
+            imageUrl: formData.image_url,
+            type: 'News' as const,
+            link: `${window.location.origin}/news`,
+          };
+
+          const currentIds: Record<string, string> = editingNews.telegramMessageIds || (editingNews.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingNews.telegramMessageId } : {});
+          const updatedIds = await TelegramService.updatePost(systemSettings, currentIds, content);
+          
+          if (Object.keys(updatedIds).length > 0) {
+            await FirestoreService.update(Collections.NEWS, editingNews.id, { 
+              telegramMessageIds: updatedIds,
+              telegramMessageId: Object.values(updatedIds)[0] // Keep for backward compatibility
+            });
+          }
+        } else if (!formData.published && (editingNews.telegramMessageIds || editingNews.telegramMessageId) && systemSettings.telegramEnabled) {
+          const currentIds: Record<string, string> = editingNews.telegramMessageIds || (editingNews.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingNews.telegramMessageId } : {});
+          await TelegramService.deletePost(systemSettings, currentIds);
+          await FirestoreService.update(Collections.NEWS, editingNews.id, { 
+            telegramMessageIds: null,
+            telegramMessageId: null 
+          });
+        }
+        
         toast.success('News updated successfully');
       } else {
-        await FirestoreService.create(Collections.NEWS, newsData);
+        const docRef = await FirestoreService.create(Collections.NEWS, newsData);
+        docId = (docRef as any).id;
+        
+        // Handle Telegram Create
+        if (formData.published && systemSettings.telegramEnabled) {
+          const results = await TelegramService.sendPost(systemSettings, {
+            title: formData.title,
+            text: formData.content,
+            imageUrl: formData.image_url,
+            type: 'News',
+            link: `${window.location.origin}/news`,
+          });
+          
+          if (Object.keys(results).length > 0) {
+            await FirestoreService.update(Collections.NEWS, docId, { 
+              telegramMessageIds: results,
+              telegramMessageId: Object.values(results)[0]
+            });
+          }
+        }
+        
         toast.success('News created successfully');
       }
       setIsDialogOpen(false);
@@ -265,11 +321,17 @@ export default function NewsTab() {
     setIsSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (item: NewsItem) => {
     if (!confirm('Are you sure you want to delete this news article?')) return;
 
     try {
-      await FirestoreService.delete(Collections.NEWS, id);
+      // Delete from Telegram if exists
+      const currentIds = item.telegramMessageIds || (item.telegramMessageId ? { [systemSettings.telegramChannelId || '']: item.telegramMessageId } : {});
+      if (Object.keys(currentIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, currentIds);
+      }
+      
+      await FirestoreService.delete(Collections.NEWS, item.id);
       toast.success('News deleted successfully');
       fetchNews();
     } catch (error) {
@@ -471,7 +533,7 @@ export default function NewsTab() {
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(item)}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>

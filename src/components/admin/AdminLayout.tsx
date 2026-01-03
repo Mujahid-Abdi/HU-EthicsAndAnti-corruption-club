@@ -41,38 +41,80 @@ interface AdminLayoutProps {
   onTabChange: (tab: string) => void;
 }
 
-const adminNavItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Shield },
-  { id: 'reports', label: 'Reports', icon: FileText },
-  { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'news', label: 'News', icon: Newspaper },
-  { id: 'gallery', label: 'Gallery', icon: Image },
-  { id: 'achievements', label: 'Achievements', icon: Award },
-  { id: 'resources', label: 'Resources', icon: BookOpen },
-  { id: 'about', label: 'About Page', icon: Info },
-  { id: 'contact', label: 'Contact Page', icon: Phone },
-  { id: 'executives', label: 'Executives', icon: UserCog },
-  { id: 'users', label: 'Users', icon: User },
-  { id: 'settings', label: 'System Settings', icon: Settings },
-];
-
-const votingNavItems = [
-  { id: 'vote-management', label: 'Vote Management', icon: Vote },
+const adminGroups = [
+  {
+    name: 'General',
+    id: 'general',
+    roles: ['admin', 'president', 'vice_president', 'secretary'],
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: Shield },
+    ]
+  },
+  {
+    name: 'Secretary',
+    id: 'secretary',
+    roles: ['admin', 'president', 'vice_president', 'secretary'],
+    items: [
+      { id: 'users', label: 'Users', icon: User },
+      { id: 'events', label: 'Events', icon: Calendar },
+      { id: 'news', label: 'News', icon: Newspaper },
+      { id: 'announcements', label: 'Announcements', icon: Lightbulb },
+      { id: 'resources', label: 'Resources', icon: BookOpen },
+      { id: 'gallery', label: 'Gallery', icon: Image },
+    ]
+  },
+  {
+    name: 'Vice Role',
+    id: 'vice_role',
+    roles: ['admin', 'president', 'vice_president'],
+    items: [
+      { id: 'reports', label: 'Reports', icon: FileText },
+      { id: 'achievements', label: 'Achievements', icon: Award },
+      { id: 'vote-management', label: 'Vote Management', icon: Vote },
+    ]
+  },
+  {
+    name: 'System Settings',
+    id: 'system_settings',
+    roles: ['admin', 'president'],
+    items: [
+      { id: 'settings', label: 'General Settings', icon: Settings },
+      { id: 'about', label: 'About Page', icon: Info },
+      { id: 'contact', label: 'Contact Page', icon: Phone },
+      { id: 'executives', label: 'Executives', icon: UserCog },
+    ]
+  }
 ];
 
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { signOut } = useAuth();
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const { signOut, userProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { isVotingEnabled } = useSystemSettings();
   const navigate = useNavigate();
 
-  // Combine navigation items based on voting system status
-  const navigationItems = [
-    ...adminNavItems.slice(0, 7), // Dashboard through Resources
-    ...(isVotingEnabled ? votingNavItems : []), // Elections and Candidates only if voting enabled
-    ...adminNavItems.slice(7), // Executives, Users, Settings
-  ];
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
+
+  // Filter groups and items based on role and settings
+  const filteredGroups = adminGroups.filter(group => {
+    // Check if user has access to this group
+    const userRole = userProfile?.role || 'member';
+    if (!group.roles.includes(userRole)) return false;
+
+    // Further filter items within the group
+    group.items = group.items.filter(item => {
+      if (item.id === 'vote-management' && !isVotingEnabled) return false;
+      return true;
+    });
+
+    return group.items.length > 0;
+  });
 
   const handleSignOut = async () => {
     try {
@@ -105,7 +147,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
                   Admin Dashboard
                 </h1>
                 <p className="text-white/80 text-sm">
-                  Manage your ethics club system
+                  {userProfile?.role ? `${userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1).replace('_', ' ')} Panel` : 'Loading...'}
                 </p>
               </div>
             </div>
@@ -139,34 +181,56 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Navigation</h2>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-center">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Main Navigation</h2>
             </div>
             
-            <ScrollArea className="flex-1 p-4">
-              <nav className="space-y-2">
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Button
-                      key={item.id}
-                      variant={activeTab === item.id ? "default" : "ghost"}
-                      className={cn(
-                        "w-full justify-start gap-3 h-11 transition-all duration-300 group",
-                        activeTab === item.id 
-                          ? "bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02]" 
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:scale-[1.01] hover:shadow-sm"
-                      )}
-                      onClick={() => {
-                        onTabChange(item.id);
-                        setSidebarOpen(false);
-                      }}
+            <ScrollArea className="flex-1 p-3">
+              <nav className="space-y-4">
+                {filteredGroups.map((group) => (
+                  <div key={group.id} className="space-y-1">
+                    <button
+                      onClick={() => toggleGroup(group.id)}
+                      className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors duration-200"
                     >
-                      <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                      {item.label}
-                    </Button>
-                  );
-                })}
+                      <span>{group.name}</span>
+                      <ChevronRight className={cn(
+                        "h-3 w-3 transition-transform duration-200",
+                        !collapsedGroups[group.id] && "rotate-90"
+                      )} />
+                    </button>
+                    {!collapsedGroups[group.id] && (
+                      <div className="space-y-1 mt-1">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = activeTab === item.id;
+                          return (
+                            <Button
+                              key={item.id}
+                              variant={isActive ? "default" : "ghost"}
+                              className={cn(
+                                "w-full justify-start gap-3 h-10 transition-all duration-300 group rounded-lg px-4",
+                                isActive 
+                                  ? "bg-primary text-white shadow-md hover:bg-primary/90" 
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                              )}
+                              onClick={() => {
+                                onTabChange(item.id);
+                                setSidebarOpen(false);
+                              }}
+                            >
+                              <Icon className={cn(
+                                "h-4 w-4 transition-transform duration-300",
+                                isActive ? "scale-110" : "group-hover:scale-110"
+                              )} />
+                              <span className="text-sm font-medium">{item.label}</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </nav>
             </ScrollArea>
 

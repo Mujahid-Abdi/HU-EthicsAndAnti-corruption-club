@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Loader2, Calendar, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { TelegramService } from '@/lib/telegram';
 
 interface Event {
   id: string;
@@ -25,6 +27,11 @@ interface Event {
   published: boolean | null;
   createdAt: any;
   updatedAt: any;
+  telegramMessageId?: string;
+  telegramMessageIds?: Record<string, string>;
+  // Legacy support for older field names if needed
+  event_date?: any;
+  end_date?: any;
 }
 
 export default function EventsTab() {
@@ -34,6 +41,7 @@ export default function EventsTab() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
+  const { settings: systemSettings } = useSystemSettings();
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -116,11 +124,61 @@ export default function EventsTab() {
     };
 
     try {
+      let docId = editingEvent?.id;
       if (editingEvent) {
         await FirestoreService.update(Collections.EVENTS, editingEvent.id, eventData);
+        
+        // Handle Telegram Update
+        if (formData.published && systemSettings.telegramEnabled) {
+          const content = {
+            title: formData.title,
+            text: formData.description || '',
+            imageUrl: formData.image_url,
+            type: 'Event' as const,
+            link: `${window.location.origin}/events`,
+          };
+
+          const currentIds: Record<string, string> = editingEvent.telegramMessageIds || (editingEvent.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingEvent.telegramMessageId } : {});
+          const updatedIds = await TelegramService.updatePost(systemSettings, currentIds, content);
+          
+          if (Object.keys(updatedIds).length > 0) {
+            await FirestoreService.update(Collections.EVENTS, editingEvent.id, { 
+              telegramMessageIds: updatedIds,
+              telegramMessageId: Object.values(updatedIds)[0]
+            });
+          }
+        } else if (!formData.published && (editingEvent.telegramMessageIds || editingEvent.telegramMessageId) && systemSettings.telegramEnabled) {
+          const currentIds: Record<string, string> = editingEvent.telegramMessageIds || (editingEvent.telegramMessageId ? { [systemSettings.telegramChannelId || '']: editingEvent.telegramMessageId } : {});
+          await TelegramService.deletePost(systemSettings, currentIds);
+          await FirestoreService.update(Collections.EVENTS, editingEvent.id, { 
+            telegramMessageIds: null,
+            telegramMessageId: null 
+          });
+        }
+        
         toast.success('Event updated successfully');
       } else {
-        await FirestoreService.create(Collections.EVENTS, eventData);
+        const docRef = await FirestoreService.create(Collections.EVENTS, eventData);
+        docId = (docRef as any).id;
+        
+        // Handle Telegram Create
+        if (formData.published && systemSettings.telegramEnabled) {
+          const results = await TelegramService.sendPost(systemSettings, {
+            title: formData.title,
+            text: formData.description || '',
+            imageUrl: formData.image_url,
+            type: 'Event',
+            link: `${window.location.origin}/events`,
+          });
+          
+          if (Object.keys(results).length > 0) {
+            await FirestoreService.update(Collections.EVENTS, docId, { 
+              telegramMessageIds: results,
+              telegramMessageId: Object.values(results)[0]
+            });
+          }
+        }
+        
         toast.success('Event created successfully');
       }
       setIsDialogOpen(false);
@@ -132,11 +190,17 @@ export default function EventsTab() {
     setIsSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (event: Event) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
 
     try {
-      await FirestoreService.delete(Collections.EVENTS, id);
+      // Delete from Telegram if exists
+      const currentIds = event.telegramMessageIds || (event.telegramMessageId ? { [systemSettings.telegramChannelId || '']: event.telegramMessageId } : {});
+      if (Object.keys(currentIds).length > 0 && systemSettings.telegramEnabled) {
+        await TelegramService.deletePost(systemSettings, currentIds);
+      }
+      
+      await FirestoreService.delete(Collections.EVENTS, event.id);
       toast.success('Event deleted successfully');
       fetchEvents();
     } catch (error) {
@@ -348,7 +412,7 @@ export default function EventsTab() {
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(event.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(event)}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>

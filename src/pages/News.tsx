@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FirestoreService, Collections } from '@/lib/firestore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, 
@@ -18,87 +19,14 @@ import {
   Download,
   Search,
   Scale,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-// Key Terms Glossary Data (moved from Programs page)
-const glossary = [
-  {
-    term: "Corruption",
-    definition: "The abuse of entrusted power for private gain. It can be classified as grand, petty, and political, depending on the amounts of money involved and the sector where it occurs.",
-  },
-  {
-    term: "Bribery",
-    definition: "The offering, giving, receiving, or soliciting of any item of value to influence the actions of an official or other person in charge of a public or legal duty.",
-  },
-  {
-    term: "Whistleblower",
-    definition: "A person who exposes information or activity within an organization that is deemed illegal, unethical, or not correct.",
-  },
-  {
-    term: "Conflict of Interest",
-    definition: "A situation in which a person's private interests interfere with their professional duties and responsibilities.",
-  },
-  {
-    term: "Academic Integrity",
-    definition: "The commitment to and demonstration of honest and moral behavior in an academic setting, including avoiding plagiarism and cheating.",
-  },
-  {
-    term: "Due Diligence",
-    definition: "The investigation or exercise of care that a reasonable person or organization is expected to take before entering into an agreement or contract.",
-  },
-];
-
-// Club Documents Data (moved from Programs page)
-const clubDocuments = [
-  {
-    title: "Membership Guidelines",
-    description: "Requirements and benefits of becoming a club member.",
-    type: "PDF",
-    size: "3.2 MB",
-  },
-  {
-    title: "Annual Report 2024",
-    description: "Summary of our activities, achievements, and impact over the past year.",
-    type: "PDF",
-    size: "2.1 MB",
-  },
-  {
-    title: "Club Constitution",
-    description: "The founding document outlining our mission, structure, and operational guidelines.",
-    type: "PDF",
-    size: "450 KB",
-  },
-];
-
-// University Policies Data (moved from Programs page)
-const universityPolicies = [
-  {
-    title: "University Code of Conduct",
-    description: "Comprehensive guidelines for ethical behavior expected of all students, faculty, and staff.",
-    type: "PDF",
-    size: "1.2 MB",
-  },
-  {
-    title: "Academic Integrity Policy",
-    description: "Detailed policy on academic honesty, plagiarism prevention, and disciplinary procedures.",
-    type: "PDF",
-    size: "890 KB",
-  },
-  {
-    title: "Disciplinary Procedures Manual",
-    description: "Step-by-step guide to the university's disciplinary process and appeal mechanisms.",
-    type: "PDF",
-    size: "1.5 MB",
-  },
-  {
-    title: "Anti-Harassment Policy",
-    description: "Policy addressing all forms of harassment and the reporting/response procedures.",
-    type: "PDF",
-    size: "720 KB",
-  },
-];
+// Hardcoded resources removed as they are now managed dynamically.
 
 // Announcements Data
 const announcements = [
@@ -196,14 +124,27 @@ interface NewsItem {
   createdAt: any;
 }
 
+interface Resource {
+  id: string;
+  title: string;
+  description: string | null;
+  fileUrl: string | null;
+  category: string | null;
+  isMemberOnly: boolean | null;
+  createdAt: any;
+}
+
 export default function News() {
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isResourcesLoading, setIsResourcesLoading] = useState(true);
   const [email, setEmail] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPublishedNews();
+    fetchResources();
   }, []);
 
   const fetchPublishedNews = async () => {
@@ -226,6 +167,22 @@ export default function News() {
       console.error('Error fetching news:', error);
     }
     setIsLoading(false);
+  };
+
+  const fetchResources = async () => {
+    try {
+      const data = await FirestoreService.getAll(Collections.RESOURCES);
+      const mappedData = data.map((item: any) => ({
+        ...item,
+        fileUrl: item.fileUrl || item.file_url || null,
+        isMemberOnly: item.isMemberOnly || item.is_member_only || false,
+        createdAt: item.createdAt || item.created_at || null,
+      }));
+      setResources(mappedData as Resource[]);
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+    setIsResourcesLoading(false);
   };
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -405,115 +362,123 @@ export default function News() {
 
               {/* Resources Tab Content */}
               <TabsContent value="resources" className="space-y-16 py-16">
-                {/* Search Bar */}
-                <div className="max-w-2xl mx-auto relative">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-                    <Input
-                      type="search"
-                      placeholder="Search policies, documents, and resources..."
-                      className="pl-12 h-14 bg-white border-2 border-gray-200 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all"
-                    />
+                {isResourcesLoading ? (
+                  <div className="min-h-[40vh] flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                </div>
-
-                {/* Key Terminology Glossary */}
-                <div className="text-center mb-12">
-                  <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                    Key Terminology Glossary
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Understanding the language of ethics and anti-corruption
-                  </p>
-                </div>
-
-                <div className="max-w-4xl mx-auto space-y-4">
-                  {glossary.map((item, index) => (
-                    <Card key={index} className="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
-                      <div className="flex items-start gap-4">
-                        <ChevronRight className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                        <div>
-                          <h4 className="font-display font-semibold text-foreground mb-2">{item.term}</h4>
-                          <p className="text-muted-foreground leading-relaxed">{item.definition}</p>
-                        </div>
+                ) : resources.length === 0 ? (
+                  <Card className="max-w-md mx-auto">
+                    <CardContent className="py-16 text-center">
+                      <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">No Resources Yet</h3>
+                      <p className="text-muted-foreground">
+                        Check back soon for documents, policies, and educational materials.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-12">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                        <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                          Knowledge Center
+                        </span>
                       </div>
-                    </Card>
-                  ))}
-                </div>
+                      <h3 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                        Resources & Materials
+                      </h3>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Access our comprehensive collection of documents, policies, and educational materials on ethics and anti-corruption.
+                      </p>
+                    </div>
 
-                {/* Club Documents */}
-                <div className="text-center mb-12">
-                  <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                    Club Documents
-                  </h3>
-                  <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Essential documents and reports from our club
-                  </p>
-                </div>
+                    {/* Group resources by category */}
+                    {(() => {
+                      const resourcesByCategory = resources.reduce((acc, resource) => {
+                        const category = resource.category || 'Other';
+                        if (!acc[category]) {
+                          acc[category] = [];
+                        }
+                        acc[category].push(resource);
+                        return acc;
+                      }, {} as Record<string, Resource[]>);
 
-                <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
-                  {clubDocuments.map((doc, index) => (
-                    <Card key={index} className="group hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-5 h-5 text-primary" />
+                      return Object.entries(resourcesByCategory).map(([category, categoryResources]) => (
+                        <div key={category} className="mb-12">
+                          <h4 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                            <Scale className="w-6 h-6 text-primary" />
+                            {category}
+                          </h4>
+                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {categoryResources.map((resource) => (
+                              <Card
+                                key={resource.id}
+                                className="group hover:shadow-lg transition-shadow"
+                              >
+                                <CardHeader>
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                      <FileText className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <CardTitle className="text-lg">{resource.title}</CardTitle>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        {resource.isMemberOnly && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            <Lock className="w-3 h-3 mr-1" />
+                                            Members Only
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {resource.description && (
+                                    <p className="text-sm text-muted-foreground">
+                                      {resource.description}
+                                    </p>
+                                  )}
+                                </CardHeader>
+                                <CardFooter className="flex justify-between items-center">
+                                  <span className="text-xs text-muted-foreground">
+                                    {resource.createdAt && new Date(resource.createdAt.seconds * 1000).toLocaleDateString()}
+                                  </span>
+                                  {resource.fileUrl && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="gap-2 group-hover:bg-primary/5"
+                                      onClick={() => {
+                                        if (resource.fileUrl?.startsWith('http')) {
+                                          window.open(resource.fileUrl, '_blank');
+                                        } else {
+                                          // Handle file download for uploaded files
+                                          console.log('Download file:', resource.fileUrl);
+                                        }
+                                      }}
+                                    >
+                                      {resource.fileUrl.startsWith('http') ? (
+                                        <>
+                                          <ExternalLink className="w-4 h-4" />
+                                          Open
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Download className="w-4 h-4" />
+                                          Download
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </CardFooter>
+                              </Card>
+                            ))}
                           </div>
-                          <CardTitle className="text-lg">{doc.title}</CardTitle>
                         </div>
-                      </CardHeader>
-                      <CardContent className="flex justify-between items-center">
-                        <div>
-                          <p className="text-muted-foreground text-sm">{doc.description}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {doc.size} • {doc.type}
-                          </span>
-                        </div>
-                        <Button variant="outline" size="sm" className="group-hover:bg-primary/5 gap-2">
-                          <Download className="w-4 h-4" />
-                          Download
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* University Policies */}
-                <div className="text-center mb-12">
-                  <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                    University Policies
-                  </h3>
-                  <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Official documents and guidelines from Haramaya University
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-16">
-                  {universityPolicies.map((doc, index) => (
-                    <Card key={index} className="group hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-5 h-5 text-primary" />
-                          </div>
-                          <CardTitle className="text-lg">{doc.title}</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex justify-between items-center">
-                        <div>
-                          <p className="text-muted-foreground text-sm">{doc.description}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {doc.size} • {doc.type}
-                          </span>
-                        </div>
-                        <Button variant="outline" size="sm" className="group-hover:bg-primary/5 gap-2">
-                          <Download className="w-4 h-4" />
-                          Download
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      ));
+                    })()}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
