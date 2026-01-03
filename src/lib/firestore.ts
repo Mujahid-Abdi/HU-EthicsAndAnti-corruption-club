@@ -12,6 +12,7 @@ import {
   limit,
   onSnapshot,
   Timestamp,
+  setDoc,
   DocumentData,
   QueryConstraint,
 } from 'firebase/firestore';
@@ -71,6 +72,21 @@ export class FirestoreService {
     return this.get(collectionName, id);
   }
 
+  // Set a document with a specific ID (create or overwrite)
+  static async set(collectionName: string, id: string, data: any) {
+    try {
+      const docRef = doc(db, collectionName, id);
+      await setDoc(docRef, {
+        ...data,
+        updatedAt: Timestamp.now(),
+      });
+      return { id, ...data };
+    } catch (error) {
+      console.error('Error setting document:', error);
+      throw error;
+    }
+  }
+
   // Create or update a document with a specific ID
   static async createOrUpdate(collectionName: string, id: string, data: any) {
     try {
@@ -85,7 +101,7 @@ export class FirestoreService {
         });
       } else {
         // Create new document with specific ID
-        await updateDoc(docRef, {
+        await setDoc(docRef, {
           ...data,
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),

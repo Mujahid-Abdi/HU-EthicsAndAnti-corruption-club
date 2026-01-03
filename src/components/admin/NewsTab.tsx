@@ -140,9 +140,10 @@ interface NewsItem {
   title: string;
   excerpt: string | null;
   content: string;
-  image_url: string | null;
+  imageUrl: string | null;
   published: boolean | null;
-  created_at: any;
+  createdAt: any;
+  updatedAt: any;
 }
 
 export default function NewsTab() {
@@ -225,7 +226,7 @@ export default function NewsTab() {
       title: item.title,
       excerpt: item.excerpt || '',
       content: item.content,
-      image_url: item.image_url || '',
+      image_url: item.imageUrl || '',
       published: item.published || false,
     });
     setIsDialogOpen(true);
@@ -242,19 +243,14 @@ export default function NewsTab() {
       title: formData.title,
       excerpt: formData.excerpt || null,
       content: formData.content,
-      image_url: formData.image_url || null,
+      imageUrl: formData.image_url || null,
       published: formData.published,
       created_by: user?.uid,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
     try {
       if (editingNews) {
-        await FirestoreService.update(Collections.NEWS, editingNews.id, {
-          ...newsData,
-          updated_at: new Date(),
-        });
+        await FirestoreService.update(Collections.NEWS, editingNews.id, newsData);
         toast.success('News updated successfully');
       } else {
         await FirestoreService.create(Collections.NEWS, newsData);
@@ -453,9 +449,9 @@ export default function NewsTab() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{item.title}</CardTitle>
-                    {item.created_at && (
+                    {item.createdAt && (
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(item.created_at.seconds * 1000), 'PPP')}
+                        {format(new Date(item.createdAt.seconds * 1000), 'PPP')}
                       </p>
                     )}
                   </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ElectionResults from './ElectionResults';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,6 +29,7 @@ export default function ElectionsTab() {
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingResultsId, setViewingResultsId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState<Partial<Election>>({
     title: '',
@@ -153,6 +155,18 @@ export default function ElectionsTab() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (viewingResultsId) {
+    const election = elections.find(e => e.id === viewingResultsId);
+    if (election) {
+      return (
+        <ElectionResults 
+          election={election} 
+          onBack={() => setViewingResultsId(null)} 
+        />
+      );
+    }
+  }
 
   if (loading && elections.length === 0) {
     return (
@@ -308,6 +322,18 @@ export default function ElectionsTab() {
                       >
                         <Pause className="w-3 h-3" />
                         Close
+                      </Button>
+                    )}
+
+                    {(election.status === 'open' || election.status === 'closed') && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setViewingResultsId(election.id)}
+                        className="gap-1 border-primary text-primary hover:bg-primary/10"
+                      >
+                        <BarChart3 className="w-3 h-3" />
+                        Results
                       </Button>
                     )}
 

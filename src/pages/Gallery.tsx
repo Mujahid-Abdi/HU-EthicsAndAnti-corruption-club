@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,10 @@ interface GalleryItem {
   id: string;
   title: string;
   description: string | null;
-  image_url: string;
+  imageUrl: string;
   category: string | null;
   published: boolean | null;
-  created_at: string | null;
+  createdAt: any;
 }
 
 export default function Gallery() {
@@ -37,17 +37,27 @@ export default function Gallery() {
   }, [selectedCategory, gallery]);
 
   const fetchPublishedGallery = async () => {
-    const { data, error } = await supabase
-      .from('gallery')
-      .select('*')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setGallery(data);
-      setFilteredGallery(data);
+    try {
+      const data = await FirestoreService.getAll(Collections.GALLERY);
+      const publishedItems = data
+        .filter((item: any) => item.published)
+        .map((item: any) => ({
+          ...item,
+          imageUrl: item.imageUrl || item.image_url,
+          createdAt: item.createdAt || item.created_at,
+        }))
+        .sort((a: any, b: any) => {
+          const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+          const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        });
+      setGallery(publishedItems);
+      setFilteredGallery(publishedItems);
+    } catch (error) {
+      console.error('Error fetching gallery:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const categories = ['All', ...Array.from(new Set(gallery.map(item => item.category).filter(Boolean)))];
@@ -117,7 +127,7 @@ export default function Gallery() {
                 >
                   <div className="aspect-square overflow-hidden">
                     <img
-                      src={item.image_url}
+                      src={item.imageUrl}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -153,7 +163,7 @@ export default function Gallery() {
                 <X className="h-4 w-4" />
               </Button>
               <img
-                src={selectedImage.image_url}
+                src={selectedImage.imageUrl}
                 alt={selectedImage.title}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
@@ -171,9 +181,14 @@ export default function Gallery() {
                     {selectedImage.description}
                   </p>
                 )}
-                {selectedImage.created_at && (
+                {selectedImage.createdAt && (
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(selectedImage.created_at), 'MMMM d, yyyy')}
+                    {format(
+                      selectedImage.createdAt?.seconds 
+                        ? new Date(selectedImage.createdAt.seconds * 1000) 
+                        : new Date(selectedImage.createdAt), 
+                      'MMMM d, yyyy'
+                    )}
                   </p>
                 )}
               </div>

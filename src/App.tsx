@@ -21,9 +21,6 @@ import Gallery from "./pages/Gallery";
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
 import Vote from "./pages/Vote";
-import VoteNew from "./pages/VoteNew";
-import SimpleVote from "./pages/SimpleVote";
-import TestVote from "./pages/TestVote";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -57,27 +54,7 @@ const App = () => (
               {/* Auth route without navbar */}
               <Route path="/auth" element={<Auth />} />
               
-              {/* Voting routes with VoteLayout */}
-              <Route path="/vote" element={
-                <VotingProtectedRoute>
-                  <VoteNew />
-                </VotingProtectedRoute>
-              } />
-              <Route path="/vote-simple" element={
-                <VotingProtectedRoute>
-                  <SimpleVote />
-                </VotingProtectedRoute>
-              } />
-              <Route path="/vote-full" element={
-                <VotingProtectedRoute>
-                  <Vote />
-                </VotingProtectedRoute>
-              } />
-              <Route path="/test-vote" element={
-                <VotingProtectedRoute>
-                  <TestVote />
-                </VotingProtectedRoute>
-              } />
+              {/* Voting route moved to regular layout */}
               
               {/* All other routes with Layout */}
               <Route path="/*" element={
@@ -91,6 +68,11 @@ const App = () => (
                     <Route path="/news/:id" element={<NewsDetail />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/report" element={<Report />} />
+                    <Route path="/vote" element={
+                      <VotingProtectedRoute>
+                        <Vote />
+                      </VotingProtectedRoute>
+                    } />
                     <Route path="/join" element={<Join />} />
                     <Route path="/contact" element={<Contact />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

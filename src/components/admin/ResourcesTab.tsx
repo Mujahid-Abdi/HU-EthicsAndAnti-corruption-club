@@ -17,10 +17,14 @@ interface Resource {
   id: string;
   title: string;
   description: string | null;
-  file_url: string | null;
+  fileUrl: string | null;
   category: string | null;
-  is_member_only: boolean | null;
-  created_at: any;
+  isMemberOnly: boolean | null;
+  createdAt: any;
+  // Legacy support
+  file_url?: string;
+  is_member_only?: boolean;
+  created_at?: any;
 }
 
 const categories = [
@@ -44,9 +48,9 @@ export default function ResourcesTab() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    file_url: '',
+    fileUrl: '',
     category: '',
-    is_member_only: false,
+    isMemberOnly: false,
   });
 
   useEffect(() => {
@@ -56,7 +60,13 @@ export default function ResourcesTab() {
   const fetchResources = async () => {
     try {
       const data = await FirestoreService.getAll(Collections.RESOURCES);
-      setResources(data as Resource[]);
+      const mappedData = data.map((item: any) => ({
+        ...item,
+        fileUrl: item.fileUrl || item.file_url || null,
+        isMemberOnly: item.isMemberOnly || item.is_member_only || false,
+        createdAt: item.createdAt || item.created_at || null,
+      }));
+      setResources(mappedData as Resource[]);
     } catch (error) {
       console.error('Error fetching resources:', error);
       toast.error('Failed to fetch resources');
@@ -68,9 +78,9 @@ export default function ResourcesTab() {
     setFormData({
       title: '',
       description: '',
-      file_url: '',
+      fileUrl: '',
       category: '',
-      is_member_only: false,
+      isMemberOnly: false,
     });
     setEditingResource(null);
   };
@@ -85,9 +95,9 @@ export default function ResourcesTab() {
     setFormData({
       title: resource.title,
       description: resource.description || '',
-      file_url: resource.file_url || '',
+      fileUrl: resource.fileUrl || '',
       category: resource.category || '',
-      is_member_only: resource.is_member_only || false,
+      isMemberOnly: resource.isMemberOnly || false,
     });
     setIsDialogOpen(true);
   };
@@ -102,12 +112,10 @@ export default function ResourcesTab() {
     const resourceData = {
       title: formData.title,
       description: formData.description || null,
-      file_url: formData.file_url || null,
+      fileUrl: formData.fileUrl || null,
       category: formData.category || null,
-      is_member_only: formData.is_member_only,
-      created_by: user?.uid,
-      created_at: new Date(),
-      updated_at: new Date(),
+      isMemberOnly: formData.isMemberOnly,
+      createdBy: user?.uid,
     };
 
     try {
@@ -213,10 +221,10 @@ export default function ResourcesTab() {
                 
                 {fileInputType === 'url' ? (
                   <Input
-                    id="file_url"
+                    id="fileUrl"
                     placeholder="https://example.com/document.pdf"
-                    value={formData.file_url}
-                    onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                    value={formData.fileUrl}
+                    onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
                   />
                 ) : (
                   <Input
@@ -228,15 +236,15 @@ export default function ResourcesTab() {
                       if (file) {
                         // For now, we'll use the file name as a placeholder
                         // In production, you'd upload to Firebase Storage
-                        setFormData({ ...formData, file_url: `uploaded_${file.name}` });
+                        setFormData({ ...formData, fileUrl: `uploaded_${file.name}` });
                       }
                     }}
                   />
                 )}
                 
-                {formData.file_url && (
+                {formData.fileUrl && (
                   <div className="mt-2 p-2 bg-muted rounded text-sm">
-                    File: {formData.file_url}
+                    File: {formData.fileUrl}
                   </div>
                 )}
               </div>
@@ -261,15 +269,15 @@ export default function ResourcesTab() {
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="is_member_only">Members Only</Label>
+                <Label htmlFor="isMemberOnly">Members Only</Label>
                 <p className="text-xs text-muted-foreground">
                   Restrict access to approved members
                 </p>
               </div>
               <Switch
-                id="is_member_only"
-                checked={formData.is_member_only}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_member_only: checked })}
+                id="isMemberOnly"
+                checked={formData.isMemberOnly}
+                onCheckedChange={(checked) => setFormData({ ...formData, isMemberOnly: checked })}
               />
             </div>
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
@@ -307,8 +315,8 @@ export default function ResourcesTab() {
                       </Badge>
                     )}
                   </div>
-                  <Badge variant={resource.is_member_only ? 'secondary' : 'default'}>
-                    {resource.is_member_only ? (
+                  <Badge variant={resource.isMemberOnly ? 'secondary' : 'default'}>
+                    {resource.isMemberOnly ? (
                       <span className="flex items-center gap-1">
                         <Lock className="h-3 w-3" />
                         Members

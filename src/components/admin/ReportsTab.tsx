@@ -12,16 +12,34 @@ import { format } from 'date-fns';
 
 interface Report {
   id: string;
-  report_type: string;
+  title?: string;
+  reportType: string;
   description: string;
-  incident_date: any | null;
+  incidentDate: any | null;
   location: string | null;
-  contact_method: string | null;
-  contact_info: string | null;
-  evidence_urls: string[] | null;
+  contactMethod: string | null;
+  contactInfo: string | null;
+  evidenceUrls: string[] | null;
+  attachments?: string[] | null;
   status: string;
-  internal_notes: string | null;
-  created_at: any;
+  priority?: string;
+  category?: string;
+  internalNotes: string | null;
+  adminNotes?: string | null;
+  sessionId?: string;
+  submittedAt?: any;
+  createdAt: any;
+  updatedAt?: any;
+  reviewedAt?: any;
+  reviewedBy?: string;
+  // Legacy support fields
+  report_type?: string;
+  incident_date?: any;
+  contact_method?: string;
+  contact_info?: string;
+  evidence_urls?: string[];
+  created_at?: any;
+  internal_notes?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -52,11 +70,36 @@ export default function ReportsTab() {
 
   const fetchReports = async () => {
     try {
+      console.log('🔍 Fetching reports from Firestore...');
       const data = await FirestoreService.getAll(Collections.REPORTS);
-      setReports(data as Report[]);
+      console.log('📊 Raw reports data:', data);
+      
+      const mappedReports = data.map((item: any) => ({
+        ...item,
+        title: item.title || `${(item.reportType || item.report_type || 'other').replace('_', ' ')} Report`,
+        reportType: item.reportType || item.report_type || 'other',
+        incidentDate: item.incidentDate || item.incident_date || null,
+        contactMethod: item.contactMethod || item.contact_method || 'none',
+        contactInfo: item.contactInfo || item.contact_info || null,
+        evidenceUrls: item.evidenceUrls || item.evidence_urls || item.attachments || null,
+        internalNotes: item.internalNotes || item.internal_notes || item.adminNotes || null,
+        createdAt: item.createdAt || item.created_at || item.submittedAt || null,
+        priority: item.priority || 'medium',
+        category: item.category || item.reportType || item.report_type || 'other',
+      }));
+      
+      // Sort by creation date (newest first)
+      const sortedReports = mappedReports.sort((a: any, b: any) => {
+        const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      console.log('✅ Processed reports:', sortedReports);
+      setReports(sortedReports as Report[]);
     } catch (error) {
-      console.error('Error fetching reports:', error);
-      toast.error('Failed to fetch reports');
+      console.error('❌ Error fetching reports:', error);
+      toast.error('Failed to fetch reports: ' + (error as Error).message);
     }
     setIsLoading(false);
   };
@@ -68,8 +111,8 @@ export default function ReportsTab() {
     try {
       await FirestoreService.update(Collections.REPORTS, selectedReport.id, {
         status: newStatus || selectedReport.status,
-        internal_notes: internalNotes,
-        reviewed_at: new Date(),
+        internalNotes: internalNotes,
+        reviewedAt: new Date(),
       });
       toast.success('Report updated successfully');
       fetchReports();
@@ -84,7 +127,7 @@ export default function ReportsTab() {
   const openReportDialog = (report: Report) => {
     setSelectedReport(report);
     setNewStatus(report.status);
-    setInternalNotes(report.internal_notes || '');
+    setInternalNotes(report.internalNotes || '');
   };
 
   if (isLoading) {
@@ -116,10 +159,27 @@ export default function ReportsTab() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg capitalize">{report.report_type.replace('_', ' ')}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(report.created_at), 'PPP p')}
-                    </p>
+                    <CardTitle className="text-lg">
+                      {report.title || `${(report.reportType || '').replace('_', ' ')} Report`}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                      <span>
+                        {report.createdAt ? (
+                          format(
+                            report.createdAt.seconds 
+                              ? new Date(report.createdAt.seconds * 1000) 
+                              : new Date(report.createdAt), 
+                            'PPP p'
+                          )
+                        ) : 'No date'}
+                      </span>
+                      {report.priority && (
+                        <>
+                          <span>•</span>
+                          <span className="capitalize">{report.priority} Priority</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <Badge className={statusColors[report.status]}>
                     <span className="flex items-center gap-1">
@@ -134,8 +194,15 @@ export default function ReportsTab() {
                   {report.description}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  {report.incident_date && (
-                    <span>Incident: {format(new Date(report.incident_date), 'PP')}</span>
+                  {report.incidentDate && (
+                    <span>
+                      Incident: {format(
+                        report.incidentDate.seconds 
+                          ? new Date(report.incidentDate.seconds * 1000) 
+                          : new Date(report.incidentDate), 
+                        'PP'
+                      )}
+                    </span>
                   )}
                   {report.location && <span>• {report.location}</span>}
                 </div>
@@ -149,7 +216,7 @@ export default function ReportsTab() {
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="capitalize">
-                        {report.report_type.replace('_', ' ')} Report
+                        {(report.reportType || '').replace('_', ' ')} Report
                       </DialogTitle>
                       <DialogDescription>
                         View detailed information about this anonymous report.
@@ -162,11 +229,14 @@ export default function ReportsTab() {
                           {report.description}
                         </p>
                       </div>
-                      {report.incident_date && (
+                      {report.incidentDate && (
                         <div>
                           <h4 className="font-medium mb-1">Incident Date</h4>
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(report.incident_date), 'PPP')}
+                            {format(
+                              report.incidentDate.seconds ? new Date(report.incidentDate.seconds * 1000) : new Date(report.incidentDate), 
+                              'PPP'
+                            )}
                           </p>
                         </div>
                       )}
@@ -176,19 +246,19 @@ export default function ReportsTab() {
                           <p className="text-sm text-muted-foreground">{report.location}</p>
                         </div>
                       )}
-                      {report.contact_method && report.contact_method !== 'none' && (
+                      {report.contactMethod && report.contactMethod !== 'none' && (
                         <div>
                           <h4 className="font-medium mb-1">Contact Preference</h4>
                           <p className="text-sm text-muted-foreground capitalize">
-                            {report.contact_method}: {report.contact_info}
+                            {report.contactMethod}: {report.contactInfo}
                           </p>
                         </div>
                       )}
-                      {report.evidence_urls && report.evidence_urls.length > 0 && (
+                      {report.evidenceUrls && report.evidenceUrls.length > 0 && (
                         <div>
                           <h4 className="font-medium mb-1">Evidence Files</h4>
                           <div className="flex flex-wrap gap-2">
-                            {report.evidence_urls.map((url, idx) => (
+                            {report.evidenceUrls.map((url, idx) => (
                               <a
                                 key={idx}
                                 href={url}

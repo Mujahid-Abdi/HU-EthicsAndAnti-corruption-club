@@ -70,10 +70,20 @@ export default function AchievementsPage() {
   const fetchAchievements = async () => {
     try {
       const data = await FirestoreService.getAll(Collections.ACHIEVEMENTS);
-      const sortedAchievements = data
+      const processedData = data.map((item: any) => ({
+        ...item,
+        imageUrl: item.imageUrl || item.image_url,
+        date: item.date?.toDate ? item.date.toDate().toLocaleDateString() : 
+              item.date_achieved?.toDate ? item.date_achieved.toDate().toLocaleDateString() :
+              item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() :
+              item.date || item.date_achieved || 'No date',
+        createdAt: item.createdAt || item.created_at,
+      }));
+      
+      const sortedAchievements = processedData
         .sort((a: any, b: any) => {
-          const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.date || '');
-          const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.date || '');
+          const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.date || a.createdAt || 0);
+          const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.date || b.createdAt || 0);
           return dateB.getTime() - dateA.getTime();
         });
       setAchievements(sortedAchievements as Achievement[]);
@@ -225,7 +235,9 @@ export default function AchievementsPage() {
                           {achievement.category}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {achievement.date}
+                          {typeof achievement.date === 'object' && achievement.date?.toDate ? 
+                            achievement.date.toDate().toLocaleDateString() : 
+                            achievement.date || 'No date'}
                         </span>
                       </div>
                       

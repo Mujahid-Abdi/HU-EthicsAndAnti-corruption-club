@@ -70,6 +70,11 @@ export default function HomePage() {
         const data = await FirestoreService.getAll(Collections.NEWS);
         const publishedNews = data
           .filter((item: any) => item.published)
+          .map((item: any) => ({
+            ...item,
+            imageUrl: item.imageUrl || item.image_url,
+            createdAt: item.createdAt || item.created_at,
+          }))
           .sort((a: any, b: any) => {
             const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
             const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
@@ -263,7 +268,12 @@ export default function HomePage() {
                     {item.createdAt && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                         <Calendar className="w-4 h-4" />
-                        {format(new Date(item.createdAt.seconds * 1000), 'MMMM d, yyyy')}
+                        {format(
+                          item.createdAt.seconds 
+                            ? new Date(item.createdAt.seconds * 1000) 
+                            : new Date(item.createdAt), 
+                          'MMMM d, yyyy'
+                        )}
                       </div>
                     )}
                     <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">

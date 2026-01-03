@@ -17,7 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, department?: string, batch?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, department?: string, batch?: string, position?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, department?: string, batch?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, department?: string, batch?: string, position?: string) => {
     try {
       const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -79,14 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName: fullName,
       });
 
-      // Create user profile in Firestore - always register as member
+      // Create user profile in Firestore
       const userProfile: Omit<User, 'id'> = {
         email,
         fullName,
         department: department || '',
         batch: batch || '',
+        position: position || '',
         isApproved: true, // Auto-approve for now (change to false for production)
-        role: 'member', // Always register new users as members
+        role: position ? 'admin' : 'member', // Assumes if they have a position, they are an admin/executive
         createdAt: new Date() as any,
         updatedAt: new Date() as any,
       };

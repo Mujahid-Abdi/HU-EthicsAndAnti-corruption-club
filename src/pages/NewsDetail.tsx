@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Button } from '@/components/ui/button';
 import { Loader2, Calendar, ArrowLeft, Newspaper } from 'lucide-react';
 import { format } from 'date-fns';
@@ -10,9 +10,11 @@ interface NewsItem {
   title: string;
   excerpt: string | null;
   content: string;
+  imageUrl: string | null;
   image_url: string | null;
   published: boolean | null;
-  created_at: string | null;
+  createdAt: any;
+  created_at: any;
 }
 
 export default function NewsDetail() {
@@ -29,19 +31,19 @@ export default function NewsDetail() {
   }, [id]);
 
   const fetchArticle = async (articleId: string) => {
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .eq('id', articleId)
-      .eq('published', true)
-      .single();
-
-    if (error || !data) {
+    try {
+      const data = await FirestoreService.get(Collections.NEWS, articleId) as any;
+      if (data && (data.published || data.is_published)) {
+        setArticle(data);
+      } else {
+        setNotFound(true);
+      }
+    } catch (error) {
+      console.error('Error fetching article:', error);
       setNotFound(true);
-    } else {
-      setArticle(data);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   if (isLoading) {
@@ -92,10 +94,15 @@ export default function NewsDetail() {
 
           {/* Article Header */}
           <header className="max-w-4xl mx-auto mb-8">
-            {article.created_at && (
+            {(article.createdAt || article.created_at) && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <Calendar className="w-4 h-4" />
-                {format(new Date(article.created_at), 'MMMM d, yyyy')}
+                {format(
+                  (article.createdAt?.seconds || article.created_at?.seconds) 
+                    ? new Date((article.createdAt?.seconds || article.created_at?.seconds) * 1000) 
+                    : new Date(article.createdAt || article.created_at), 
+                  'MMMM d, yyyy'
+                )}
               </div>
             )}
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
@@ -109,11 +116,11 @@ export default function NewsDetail() {
           </header>
 
           {/* Featured Image */}
-          {article.image_url && (
+          {(article.imageUrl || article.image_url) && (
             <div className="max-w-4xl mx-auto mb-10">
               <div className="rounded-2xl overflow-hidden shadow-lg">
                 <img
-                  src={article.image_url}
+                  src={article.imageUrl || article.image_url || ""}
                   alt={article.title}
                   className="w-full h-auto object-cover"
                 />

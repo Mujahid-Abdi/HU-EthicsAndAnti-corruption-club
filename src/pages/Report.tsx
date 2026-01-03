@@ -97,54 +97,182 @@ export default function ReportPage() {
       </section>
 
       {/* Security Assurance */}
-      <section className="py-16 bg-background">
+      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
         <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-8 md:p-12 shadow-xl overflow-hidden relative">
-              {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+          <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 mb-6">
+                <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider">
+                  Security & Privacy Guaranteed
+                </span>
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                Your Security is Our Priority
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                We implement industry-leading security measures to protect your identity and ensure your report remains completely confidential.
+              </p>
+            </div>
 
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-8">
-                  <div className="w-24 h-24 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 shadow-inner border border-white/20">
-                    <Shield className="w-12 h-12 text-white" />
-                  </div>
-                  <div className="text-center md:text-left">
-                    <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                      Your Security is Our Priority
-                    </h2>
-                    <p className="text-lg text-white/90 max-w-3xl">
-                      We take every measure to ensure your report remains
-                      confidential and secure.
-                    </p>
-                  </div>
+            {/* Security Features Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+                  <Lock className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  End-to-End Encryption
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  All data is encrypted using AES-256 encryption before transmission and storage. Your information is protected at every step.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
+                  <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No IP Tracking
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  We do not log IP addresses, browser fingerprints, or any metadata that could identify your device or location.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Anonymous by Default
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  No registration required. Submit reports without providing any personal information unless you choose to.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4">
+                  <FileCheck className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Secure File Storage
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Evidence files are encrypted and stored on secure servers with restricted access limited to authorized personnel only.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                  <CheckCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Legal Protection
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Ethiopian whistleblower laws protect you from retaliation. Your rights are legally safeguarded when reporting in good faith.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mb-4">
+                  <MessageSquare className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Confidential Review
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Only authorized ethics committee members can access reports. All reviewers sign strict confidentiality agreements.
+                </p>
+              </div>
+            </div>
+
+            {/* Security Agreement */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <FileCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Our Security Commitment to You
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    By using our reporting system, you can trust that we adhere to the highest security standards:
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Technical Safeguards:</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      SSL/TLS encryption for all data transmission
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      AES-256 encryption for data at rest
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Regular security audits and penetration testing
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Multi-factor authentication for admin access
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Automated backup with encryption
+                    </li>
+                  </ul>
                 </div>
 
-                <div className="mt-12 grid md:grid-cols-3 gap-8">
-                  <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-                    <div className="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
-                      <Lock className="w-6 h-6 text-gold" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      100% Confidential
-                    </h3>
-                    <p className="text-white/80">
-                      Your identity is protected with end-to-end encryption. We
-                      don't track or store any identifying information.
-                    </p>
-                  </div>
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Privacy Guarantees:</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      No personal data collection without consent
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Anonymous submission options available
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Data retention policies strictly enforced
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Right to request data deletion
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      No sharing with third parties without consent
+                    </li>
+                  </ul>
+                </div>
+              </div>
 
-                  <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-                    <div className="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
-                      <Shield className="w-6 h-6 text-gold" />
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="text-sm">No IP Tracking</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gold">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="text-sm">Anonymous Submission</span>
-                    </div>
+              <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h5 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                      Legal Compliance & Standards
+                    </h5>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      Our system complies with Ethiopian data protection laws, international privacy standards (GDPR principles), 
+                      and university confidentiality policies. We are committed to maintaining the highest ethical standards 
+                      in handling your sensitive information.
+                    </p>
                   </div>
                 </div>
               </div>

@@ -18,10 +18,11 @@ interface GalleryItem {
   id: string;
   title: string;
   description: string | null;
-  image_url: string;
+  imageUrl: string;
   category: string | null;
   published: boolean | null;
-  created_at: any;
+  createdAt: any;
+  updatedAt: any;
 }
 
 const categories = [
@@ -87,7 +88,7 @@ export default function GalleryTab() {
     setFormData({
       title: item.title,
       description: item.description || '',
-      image_url: item.image_url,
+      image_url: item.imageUrl,
       category: item.category || '',
       published: item.published || false,
     });
@@ -104,20 +105,15 @@ export default function GalleryTab() {
     const galleryData = {
       title: formData.title,
       description: formData.description || null,
-      image_url: formData.image_url,
+      imageUrl: formData.image_url,
       category: formData.category || null,
       published: formData.published,
       created_by: user?.uid,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
     try {
       if (editingItem) {
-        await FirestoreService.update(Collections.GALLERY, editingItem.id, {
-          ...galleryData,
-          updated_at: new Date(),
-        });
+        await FirestoreService.update(Collections.GALLERY, editingItem.id, galleryData);
         toast.success('Gallery item updated successfully');
       } else {
         await FirestoreService.create(Collections.GALLERY, galleryData);
@@ -303,7 +299,7 @@ export default function GalleryTab() {
             <Card key={item.id} className="overflow-hidden">
               <div className="aspect-video overflow-hidden">
                 <img
-                  src={item.image_url}
+                  src={item.imageUrl}
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
@@ -329,9 +325,9 @@ export default function GalleryTab() {
                     {item.description}
                   </p>
                 )}
-                {item.created_at && (
+                {item.createdAt && (
                   <p className="text-xs text-muted-foreground mb-3">
-                    {format(new Date(item.created_at.seconds * 1000), 'PPP')}
+                    {format(new Date(item.createdAt.seconds * 1000), 'PPP')}
                   </p>
                 )}
                 <div className="flex gap-2">

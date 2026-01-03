@@ -142,6 +142,7 @@ const staticNewsArticles = [
     excerpt: "A recent campus-wide survey shows that 87% of students support stronger measures to combat corruption and promote integrity in academic settings.",
     category: "Research",
     createdAt: "2024-09-28",
+    imageUrl: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800",
   },
   {
     id: 'static-2',
@@ -149,6 +150,7 @@ const staticNewsArticles = [
     excerpt: "Starting in November, we will host monthly workshops covering various aspects of ethical conduct, transparency, and anti-corruption strategies.",
     category: "Announcement",
     createdAt: "2024-10-15",
+    imageUrl: "https://images.unsplash.com/photo-1544531585-9837bd664d0f?w=800",
   },
   {
     id: 'static-3',
@@ -156,6 +158,7 @@ const staticNewsArticles = [
     excerpt: "Our club received recognition at the National Student Leadership Conference for outstanding contributions promoting academic integrity.",
     category: "Achievement",
     createdAt: "2024-10-30",
+    imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800",
   },
   {
     id: 'static-4',
@@ -163,6 +166,7 @@ const staticNewsArticles = [
     excerpt: "A new comprehensive training program has been developed to equip student leaders with ethical leadership skills and integrity tools.",
     category: "Program Launch",
     createdAt: "2024-11-15",
+    imageUrl: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800",
   },
   {
     id: 'static-5',
@@ -170,6 +174,7 @@ const staticNewsArticles = [
     excerpt: "The club has formalized a partnership with the Federal Ethics and Anti-Corruption Commission to enhance our educational programs and reporting mechanisms.",
     category: "Announcement",
     createdAt: "2024-11-25",
+    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800",
   },
   {
     id: 'static-6',
@@ -177,6 +182,7 @@ const staticNewsArticles = [
     excerpt: "Over 300 students and faculty members participated in our inaugural Integrity Forum, featuring keynote speeches and breakout sessions on ethical leadership.",
     category: "Event Recap",
     createdAt: "2024-12-10",
+    imageUrl: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800",
   },
 ];
 
@@ -205,6 +211,11 @@ export default function News() {
       const data = await FirestoreService.getAll(Collections.NEWS);
       const publishedNews = data
         .filter((item: any) => item.published)
+        .map((item: any) => ({
+          ...item,
+          imageUrl: item.imageUrl || item.image_url,
+          createdAt: item.createdAt || item.created_at,
+        }))
         .sort((a: any, b: any) => {
           const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
           const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);

@@ -14,8 +14,8 @@ export const seedVotingData = async () => {
       updatedAt: new Date()
     };
 
-    const electionId = await FirestoreService.add(Collections.ELECTIONS, electionData);
-    console.log('Election created with ID:', electionId);
+    const electionId = await FirestoreService.create(Collections.ELECTIONS, electionData);
+    console.log('Election created with ID:', electionId.id);
 
     // Create sample candidates
     const candidates = [
@@ -26,7 +26,7 @@ export const seedVotingData = async () => {
         batch: "2022",
         manifesto: "I am committed to promoting transparency and accountability in our university. My vision is to create a corruption-free environment where every student can thrive academically and personally.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       },
       {
@@ -36,7 +36,7 @@ export const seedVotingData = async () => {
         batch: "2021",
         manifesto: "With my experience in student leadership, I will work tirelessly to strengthen our anti-corruption initiatives and ensure that ethical conduct is at the heart of everything we do.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       },
       {
@@ -46,7 +46,7 @@ export const seedVotingData = async () => {
         batch: "2022",
         manifesto: "As your Vice President, I will support innovative programs that educate students about ethics and provide platforms for reporting concerns safely and anonymously.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       },
       {
@@ -56,7 +56,7 @@ export const seedVotingData = async () => {
         batch: "2023",
         manifesto: "I believe in the power of collective action. Together, we can build a university community based on integrity, respect, and mutual accountability.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       },
       {
@@ -66,7 +66,7 @@ export const seedVotingData = async () => {
         batch: "2021",
         manifesto: "With my legal background, I will ensure that our club operates with the highest standards of transparency and that all our activities are properly documented and accessible.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       },
       {
@@ -76,19 +76,19 @@ export const seedVotingData = async () => {
         batch: "2022",
         manifesto: "I will work to improve communication between the club and students, ensuring that everyone is informed about our activities and has opportunities to participate meaningfully.",
         photoUrl: null,
-        electionId: electionId,
+        electionId: electionId.id,
         createdAt: new Date()
       }
     ];
 
     // Add all candidates
     for (const candidate of candidates) {
-      const candidateId = await FirestoreService.add(Collections.CANDIDATES, candidate);
-      console.log(`Candidate ${candidate.fullName} created with ID:`, candidateId);
+      const candidateResult = await FirestoreService.create(Collections.CANDIDATES, candidate);
+      console.log(`Candidate ${candidate.fullName} created with ID:`, candidateResult.id);
     }
 
     console.log('Voting data seeded successfully!');
-    return { electionId, candidatesCount: candidates.length };
+    return { electionId: electionId.id, candidatesCount: candidates.length };
   } catch (error) {
     console.error('Error seeding voting data:', error);
     throw error;

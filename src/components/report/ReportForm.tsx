@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { FirestoreService, Collections } from "@/lib/firestore";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { where, query, collection, getDocs, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +24,8 @@ import {
   CheckCircle,
   Lock,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Clock
 } from "lucide-react";
 
 const reportTypes = [
@@ -45,6 +50,8 @@ export function ReportForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [dailyReportCount, setDailyReportCount] = useState(0);
+  const [isCheckingLimit, setIsCheckingLimit] = useState(true);
   const [formData, setFormData] = useState({
     reportType: "",
     incidentDate: "",
@@ -53,6 +60,49 @@ export function ReportForm() {
     contactMethod: "none",
     contactInfo: "",
   });
+
+  // Generate a unique session ID for tracking daily reports
+  const getSessionId = () => {
+    let sessionId = localStorage.getItem('report_session_id');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('report_session_id', sessionId);
+    }
+    return sessionId;
+  };
+
+  // Check daily report limit on component mount
+  useEffect(() => {
+    checkDailyReportLimit();
+  }, []);
+
+  const checkDailyReportLimit = async () => {
+    try {
+      const sessionId = getSessionId();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Query reports from today with this session ID
+      const reportsQuery = query(
+        collection(db, Collections.REPORTS),
+        where('sessionId', '==', sessionId),
+        where('createdAt', '>=', Timestamp.fromDate(today)),
+        where('createdAt', '<', Timestamp.fromDate(tomorrow))
+      );
+
+      const querySnapshot = await getDocs(reportsQuery);
+      const count = querySnapshot.size;
+      setDailyReportCount(count);
+      
+      console.log(`Daily reports for session ${sessionId}: ${count}/3`);
+    } catch (error) {
+      console.error('Error checking daily report limit:', error);
+    } finally {
+      setIsCheckingLimit(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -77,6 +127,16 @@ export function ReportForm() {
       return;
     }
 
+    // Check daily limit before submission
+    if (dailyReportCount >= 3) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You have reached the maximum of 3 reports per day. Please try again tomorrow.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -85,34 +145,65 @@ export function ReportForm() {
       
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const fileName = `evidence/${crypto.randomUUID()}.${fileExt}`;
+        const storageRef = ref(storage, fileName);
         
-        const { error: uploadError } = await supabase.storage
-          .from('evidence')
-          .upload(fileName, file);
-
-        if (uploadError) {
+        try {
+          await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(storageRef);
+          evidenceUrls.push(downloadURL);
+        } catch (uploadError) {
           console.error('File upload error:', uploadError);
-        } else {
-          evidenceUrls.push(fileName);
+          // Continue with submission even if file upload fails
         }
       }
 
-      // Submit the report
-      const { error } = await supabase
-        .from('anonymous_reports')
-        .insert({
-          report_type: formData.reportType,
-          incident_date: formData.incidentDate || null,
-          location: formData.location || null,
-          description: formData.description,
-          evidence_urls: evidenceUrls.length > 0 ? evidenceUrls : null,
-          contact_method: formData.contactMethod !== "none" ? formData.contactMethod : null,
-          contact_info: formData.contactInfo || null,
-        });
+      // Submit the report to Firestore with proper structure
+      const reportData = {
+        // Main report fields
+        title: `${formData.reportType.replace('_', ' ')} Report`,
+        reportType: formData.reportType,
+        description: formData.description,
+        incidentDate: formData.incidentDate || null,
+        location: formData.location || null,
+        
+        // Contact information
+        contactMethod: formData.contactMethod !== "none" ? formData.contactMethod : null,
+        contactInfo: formData.contactInfo || null,
+        
+        // Evidence and attachments
+        evidenceUrls: evidenceUrls.length > 0 ? evidenceUrls : null,
+        attachments: evidenceUrls.length > 0 ? evidenceUrls : null, // Legacy field for compatibility
+        
+        // Status and metadata
+        status: 'pending',
+        priority: 'medium',
+        isAnonymous: true,
+        category: formData.reportType,
+        
+        // Session tracking for daily limits
+        sessionId: getSessionId(),
+        
+        // Admin fields
+        adminNotes: null,
+        internalNotes: null,
+        reviewedAt: null,
+        reviewedBy: null,
+        
+        // Timestamps
+        submittedAt: Timestamp.now(),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
 
-      if (error) throw error;
+      console.log('Submitting report data:', reportData);
+      
+      const result = await FirestoreService.create(Collections.REPORTS, reportData);
+      console.log('Report created successfully:', result);
 
+      // Update daily count
+      setDailyReportCount(prev => prev + 1);
+      
       setIsSubmitted(true);
       toast({
         title: "Report Submitted Successfully",
@@ -129,6 +220,35 @@ export function ReportForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (isCheckingLimit) {
+    return (
+      <div className="bg-card rounded-2xl p-8 md:p-12 shadow-card border border-border text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+        <p className="text-muted-foreground">Checking submission limits...</p>
+      </div>
+    );
+  }
+
+  if (dailyReportCount >= 3) {
+    return (
+      <div className="bg-card rounded-2xl p-8 md:p-12 shadow-card border border-border text-center">
+        <div className="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-6">
+          <Clock className="w-10 h-10 text-orange-600 dark:text-orange-400" />
+        </div>
+        <h3 className="font-display text-2xl font-bold text-foreground mb-4">
+          Daily Limit Reached
+        </h3>
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+          You have submitted 3 reports today, which is the maximum allowed. This limit helps prevent spam and ensures quality reports.
+        </p>
+        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 inline-flex items-center gap-3 text-sm text-orange-800 dark:text-orange-200">
+          <Clock className="w-5 h-5" />
+          <span>You can submit more reports tomorrow</span>
+        </div>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
@@ -153,6 +273,25 @@ export function ReportForm() {
 
   return (
     <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 md:p-12 shadow-card border border-border">
+      {/* Daily Limit Notice */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium text-blue-900 dark:text-blue-100">Daily Submission Limit</p>
+            <p className="text-blue-700 dark:text-blue-300">
+              You have submitted {dailyReportCount} of 3 allowed reports today
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+            {3 - dailyReportCount}
+          </div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">remaining</div>
+        </div>
+      </div>
+
       {/* Security Notice */}
       <div className="bg-forest/5 border border-forest/20 rounded-xl p-4 mb-8 flex items-start gap-3">
         <Lock className="w-5 h-5 text-forest mt-0.5 flex-shrink-0" />

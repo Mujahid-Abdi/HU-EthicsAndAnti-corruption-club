@@ -17,6 +17,7 @@ export interface User extends BaseDocument {
   phone?: string;
   isApproved: boolean;
   role: 'admin' | 'member';
+  position?: string;
 }
 
 // Report types

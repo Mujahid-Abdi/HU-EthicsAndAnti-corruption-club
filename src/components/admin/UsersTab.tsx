@@ -288,7 +288,14 @@ export default function UsersTab({ adminOnly = false }: { adminOnly?: boolean })
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {user.createdAt ? format(new Date(user.createdAt.seconds * 1000), 'PP') : 'Unknown'}
+                        {user.createdAt ? (
+                          format(
+                            user.createdAt.seconds 
+                              ? new Date(user.createdAt.seconds * 1000) 
+                              : new Date(user.createdAt), 
+                            'PP'
+                          )
+                        ) : 'Unknown'}
                       </span>
                     </TableCell>
                     <TableCell>

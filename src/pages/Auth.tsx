@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Mail, Lock, User, Loader2, ArrowLeft, GraduationCap, Building } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Shield, Mail, Lock, User, Loader2, ArrowLeft, GraduationCap, Building, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -22,6 +23,7 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   department: z.string().trim().min(2, 'Department is required').max(100),
   batch: z.string().trim().min(4, 'Batch year is required (e.g., 2024)').max(10),
+  position: z.string().trim().optional(),
 });
 
 export default function Auth() {
@@ -33,6 +35,9 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupDepartment, setSignupDepartment] = useState('');
   const [signupBatch, setSignupBatch] = useState('');
+  const [signupPosition, setSignupPosition] = useState('');
+  const [customPosition, setCustomPosition] = useState('');
+  const [isOtherPosition, setIsOtherPosition] = useState(false);
   
   const { user, signIn, signUp } = useAuth();
   const { isRegistrationEnabled, settings } = useSystemSettings();
@@ -100,7 +105,8 @@ export default function Auth() {
       email: signupEmail, 
       password: signupPassword,
       department: signupDepartment,
-      batch: signupBatch
+      batch: signupBatch,
+      position: isOtherPosition ? customPosition : signupPosition
     });
     
     if (!result.success) {
@@ -109,7 +115,8 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName, signupDepartment, signupBatch);
+    const finalPosition = isOtherPosition ? customPosition : signupPosition;
+    const { error } = await signUp(signupEmail, signupPassword, signupName, signupDepartment, signupBatch, finalPosition);
     setIsLoading(false);
 
     if (error) {
@@ -281,6 +288,54 @@ export default function Auth() {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-position">Club Position (if any)</Label>
+                    <div className="relative">
+                      <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                      <Select
+                        value={isOtherPosition ? 'other' : signupPosition}
+                        onValueChange={(value) => {
+                          if (value === 'other') {
+                            setIsOtherPosition(true);
+                          } else {
+                            setIsOtherPosition(false);
+                            setSignupPosition(value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select your position" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[100]">
+                          <SelectItem value="Member">Normal Member</SelectItem>
+                          <SelectItem value="President">President</SelectItem>
+                          <SelectItem value="Vice President">Vice President</SelectItem>
+                          <SelectItem value="Secretary">Secretary</SelectItem>
+                          <SelectItem value="Treasurer">Treasurer</SelectItem>
+                          <SelectItem value="Public Relations">Public Relations</SelectItem>
+                          <SelectItem value="other">Other (Specify below)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {isOtherPosition && (
+                    <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Label htmlFor="custom-position">Specify Position *</Label>
+                      <Input
+                        id="custom-position"
+                        placeholder="Enter your specific position"
+                        value={customPosition}
+                        onChange={(e) => setCustomPosition(e.target.value)}
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
                   <div className="relative">

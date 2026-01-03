@@ -17,13 +17,14 @@ interface Event {
   id: string;
   title: string;
   description: string | null;
-  event_date: any;
-  end_date: any;
+  date: any;
+  endDate: any;
   location: string | null;
-  image_url: string | null;
-  max_attendees: number | null;
-  is_published: boolean | null;
-  created_at: any;
+  imageUrl: string | null;
+  maxAttendees: number | null;
+  published: boolean | null;
+  createdAt: any;
+  updatedAt: any;
 }
 
 export default function EventsTab() {
@@ -43,7 +44,7 @@ export default function EventsTab() {
     location: '',
     image_url: '',
     max_attendees: '',
-    is_published: false,
+    published: false,
   });
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function EventsTab() {
       location: '',
       image_url: '',
       max_attendees: '',
-      is_published: false,
+      published: false,
     });
     setEditingEvent(null);
   };
@@ -88,9 +89,9 @@ export default function EventsTab() {
       event_date: event.event_date ? format(new Date(event.event_date.seconds * 1000), "yyyy-MM-dd'T'HH:mm") : '',
       end_date: event.end_date ? format(new Date(event.end_date.seconds * 1000), "yyyy-MM-dd'T'HH:mm") : '',
       location: event.location || '',
-      image_url: event.image_url || '',
-      max_attendees: event.max_attendees?.toString() || '',
-      is_published: event.is_published || false,
+      image_url: event.imageUrl || '',
+      max_attendees: event.maxAttendees?.toString() || '',
+      published: event.published || false,
     });
     setIsDialogOpen(true);
   };
@@ -105,23 +106,18 @@ export default function EventsTab() {
     const eventData = {
       title: formData.title,
       description: formData.description || null,
-      event_date: new Date(formData.event_date),
-      end_date: formData.end_date ? new Date(formData.end_date) : null,
+      date: new Date(formData.event_date),
+      endDate: formData.end_date ? new Date(formData.end_date) : null,
       location: formData.location || null,
-      image_url: formData.image_url || null,
-      max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
-      is_published: formData.is_published,
+      imageUrl: formData.image_url || null,
+      maxAttendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
+      published: formData.published,
       created_by: user?.uid,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
     try {
       if (editingEvent) {
-        await FirestoreService.update(Collections.EVENTS, editingEvent.id, {
-          ...eventData,
-          updated_at: new Date(),
-        });
+        await FirestoreService.update(Collections.EVENTS, editingEvent.id, eventData);
         toast.success('Event updated successfully');
       } else {
         await FirestoreService.create(Collections.EVENTS, eventData);
@@ -296,11 +292,11 @@ export default function EventsTab() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="is_published">Published</Label>
+              <Label htmlFor="published">Published</Label>
               <Switch
-                id="is_published"
-                checked={formData.is_published}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+                id="published"
+                checked={formData.published}
+                onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
               />
             </div>
             <Button onClick={handleSave} disabled={isSaving} className="w-full">
@@ -333,11 +329,11 @@ export default function EventsTab() {
                   <div>
                     <CardTitle className="text-lg">{event.title}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {event.event_date && format(new Date(event.event_date.seconds * 1000), 'PPP p')}
+                      {event.date && format(new Date(event.date.seconds * 1000), 'PPP p')}
                     </p>
                   </div>
-                  <Badge variant={event.is_published ? 'default' : 'secondary'}>
-                    {event.is_published ? 'Published' : 'Draft'}
+                  <Badge variant={event.published ? 'default' : 'secondary'}>
+                    {event.published ? 'Published' : 'Draft'}
                   </Badge>
                 </div>
               </CardHeader>

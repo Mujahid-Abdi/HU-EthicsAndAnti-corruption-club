@@ -18,11 +18,12 @@ interface Achievement {
   id: string;
   title: string;
   description: string | null;
-  image_url: string | null;
+  imageUrl: string | null;
   category: string | null;
-  date_achieved: any;
+  date: any;
   published: boolean | null;
-  created_at: any;
+  createdAt: any;
+  updatedAt: any;
 }
 
 const categories = [
@@ -90,9 +91,9 @@ export default function AchievementsTab() {
     setFormData({
       title: achievement.title,
       description: achievement.description || '',
-      image_url: achievement.image_url || '',
+      image_url: achievement.imageUrl || '',
       category: achievement.category || '',
-      date_achieved: achievement.date_achieved ? format(new Date(achievement.date_achieved.seconds * 1000), "yyyy-MM-dd") : '',
+      date_achieved: achievement.date ? format(new Date(achievement.date.seconds * 1000), "yyyy-MM-dd") : '',
       published: achievement.published || false,
     });
     setIsDialogOpen(true);
@@ -108,21 +109,16 @@ export default function AchievementsTab() {
     const achievementData = {
       title: formData.title,
       description: formData.description || null,
-      image_url: formData.image_url || null,
+      imageUrl: formData.image_url || null,
       category: formData.category || null,
-      date_achieved: new Date(formData.date_achieved),
+      date: new Date(formData.date_achieved),
       published: formData.published,
       created_by: user?.uid,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
     try {
       if (editingAchievement) {
-        await FirestoreService.update(Collections.ACHIEVEMENTS, editingAchievement.id, {
-          ...achievementData,
-          updated_at: new Date(),
-        });
+        await FirestoreService.update(Collections.ACHIEVEMENTS, editingAchievement.id, achievementData);
         toast.success('Achievement updated successfully');
       } else {
         await FirestoreService.create(Collections.ACHIEVEMENTS, achievementData);
@@ -314,10 +310,10 @@ export default function AchievementsTab() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {achievements.map((achievement) => (
             <Card key={achievement.id} className="overflow-hidden">
-              {achievement.image_url && (
+              {achievement.imageUrl && (
                 <div className="aspect-video overflow-hidden">
                   <img
-                    src={achievement.image_url}
+                    src={achievement.imageUrl}
                     alt={achievement.title}
                     className="w-full h-full object-cover"
                   />
@@ -344,9 +340,9 @@ export default function AchievementsTab() {
                     {achievement.description}
                   </p>
                 )}
-                {achievement.date_achieved && (
+                {achievement.date && (
                   <p className="text-xs text-muted-foreground mb-3">
-                    Achieved: {format(new Date(achievement.date_achieved.seconds * 1000), 'PPP')}
+                    Achieved: {format(new Date(achievement.date.seconds * 1000), 'PPP')}
                   </p>
                 )}
                 <div className="flex gap-2">

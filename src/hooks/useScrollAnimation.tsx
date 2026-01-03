@@ -15,23 +15,31 @@ export const useScrollAnimation = () => {
       });
     }, observerOptions);
 
-    // Observe all elements with scroll animation classes
-    const animatedElements = document.querySelectorAll(
-      '.scroll-fade-up, .scroll-fade-up-delay, .scroll-fade-up-slow, .scroll-animate, .scroll-animate-left, .scroll-animate-right, .scroll-animate-scale'
-    );
+    const observeElements = () => {
+      const elements = document.querySelectorAll(
+        '.scroll-fade-up, .scroll-fade-up-delay, .scroll-fade-up-slow, .scroll-animate, .scroll-animate-left, .scroll-animate-right, .scroll-animate-scale'
+      );
+      elements.forEach((el) => {
+        observer.observe(el);
+      });
+    };
 
-    animatedElements.forEach((el) => observer.observe(el));
+    // Initial scan
+    observeElements();
+
+    // Set up MutationObserver to watch for new elements
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
     return () => {
-      animatedElements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+      mutationObserver.disconnect();
     };
-  }, []);
-
-  // Initialize elements on mount
-  useEffect(() => {
-    const elements = document.querySelectorAll('.scroll-fade-up, .scroll-fade-up-delay, .scroll-fade-up-slow');
-    elements.forEach((el) => {
-      el.classList.add('opacity-0', 'translate-y-8');
-    });
   }, []);
 };
