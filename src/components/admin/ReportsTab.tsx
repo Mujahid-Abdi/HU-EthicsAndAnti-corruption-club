@@ -140,9 +140,9 @@ export default function ReportsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-semibold">Anonymous Reports</h2>
-        <Badge variant="outline">{reports.length} total</Badge>
+        <Badge variant="outline" className="w-fit">{reports.length} total</Badge>
       </div>
 
       {reports.length === 0 ? (

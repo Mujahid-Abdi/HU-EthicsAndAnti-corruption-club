@@ -218,7 +218,7 @@ export default function SystemSettingsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Settings</h2>
           <p className="text-gray-600 dark:text-gray-400">
@@ -236,32 +236,34 @@ export default function SystemSettingsTab() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="general" className="gap-2">
-            <Settings className="w-4 h-4" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="home" className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Home
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="w-4 h-4" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger value="users" className="gap-2">
-            <UserCog className="w-4 h-4" />
-            Admin Roles
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            Telegram
-          </TabsTrigger>
-          <TabsTrigger value="system" className="gap-2">
-            <Database className="w-4 h-4" />
-            System
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-2 -mx-2 px-2 ms-0 scrollbar-none">
+          <TabsList className="min-w-max flex sm:grid sm:grid-cols-6 gap-2 bg-muted/50 p-1">
+            <TabsTrigger value="general" className="gap-2 whitespace-nowrap">
+              <Settings className="w-4 h-4" />
+              General
+            </TabsTrigger>
+            <TabsTrigger value="home" className="gap-2 whitespace-nowrap">
+              <RefreshCw className="w-4 h-4" />
+              Home
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-2 whitespace-nowrap">
+              <Shield className="w-4 h-4" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 whitespace-nowrap">
+              <UserCog className="w-4 h-4" />
+              Admin Roles
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2 whitespace-nowrap">
+              <Bell className="w-4 h-4" />
+              Telegram
+            </TabsTrigger>
+            <TabsTrigger value="system" className="gap-2 whitespace-nowrap">
+              <Database className="w-4 h-4" />
+              System
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="general" className="space-y-6">
           <Card>

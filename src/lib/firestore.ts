@@ -165,6 +165,7 @@ export const Collections = {
   REPORTS: 'reports',
   EVENTS: 'events',
   NEWS: 'news',
+  BLOGS: 'blogs',
   GALLERY: 'gallery',
   RESOURCES: 'resources',
   ACHIEVEMENTS: 'achievements',

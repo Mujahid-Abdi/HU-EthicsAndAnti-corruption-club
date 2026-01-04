@@ -347,11 +347,11 @@ export default function NewsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-semibold">News Management</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {news.length === 0 && (
-            <Button variant="outline" onClick={seedSampleNews} disabled={isSeeding}>
+            <Button variant="outline" onClick={seedSampleNews} disabled={isSeeding} className="w-full sm:w-auto">
               {isSeeding ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -365,7 +365,7 @@ export default function NewsTab() {
               )}
             </Button>
           )}
-          <Button onClick={openCreateDialog}>
+          <Button onClick={openCreateDialog} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Article
           </Button>

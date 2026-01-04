@@ -16,6 +16,8 @@ import {
   Lightbulb,
   ArrowRight,
   ChevronRight,
+  Mail,
+  Phone,
 } from "lucide-react";
 
 interface AboutContent {
@@ -85,11 +87,13 @@ const leadership = [
 export default function AboutPage() {
   const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [executives, setExecutives] = useState<any[]>([]);
 
   useScrollAnimation();
 
   useEffect(() => {
     fetchAboutContent();
+    fetchExecutives();
   }, []);
 
   const fetchAboutContent = async () => {
@@ -102,6 +106,20 @@ export default function AboutPage() {
       console.error('Error fetching about content:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExecutives = async () => {
+    try {
+      const data = await FirestoreService.getAll('executives');
+      const activeExecutives = data
+        .filter((item: any) => item.is_active !== false)
+        .filter((exec: any) => ['President', 'Vice President', 'Secretary'].includes(exec.position))
+        .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+        .slice(0, 3); // Only show top 3 key positions
+      setExecutives(activeExecutives);
+    } catch (error) {
+      console.error('Error fetching executives:', error);
     }
   };
 
@@ -294,27 +312,64 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {leadership.map((member, index) => (
-              <div
-                key={index}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20"
-              >
-                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-10 h-10 text-primary" />
-                </div>
-                <p className="text-primary font-medium text-sm mb-1">
-                  {member.role}
-                </p>
-                <p
-                  className={`text-white ${
-                    member.placeholder ? "text-sm opacity-60" : "font-semibold"
-                  }`}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {executives.length === 0 ? (
+               <p className="text-white/60 text-center col-span-full italic">Leadership information will be updated shortly.</p>
+            ) : (
+              executives.map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center border border-white/20 shadow-xl group hover:bg-white/15 transition-all duration-300"
                 >
-                  {member.name}
-                </p>
-              </div>
-            ))}
+                  <div className="mb-6 relative">
+                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto border-4 border-white/30 relative z-10">
+                      {member.image_url ? (
+                        <img 
+                          src={member.image_url} 
+                          alt={member.full_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                          <Users className="w-10 h-10 text-white/50" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-primary font-bold text-sm uppercase tracking-widest mb-2">
+                    {member.position}
+                  </p>
+                  <h3 className="text-white font-display text-xl font-bold mb-4">
+                    {member.full_name}
+                  </h3>
+                  {member.bio && (
+                    <p className="text-white/70 text-sm mb-6 leading-relaxed line-clamp-3 italic">
+                      "{member.bio}"
+                    </p>
+                  )}
+                  <div className="flex justify-center gap-4">
+                    {member.email && (
+                      <a 
+                        href={`mailto:${member.email}`}
+                        className="p-2 rounded-lg bg-white/5 hover:bg-primary/20 text-white/70 hover:text-white transition-all"
+                        title={member.email}
+                      >
+                        <Mail className="w-4 h-4" />
+                      </a>
+                    )}
+                    {member.phone && (
+                      <div 
+                        className="p-2 rounded-lg bg-white/5 text-white/70"
+                        title={member.phone}
+                      >
+                        <Phone className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

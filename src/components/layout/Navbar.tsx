@@ -1,19 +1,38 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, AlertTriangle, LogOut } from "lucide-react";
+import { Menu, X, AlertTriangle, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 
-const navLinks = [
+// Define navigation structure with dropdowns
+const navigationStructure = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },
-  { name: "News", path: "/news" },
-  { name: "Gallery", path: "/gallery" },
-  { name: "Achievements", path: "/achievements" },
-  { name: "Events", path: "/programs" },
+  {
+    name: "Main",
+    path: "/gallery",
+    subItems: [
+      { name: "Gallery", path: "/gallery" },
+      { name: "Achievements", path: "/achievements" },
+      { name: "Events", path: "/events", subItems: [
+        { name: "Upcoming Events", path: "/events#upcoming" },
+        { name: "Past Events", path: "/events#past" },
+      ]},
+    ]
+  },
+  {
+    name: "News",
+    path: "/news",
+    subItems: [
+      { name: "News", path: "/news#news" },
+      { name: "Blogs", path: "/news#blogs" },
+      { name: "Announcements", path: "/news#announcements" },
+      { name: "Resources", path: "/news#resources" },
+    ]
+  },
   { name: "Contact", path: "/contact" },
 ];
 
@@ -25,6 +44,7 @@ const adminNavLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
@@ -43,8 +63,6 @@ export function Navbar() {
       const scrollTop = window.scrollY;
       const newIsScrolled = scrollTop > 10;
       setIsScrolled(newIsScrolled);
-      // Debug log to see if scroll detection is working
-      console.log('Scroll position:', scrollTop, 'isScrolled:', newIsScrolled);
     };
 
     // Set initial state
@@ -55,27 +73,25 @@ export function Navbar() {
   }, []);
 
   const getNavLinks = () => {
-    const baseLinks = [
-      { name: "Home", path: "/" },
-      { name: "About", path: "/about" },
-      { name: "News", path: "/news" },
-      { name: "Announcements", path: "/announcements" },
-      { name: "Gallery", path: "/gallery" },
-      { name: "Achievements", path: "/achievements" },
-      { name: "Events", path: "/programs" },
-    ];
+    let links = [...navigationStructure];
     
     // Add Vote link only if voting is enabled
     if (isVotingEnabled) {
-      baseLinks.push({ name: "Vote", path: "/vote" });
+      // Insert Vote before Contact
+      links = [
+        ...links.slice(0, -1),
+        { name: "Vote", path: "/vote" },
+        links[links.length - 1]
+      ];
     }
     
-    baseLinks.push({ name: "Contact", path: "/contact" });
-    
-    return baseLinks;
+    return links;
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === "#") return false;
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -140,21 +156,82 @@ export function Navbar() {
                 </Link>
               ))
             ) : (
-              // Regular user navigation
-              getNavLinks().map((link) => (
-                <Link
+              // Regular user navigation with dropdowns
+              getNavLinks().map((link: any) => (
+                <div
                   key={link.path}
-                  to={link.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive(link.path)
-                      ? "text-primary bg-primary/10 hover:bg-primary/15"
-                      : isScrolled 
-                        ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
-                        : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
-                  }`}
+                  className="relative group"
+                  onMouseEnter={() => link.subItems && setActiveDropdown(link.name)}
+                  onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  {link.name}
-                </Link>
+                  {link.subItems ? (
+                    // Dropdown menu item - clickable if has valid path
+                    link.path !== "#" ? (
+                      <Link
+                        to={link.path}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
+                          isActive(link.path)
+                            ? "text-primary bg-primary/10 hover:bg-primary/15"
+                            : isScrolled 
+                              ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                              : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
+                        }`}
+                      >
+                        {link.name}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
+                      </Link>
+                    ) : (
+                      <button
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
+                          isActive(link.path)
+                            ? "text-primary bg-primary/10 hover:bg-primary/15"
+                            : isScrolled 
+                              ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                              : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
+                        }`}
+                      >
+                        {link.name}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
+                      </button>
+                    )
+                  ) : (
+                    // Regular link
+                    <Link
+                      to={link.path}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive(link.path)
+                          ? "text-primary bg-primary/10 hover:bg-primary/15"
+                          : isScrolled 
+                            ? "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                            : "text-black dark:text-white hover:text-primary hover:bg-white/10 dark:hover:bg-black/10 drop-shadow-md"
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  )}
+                  
+                  {/* Dropdown menu */}
+                  {link.subItems && activeDropdown === link.name && (
+                    <div className="absolute top-full left-0 pt-2 w-56 z-50">
+                      <div className={`rounded-lg shadow-lg border overflow-hidden ${
+                        isScrolled 
+                          ? 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700' 
+                          : 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-gray-200/50 dark:border-gray-700/50'
+                      }`}>
+                        {link.subItems.map((subItem: any) => (
+                          <Link
+                            key={subItem.path}
+                            to={subItem.path}
+                            onClick={() => setActiveDropdown(null)}
+                            className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+                          >
+                            {subItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </div>
@@ -248,20 +325,86 @@ export function Navbar() {
                   </Link>
                 ))
               ) : (
-                // Regular user mobile navigation
-                getNavLinks().map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(link.path)
-                        ? "bg-primary/20 text-primary hover:bg-primary/25"
-                        : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
+                // Regular user mobile navigation with expandable dropdowns
+                getNavLinks().map((link: any) => (
+                  <div key={link.path}>
+                    {link.subItems ? (
+                      // Dropdown menu item
+                      <div>
+                        <div className="flex items-center gap-1">
+                          {link.path !== "#" ? (
+                            // Clickable header with separate dropdown toggle
+                            <>
+                              <Link
+                                to={link.path}
+                                onClick={() => setIsOpen(false)}
+                                className={`flex-1 px-4 py-3 rounded-l-lg text-sm font-medium transition-colors text-left ${
+                                  isActive(link.path)
+                                    ? "bg-primary/20 text-primary hover:bg-primary/25"
+                                    : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                                }`}
+                              >
+                                {link.name}
+                              </Link>
+                              <button
+                                onClick={() => setActiveDropdown(activeDropdown === link.name ? null : link.name)}
+                                className={`px-3 py-3 rounded-r-lg text-sm font-medium transition-colors ${
+                                  isActive(link.path)
+                                    ? "bg-primary/20 text-primary hover:bg-primary/25"
+                                    : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                                }`}
+                              >
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
+                              </button>
+                            </>
+                          ) : (
+                            // Non-clickable header (Main menu)
+                            <button
+                              onClick={() => setActiveDropdown(activeDropdown === link.name ? null : link.name)}
+                              className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-between ${
+                                isActive(link.path)
+                                  ? "bg-primary/20 text-primary hover:bg-primary/25"
+                                  : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                              }`}
+                            >
+                              {link.name}
+                              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === link.name ? 'rotate-180' : ''}`} />
+                            </button>
+                          )}
+                        </div>
+                        {activeDropdown === link.name && (
+                          <div className="ml-4 mt-2 space-y-1">
+                            {link.subItems.map((subItem: any) => (
+                              <Link
+                                key={subItem.path}
+                                to={subItem.path}
+                                onClick={() => {
+                                  setIsOpen(false);
+                                  setActiveDropdown(null);
+                                }}
+                                className="block px-4 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors"
+                              >
+                                {subItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Regular link
+                      <Link
+                        to={link.path}
+                        onClick={() => setIsOpen(false)}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          isActive(link.path)
+                            ? "bg-primary/20 text-primary hover:bg-primary/25"
+                            : "text-black dark:text-white hover:text-primary hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                        }`}
+                      >
+                        {link.name}
+                      </Link>
+                    )}
+                  </div>
                 ))
               )}
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-200/30 dark:border-gray-700/30 mt-2">

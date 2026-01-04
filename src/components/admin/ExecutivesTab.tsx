@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { FirestoreService, Collections } from '@/lib/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Save, X, Users, User, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, User, Mail, Phone, Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ExecutiveMember {
   id: string;
@@ -20,45 +22,13 @@ interface ExecutiveMember {
 }
 
 export default function ExecutivesTab() {
-  const [members, setMembers] = useState<ExecutiveMember[]>([
-    {
-      id: '1',
-      full_name: 'Sarah Johnson',
-      position: 'President',
-      email: 'sarah.johnson@haramaya.edu.et',
-      phone: '+251-911-123456',
-      bio: 'Dedicated to promoting ethics and transparency in our university community.',
-      image_url: null,
-      display_order: 1,
-      is_active: true,
-    },
-    {
-      id: '2',
-      full_name: 'Michael Chen',
-      position: 'Vice President',
-      email: 'michael.chen@haramaya.edu.et',
-      phone: '+251-911-234567',
-      bio: 'Passionate about student rights and anti-corruption initiatives.',
-      image_url: null,
-      display_order: 2,
-      is_active: true,
-    },
-    {
-      id: '3',
-      full_name: 'Aisha Mohammed',
-      position: 'Secretary',
-      email: 'aisha.mohammed@haramaya.edu.et',
-      phone: '+251-911-345678',
-      bio: 'Committed to maintaining accurate records and transparent communication.',
-      image_url: null,
-      display_order: 3,
-      is_active: true,
-    }
-  ]);
-
-  const [loading, setLoading] = useState(false);
+  const [members, setMembers] = useState<ExecutiveMember[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<ExecutiveMember>>({
     full_name: '',
     position: '',
@@ -70,8 +40,26 @@ export default function ExecutivesTab() {
     is_active: true,
   });
 
+  useEffect(() => {
+    fetchExecutives();
+  }, []);
+
+  const fetchExecutives = async () => {
+    try {
+      setLoading(true);
+      const data = await FirestoreService.getAll('executives');
+      const sortedExecutives = data.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      setMembers(sortedExecutives as ExecutiveMember[]);
+    } catch (error) {
+      console.error('Error fetching executives:', error);
+      toast.error('Failed to fetch executives');
+    }
+    setLoading(false);
+  };
+
   const handleAdd = () => {
     setIsAdding(true);
+    setImagePreview(null);
     setFormData({
       full_name: '',
       position: '',
@@ -86,87 +74,186 @@ export default function ExecutivesTab() {
 
   const handleEdit = (member: ExecutiveMember) => {
     setEditingId(member.id);
+    setImagePreview(member.image_url);
     setFormData(member);
   };
 
-  const handleSave = () => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Convert file to base64 for preview and storage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target?.result as string;
+        setImagePreview(base64String);
+        setFormData(prev => ({ ...prev, image_url: base64String }));
+        toast.success('Image uploaded successfully');
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, image_url: '' }));
+    toast.success('Image removed');
+  };
+
+  const handleSave = async () => {
     if (!formData.full_name || !formData.position) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    if (isAdding) {
-      const newMember: ExecutiveMember = {
-        id: Date.now().toString(),
-        full_name: formData.full_name!,
-        position: formData.position!,
+    setLoading(true);
+    try {
+      const executiveData = {
+        full_name: formData.full_name,
+        position: formData.position,
         email: formData.email || null,
         phone: formData.phone || null,
         bio: formData.bio || null,
         image_url: formData.image_url || null,
         display_order: formData.display_order || members.length + 1,
         is_active: formData.is_active !== false,
+        updatedBy: user?.uid,
+        updatedAt: new Date(),
       };
-      setMembers([...members, newMember].sort((a, b) => a.display_order - b.display_order));
-      toast.success('Executive member added successfully');
-    } else if (editingId) {
-      setMembers(members.map(member => 
-        member.id === editingId 
-          ? { ...member, ...formData } as ExecutiveMember
-          : member
-      ).sort((a, b) => a.display_order - b.display_order));
-      toast.success('Executive member updated successfully');
-    }
 
-    setIsAdding(false);
-    setEditingId(null);
-    setFormData({});
+      if (isAdding) {
+        await FirestoreService.create('executives', {
+          ...executiveData,
+          createdBy: user?.uid,
+        });
+        toast.success('Executive member added successfully');
+      } else if (editingId) {
+        await FirestoreService.update('executives', editingId, executiveData);
+        toast.success('Executive member updated successfully');
+      }
+
+      setIsAdding(false);
+      setEditingId(null);
+      setFormData({});
+      setImagePreview(null);
+      fetchExecutives();
+    } catch (error) {
+      console.error('Error saving executive:', error);
+      toast.error('Failed to save executive member');
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this executive member?')) return;
+
+    try {
+      await FirestoreService.delete('executives', id);
+      toast.success('Executive member deleted successfully');
+      fetchExecutives();
+    } catch (error) {
+      console.error('Error deleting executive:', error);
+      toast.error('Failed to delete executive member');
+    }
+  };
+
+  const toggleActiveStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      await FirestoreService.update('executives', id, {
+        is_active: !currentStatus,
+        updatedBy: user?.uid,
+        updatedAt: new Date(),
+      });
+      toast.success(`Member ${!currentStatus ? 'activated' : 'deactivated'}`);
+      fetchExecutives();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update member status');
+    }
+  };
+
+  const moveUp = async (id: string) => {
+    const member = members.find(m => m.id === id);
+    if (!member || member.display_order <= 1) return;
+
+    const otherMember = members.find(m => m.display_order === member.display_order - 1);
+    if (!otherMember) return;
+
+    try {
+      await Promise.all([
+        FirestoreService.update('executives', id, { 
+          display_order: member.display_order - 1,
+          updatedBy: user?.uid,
+          updatedAt: new Date(),
+        }),
+        FirestoreService.update('executives', otherMember.id, { 
+          display_order: otherMember.display_order + 1,
+          updatedBy: user?.uid,
+          updatedAt: new Date(),
+        })
+      ]);
+      
+      toast.success('Member moved up');
+      fetchExecutives();
+    } catch (error) {
+      console.error('Error moving member:', error);
+      toast.error('Failed to move member');
+    }
+  };
+
+  const moveDown = async (id: string) => {
+    const member = members.find(m => m.id === id);
+    if (!member || member.display_order >= members.length) return;
+
+    const otherMember = members.find(m => m.display_order === member.display_order + 1);
+    if (!otherMember) return;
+
+    try {
+      await Promise.all([
+        FirestoreService.update('executives', id, { 
+          display_order: member.display_order + 1,
+          updatedBy: user?.uid,
+          updatedAt: new Date(),
+        }),
+        FirestoreService.update('executives', otherMember.id, { 
+          display_order: otherMember.display_order - 1,
+          updatedBy: user?.uid,
+          updatedAt: new Date(),
+        })
+      ]);
+      
+      toast.success('Member moved down');
+      fetchExecutives();
+    } catch (error) {
+      console.error('Error moving member:', error);
+      toast.error('Failed to move member');
+    }
   };
 
   const handleCancel = () => {
     setIsAdding(false);
     setEditingId(null);
+    setImagePreview(null);
     setFormData({});
-  };
-
-  const handleDelete = (id: string) => {
-    setMembers(members.filter(member => member.id !== id));
-    toast.success('Executive member deleted successfully');
-  };
-
-  const toggleActiveStatus = (id: string, currentStatus: boolean) => {
-    setMembers(members.map(member => 
-      member.id === id 
-        ? { ...member, is_active: !currentStatus }
-        : member
-    ));
-    toast.success(`Member ${!currentStatus ? 'activated' : 'deactivated'}`);
-  };
-
-  const moveUp = (id: string) => {
-    const member = members.find(m => m.id === id);
-    if (!member || member.display_order <= 1) return;
-
-    setMembers(members.map(m => {
-      if (m.id === id) return { ...m, display_order: m.display_order - 1 };
-      if (m.display_order === member.display_order - 1) return { ...m, display_order: m.display_order + 1 };
-      return m;
-    }).sort((a, b) => a.display_order - b.display_order));
-    
-    toast.success('Member moved up');
-  };
-
-  const moveDown = (id: string) => {
-    const member = members.find(m => m.id === id);
-    if (!member || member.display_order >= members.length) return;
-
-    setMembers(members.map(m => {
-      if (m.id === id) return { ...m, display_order: m.display_order + 1 };
-      if (m.display_order === member.display_order + 1) return { ...m, display_order: m.display_order - 1 };
-      return m;
-    }).sort((a, b) => a.display_order - b.display_order));
-    
-    toast.success('Member moved down');
   };
 
   return (
@@ -238,7 +325,7 @@ export default function ExecutivesTab() {
                 <Input
                   value={formData.image_url || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="Enter photo URL"
+                  placeholder="Enter photo URL or upload file below"
                 />
               </div>
               <div className="space-y-2">
@@ -248,6 +335,77 @@ export default function ExecutivesTab() {
                   value={formData.display_order || 0}
                   onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
                   placeholder="Enter display order"
+                />
+              </div>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="space-y-4">
+              <label className="text-sm font-medium">Upload Photo</label>
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+                {imagePreview ? (
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        Image uploaded successfully
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('image-upload')?.click()}
+                          disabled={uploadingImage}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Change Image
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={removeImage}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Image className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <div className="mb-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        disabled={uploadingImage}
+                        className="gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      PNG, JPG, GIF up to 5MB
+                    </p>
+                  </div>
+                )}
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
               </div>
             </div>

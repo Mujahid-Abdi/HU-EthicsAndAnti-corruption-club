@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar,
   Clock,
@@ -16,6 +17,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "@/components/ui/use-toast";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { FirestoreService, Collections } from "@/lib/firestore";
 
 const upcomingEvents = [
   {
@@ -77,7 +79,27 @@ export default function EventsPage() {
   const [email, setEmail] = useState("");
   const [events, setEvents] = useState<ClubEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const location = useLocation();
   useScrollAnimation();
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash === 'upcoming') {
+      setActiveTab('upcoming');
+    } else if (hash === 'past') {
+      setActiveTab('past');
+    } else {
+      // Default to upcoming if no hash
+      setActiveTab('upcoming');
+    }
+  }, [location.hash]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL hash when tab changes
+    window.history.replaceState(null, '', `#${value}`);
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -108,12 +130,27 @@ export default function EventsPage() {
     }
   };
 
-  const allEvents = [...events, ...upcomingEvents.map(e => ({ ...e, id: Math.random().toString(), published: true }))]
-    .sort((a: any, b: any) => {
-      const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date);
-      const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date);
-      return dateA.getTime() - dateB.getTime(); // Sort by date ascending for upcoming
-    });
+  const allEvents = [...events, ...upcomingEvents.map(e => ({ ...e, id: Math.random().toString(), published: true }))];
+
+  const currentDate = new Date();
+  
+  const upcomingEventsList = allEvents.filter((event: any) => {
+    const eventDate = event.date?.seconds ? new Date(event.date.seconds * 1000) : new Date(event.date);
+    return eventDate >= currentDate;
+  }).sort((a: any, b: any) => {
+    const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date);
+    const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date);
+    return dateA.getTime() - dateB.getTime(); // Sort by date ascending for upcoming
+  });
+
+  const pastEventsList = allEvents.filter((event: any) => {
+    const eventDate = event.date?.seconds ? new Date(event.date.seconds * 1000) : new Date(event.date);
+    return eventDate < currentDate;
+  }).sort((a: any, b: any) => {
+    const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date);
+    const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date);
+    return dateB.getTime() - dateA.getTime(); // Sort by date descending for past events
+  });
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,128 +172,246 @@ export default function EventsPage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
               <Calendar className="w-4 h-4 text-primary" />
               <span className="text-sm text-primary font-semibold uppercase tracking-wider">
-                Upcoming Events
+                Club Events
               </span>
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Upcoming Events
+              Events & Activities
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join us for our upcoming events, workshops, and activities. Be part of our mission to promote integrity and combat corruption.
+              Join us for our events, workshops, and activities. Be part of our mission to promote integrity and combat corruption.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Upcoming Events */}
-      <section id="upcoming" className="py-20 bg-background">
+      {/* Tabs Section */}
+      <section className="py-8 bg-muted/30 min-h-[600px]">
         <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <Breadcrumb 
-              items={[
-                { label: "Programs", href: "/programs" },
-                { label: "Events" }
-              ]} 
-            />
-            <div className="flex items-center gap-4 mb-10 scroll-animate">
-              <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
-                <Calendar className="w-7 h-7 text-gold" />
-              </div>
-              <div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <div className="flex justify-center mb-10">
+              <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                <TabsTrigger value="upcoming" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                   Upcoming Events
-                </h2>
-                <p className="text-muted-foreground">
-                  Mark your calendar for these important activities
-                </p>
-              </div>
+                </TabsTrigger>
+                <TabsTrigger value="past" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  Past Events
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            <div className="grid gap-6">
-              {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : allEvents.length === 0 ? (
-                <div className="text-center py-20 bg-muted/20 rounded-xl">
-                  <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No upcoming events at the moment.</p>
-                </div>
-              ) : (
-                allEvents.map((event, index) => (
-                  <div
-                    key={event.id || index}
-                    className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md scroll-animate"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start gap-6">
-                      <div className="flex-shrink-0">
-                        <div className="w-20 h-20 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center">
-                          {event.imageUrl ? (
-                            <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <Calendar className="w-10 h-10 text-primary" />
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                            {event.type}
-                          </span>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Users className="w-4 h-4" />
-                            <span>{event.attendees} expected</span>
-                          </div>
-                        </div>
-
-                        <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                          {event.title}
-                        </h3>
-
-                        <p className="text-muted-foreground mb-4">
-                          {event.description}
-                        </p>
-
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span>
-                              {event.date?.seconds 
-                                ? format(new Date(event.date.seconds * 1000), 'PPP') 
-                                : event.date}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="w-4 h-4 text-primary" />
-                            <span>
-                              {event.date?.seconds 
-                                ? format(new Date(event.date.seconds * 1000), 'p') 
-                                : event.time}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span>{event.location}</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 pt-4 border-t border-border">
-                          <Button
-                            variant="ghost"
-                            className="gap-2 text-primary hover:text-primary/80 p-0 h-auto"
-                          >
-                            Learn More
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+            {/* Upcoming Events Tab */}
+            <TabsContent value="upcoming" className="mt-0">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-center gap-4 mb-10 scroll-animate">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
+                    <Calendar className="w-7 h-7 text-gold" />
                   </div>
-                ))
-              )}
-            </div>
-          </div>
+                  <div>
+                    <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                      Upcoming Events
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Mark your calendar for these important activities
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-6">
+                  {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  ) : upcomingEventsList.length === 0 ? (
+                    <div className="text-center py-20 bg-muted/20 rounded-xl">
+                      <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No upcoming events at the moment.</p>
+                    </div>
+                  ) : (
+                    upcomingEventsList.map((event, index) => (
+                      <div
+                        key={event.id || index}
+                        className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md scroll-animate"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-start gap-6">
+                          <div className="flex-shrink-0">
+                            <div className="w-20 h-20 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center">
+                              {/* @ts-ignore */}
+                              {event.imageUrl ? (
+                                /* @ts-ignore */
+                                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <Calendar className="w-10 h-10 text-primary" />
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-3 mb-3">
+                              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                                {event.type}
+                              </span>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Users className="w-4 h-4" />
+                                <span>{event.attendees} expected</span>
+                              </div>
+                            </div>
+
+                            <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                              {event.title}
+                            </h3>
+
+                            <p className="text-muted-foreground mb-4">
+                              {event.description}
+                            </p>
+
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span>
+                                  {event.date?.seconds 
+                                    ? format(new Date(event.date.seconds * 1000), 'PPP') 
+                                    : event.date}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Clock className="w-4 h-4 text-primary" />
+                                <span>
+                                  {event.date?.seconds 
+                                    ? format(new Date(event.date.seconds * 1000), 'p') 
+                                    : event.time}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <MapPin className="w-4 h-4 text-primary" />
+                                <span>{event.location}</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-border">
+                              <Button
+                                variant="ghost"
+                                className="gap-2 text-primary hover:text-primary/80 p-0 h-auto"
+                              >
+                                Learn More
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Past Events Tab */}
+            <TabsContent value="past" className="mt-0">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-center gap-4 mb-10 scroll-animate">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-hero flex items-center justify-center">
+                    <Calendar className="w-7 h-7 text-gold" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                      Past Events
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Look back at our successful activities and achievements
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-6">
+                  {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  ) : pastEventsList.length === 0 ? (
+                    <div className="text-center py-20 bg-card rounded-xl border border-border">
+                      <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No past events to display yet.</p>
+                    </div>
+                  ) : (
+                    pastEventsList.map((event, index) => (
+                      <div
+                        key={event.id || index}
+                        className="bg-card rounded-xl p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer shadow-sm hover:shadow-md scroll-animate opacity-80 hover:opacity-100"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-start gap-6">
+                          <div className="flex-shrink-0">
+                            <div className="w-20 h-20 rounded-xl bg-muted overflow-hidden flex items-center justify-center">
+                              {/* @ts-ignore */}
+                              {event.imageUrl ? (
+                                /* @ts-ignore */
+                                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                              ) : (
+                                <Calendar className="w-10 h-10 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-3 mb-3">
+                              <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                                {event.type} • Completed
+                              </span>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Users className="w-4 h-4" />
+                                <span>{event.attendees} attended</span>
+                              </div>
+                            </div>
+
+                            <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                              {event.title}
+                            </h3>
+
+                            <p className="text-muted-foreground mb-4">
+                              {event.description}
+                            </p>
+
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span>
+                                  {event.date?.seconds 
+                                    ? format(new Date(event.date.seconds * 1000), 'PPP') 
+                                    : event.date}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Clock className="w-4 h-4 text-primary" />
+                                <span>
+                                  {event.date?.seconds 
+                                    ? format(new Date(event.date.seconds * 1000), 'p') 
+                                    : event.time}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <MapPin className="w-4 h-4 text-primary" />
+                                <span>{event.location}</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-border">
+                              <Button
+                                variant="ghost"
+                                className="gap-2 text-muted-foreground hover:text-primary p-0 h-auto"
+                              >
+                                View Details
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 

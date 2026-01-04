@@ -23,8 +23,77 @@ import {
   Trophy,
   Loader2,
   Newspaper,
+  User,
 } from "lucide-react";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+
+interface LeadershipMember {
+  id: string;
+  full_name: string;
+  position: string;
+  email: string | null;
+  phone: string | null;
+  image_url: string | null;
+  bio: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+interface HomePageContent {
+  missionTitle: string;
+  missionDescription: string;
+  visionTitle: string;
+  visionDescription: string;
+  valuesTitle: string;
+  valuesDescription: string;
+  achievementsTitle: string;
+  achievementsDescription: string;
+  leadershipTitle: string;
+  leadershipDescription: string;
+  leadership: LeadershipMember[];
+}
+
+const defaultContent: HomePageContent = {
+  missionTitle: "Our Mission",
+  missionDescription: "To foster a culture of integrity and ethical behavior within Haramaya University by educating, advocating, and taking action against corruption in all its forms.",
+  visionTitle: "Our Vision", 
+  visionDescription: "A corruption-free university environment where ethical conduct is the foundation of all academic and administrative activities.",
+  valuesTitle: "Our Values",
+  valuesDescription: "Integrity, Transparency, Accountability, Justice, and Excellence guide everything we do.",
+  achievementsTitle: "Our Latest Achievements",
+  achievementsDescription: "Celebrating our recent accomplishments in promoting ethics and fighting corruption.",
+  leadershipTitle: "Our Leadership Team",
+  leadershipDescription: "Meet the dedicated leaders driving our mission forward.",
+  leadership: [
+    {
+      id: "1",
+      name: "John Doe",
+      position: "President",
+      email: "president@huec.edu.et",
+      phone: "+251-911-123456",
+      image: "",
+      bio: "Leading the fight against corruption with passion and dedication."
+    },
+    {
+      id: "2", 
+      name: "Jane Smith",
+      position: "Vice President",
+      email: "vicepresident@huec.edu.et",
+      phone: "+251-911-123457",
+      image: "",
+      bio: "Supporting ethical initiatives and student engagement programs."
+    },
+    {
+      id: "3",
+      name: "Mike Johnson", 
+      position: "Secretary",
+      email: "secretary@huec.edu.et",
+      phone: "+251-911-123458",
+      image: "",
+      bio: "Managing communications and organizational activities."
+    }
+  ]
+};
 
 const services = [
   {
@@ -36,10 +105,10 @@ const services = [
   },
   {
     icon: BookOpen,
-    title: "Comprehensive Programs",
+    title: "Comprehensive Resources",
     description:
-      "Access our educational resources, events, and latest news to stay engaged with our initiatives.",
-    link: "/programs",
+      "Access our educational resources, news, and latest updates to stay engaged with our initiatives.",
+    link: "/news",
   },
   {
     icon: Scale,
@@ -53,6 +122,8 @@ const services = [
 export default function HomePage() {
   useScrollAnimation();
   const { settings: systemSettings } = useSystemSettings();
+  const [homeContent, setHomeContent] = useState<HomePageContent>(defaultContent);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
 
   const [latestNews, setLatestNews] = useState<
     {
@@ -64,6 +135,20 @@ export default function HomePage() {
     }[]
   >([]);
   const [isLatestNewsLoading, setIsLatestNewsLoading] = useState(true);
+
+  const [latestAchievements, setLatestAchievements] = useState<
+    {
+      id: string;
+      title: string;
+      description: string | null;
+      imageUrl: string | null;
+      createdAt: any;
+    }[]
+  >([]);
+  const [isAchievementsLoading, setIsAchievementsLoading] = useState(true);
+
+  const [executives, setExecutives] = useState<LeadershipMember[]>([]);
+  const [isExecutivesLoading, setIsExecutivesLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatestNews = async () => {
@@ -91,7 +176,64 @@ export default function HomePage() {
       setIsLatestNewsLoading(false);
     };
 
+    const fetchLatestAchievements = async () => {
+      setIsAchievementsLoading(true);
+      try {
+        const data = await FirestoreService.getAll(Collections.ACHIEVEMENTS);
+        const publishedAchievements = data
+          .filter((item: any) => item.published)
+          .map((item: any) => ({
+            ...item,
+            imageUrl: item.imageUrl || item.image_url,
+            createdAt: item.createdAt || item.created_at,
+          }))
+          .sort((a: any, b: any) => {
+            const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+            const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, 3);
+
+        setLatestAchievements(publishedAchievements);
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      }
+      setIsAchievementsLoading(false);
+    };
+
+    const fetchHomeContent = async () => {
+      try {
+        const data = await FirestoreService.get('settings', 'home-page-content');
+        if (data) {
+          setHomeContent({ ...defaultContent, ...data });
+        }
+      } catch (error) {
+        console.error('Error fetching home content:', error);
+      }
+      setIsLoadingContent(false);
+    };
+
+    const fetchExecutives = async () => {
+      setIsExecutivesLoading(true);
+      try {
+        const data = await FirestoreService.getAll('executives');
+        const activeExecutives = data
+          .filter((exec: any) => exec.is_active)
+          .filter((exec: any) => ['President', 'Vice President', 'Secretary'].includes(exec.position))
+          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+          .slice(0, 3); // Only show top 3 key positions on home page
+        
+        setExecutives(activeExecutives as LeadershipMember[]);
+      } catch (error) {
+        console.error('Error fetching executives:', error);
+      }
+      setIsExecutivesLoading(false);
+    };
+
     fetchLatestNews();
+    fetchLatestAchievements();
+    fetchHomeContent();
+    fetchExecutives();
   }, []);
 
   // Show regular homepage
@@ -125,14 +267,14 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-display text-2xl md:text-4xl font-bold mb-6 leading-tight animate-slide-up text-white dark:text-gray-100 drop-shadow-lg">
-              {systemSettings.homeHeroTitle || "Welcome to HU Ethics and Anti-Corruption Club"}
+              Building Integrity, Fighting Corruption
             </h1>
 
             <p
               className="text-lg md:text-xl text-white/95 dark:text-gray-200/90 mb-10 max-w-2xl animate-slide-up leading-relaxed drop-shadow-md"
               style={{ animationDelay: "0.1s" }}
             >
-              {systemSettings.homeHeroSubtitle || "We are committed to promoting ethical conduct, combating corruption, and fostering accountability within our university community through education, advocacy, and action."}
+              Empowering students and faculty to promote ethical conduct, transparency, and accountability within our university community.
             </p>
 
             <div
@@ -210,6 +352,89 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Latest Achievements Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-12 scroll-fade-up">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                <Trophy className="w-4 h-4 text-primary" />
+                <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                  {homeContent.achievementsTitle}
+                </span>
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+                {homeContent.achievementsDescription}
+              </h2>
+            </div>
+            <Link to="/achievements" className="shrink-0">
+              <Button variant="outline" className="gap-2">
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {isAchievementsLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            </div>
+          ) : latestAchievements.length === 0 ? (
+            <Card className="max-w-md mx-auto">
+              <CardContent className="py-12 text-center">
+                <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No achievements yet. Check back soon.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {latestAchievements.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/achievements/${item.id}`}
+                  className="scroll-fade-up group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 border border-border"
+                >
+                  {item.imageUrl && (
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
+                  <div className={`p-6 ${!item.imageUrl ? 'pt-8' : ''}`}>
+                    {item.createdAt && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                        <Calendar className="w-4 h-4" />
+                        {format(
+                          item.createdAt.seconds 
+                            ? new Date(item.createdAt.seconds * 1000) 
+                            : new Date(item.createdAt), 
+                          'MMMM d, yyyy'
+                        )}
+                      </div>
+                    )}
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="text-muted-foreground line-clamp-3 mb-4">
+                        {item.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                      Read More
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -296,7 +521,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Mission Section with Image */}
+      {/* Mission, Vision & Values Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
@@ -314,41 +539,45 @@ export default function HomePage() {
             </div>
 
             {/* Content Side */}
-            <div className="scroll-fade-up-delay">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-6">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                <span className="text-sm text-primary font-semibold">
-                  Our Mission
-                </span>
+            <div className="scroll-fade-up-delay space-y-8">
+              {/* Mission */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-primary font-semibold">
+                    {homeContent.missionTitle}
+                  </span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  {homeContent.missionDescription}
+                </p>
               </div>
 
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">
-                Committed to Your{" "}
-                <span className="text-gradient-orange">
-                  Ethical Success and Security
-                </span>
-              </h2>
+              {/* Vision */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-primary font-semibold">
+                    {homeContent.visionTitle}
+                  </span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  {homeContent.visionDescription}
+                </p>
+              </div>
 
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                The Haramaya University Ethics and Anti-Corruption Club empowers
-                students to stand against corruption, promote ethical
-                leadership, and work collaboratively with administration to
-                build transparent institutional practices.
-              </p>
-
-              <ul className="space-y-3 mb-8">
-                {[
-                  "100% Confidential Reporting",
-                  "Expert Guidance and Support",
-                  "Active Student Community",
-                  "Transparent Processes",
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-foreground">{item}</span>
-                  </li>
-                ))}
-              </ul>
+              {/* Values */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-primary font-semibold">
+                    {homeContent.valuesTitle}
+                  </span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  {homeContent.valuesDescription}
+                </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/about">
@@ -451,115 +680,82 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-20 relative overflow-hidden bg-gradient-teal">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 w-64 h-64 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary rounded-full blur-3xl" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Contact Info */}
-              <div className="text-white">
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">
-                  Schedule Your Free Consultation
-                </h2>
-                <p className="text-white/80 mb-8 leading-relaxed">
-                  Have questions or concerns? Get in touch with our team. We're
-                  here to help you navigate ethical challenges and promote
-                  transparency.
-                </p>
-
-                <div className="space-y-4">
-                  <Link
-                    to="/contact"
-                    className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm"
-                  >
-                    <Mail className="w-5 h-5 text-primary" />
-                    <div>
-                      <div className="text-white font-medium">
-                        Send us a message
-                      </div>
-                      <div className="text-sm text-white/70">
-                        We'll respond within 24 hours
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-white/70 ml-auto" />
-                  </Link>
-
-                  <Link
-                    to="/report"
-                    className="flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm"
-                  >
-                    <AlertTriangle className="w-5 h-5 text-primary" />
-                    <div>
-                      <div className="text-white font-medium">
-                        Anonymous Report
-                      </div>
-                      <div className="text-sm text-white/70">
-                        100% confidential
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-white/70 ml-auto" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Contact Form */}
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="your@email.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="How can we help?"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      Message
-                    </label>
-                    <textarea
-                      rows={4}
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                      placeholder="Your message..."
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
-                  >
-                    Send Message
-                  </Button>
-                </form>
-              </div>
+      {/* Leadership Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12 scroll-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                {homeContent.leadershipTitle}
+              </span>
             </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {homeContent.leadershipDescription}
+            </h2>
           </div>
+
+          {isExecutivesLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+          ) : executives.length === 0 ? (
+            <div className="text-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+              <p className="text-muted-foreground">Leadership team information will be updated shortly.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {executives.map((member) => (
+                <div
+                  key={member.id}
+                  className="scroll-fade-up group bg-card rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border border-border text-center"
+                >
+                  <div className="mb-6 relative">
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    {member.image_url ? (
+                      <img
+                        src={member.image_url}
+                        alt={member.full_name}
+                        className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-primary/20 relative z-10"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full mx-auto bg-primary/10 flex items-center justify-center border-4 border-primary/20 relative z-10">
+                        <User className="w-12 h-12 text-primary" />
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                    {member.full_name}
+                  </h3>
+                  <p className="text-primary font-medium mb-3">
+                    {member.position}
+                  </p>
+                  {member.bio && (
+                    <p className="text-muted-foreground text-sm mb-4 leading-relaxed line-clamp-3">
+                      {member.bio}
+                    </p>
+                  )}
+
+                  <div className="space-y-2 text-sm">
+                    {member.email && (
+                      <div className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                        <Mail className="w-4 h-4" />
+                        <a href={`mailto:${member.email}`}>{member.email}</a>
+                      </div>
+                    )}
+                    {member.phone && (
+                      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span>{member.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

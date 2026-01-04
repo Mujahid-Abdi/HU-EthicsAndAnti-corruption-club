@@ -314,4 +314,48 @@ export class TelegramService {
       link: `${window.location.origin}/programs`
     });
   }
+
+  static async postBlog(blog: { title: string; excerpt?: string; author?: string; tags?: string[]; url?: string }) {
+    // Get system settings from localStorage or context
+    const storedSettings = localStorage.getItem('system_settings');
+    if (!storedSettings) return null;
+    
+    const settings = JSON.parse(storedSettings);
+    if (!settings.telegramEnabled || !settings.telegramBotToken || !settings.telegramChannelId) return null;
+
+    const safeTitle = this.escapeHtml(blog.title);
+    const safeExcerpt = this.escapeHtml(blog.excerpt || '');
+    const safeAuthor = this.escapeHtml(blog.author || 'HUEC Team');
+    
+    let message = `✍️ <b>New Blog Post Published</b>\n\n`;
+    message += `<b>${safeTitle}</b>\n\n`;
+    if (safeExcerpt) {
+      message += `${this.truncate(safeExcerpt, 300)}\n\n`;
+    }
+    message += `👤 By: ${safeAuthor}\n`;
+    
+    if (blog.tags && blog.tags.length > 0) {
+      const safeTags = blog.tags.map(tag => this.escapeHtml(tag)).slice(0, 3);
+      message += `🏷️ Tags: ${safeTags.join(', ')}\n`;
+    }
+    
+    if (blog.url) {
+      message += `\n🔗 Read full article: ${blog.url}\n`;
+    }
+    
+    message += `\n#HUEC #Blog #EthicsClub`;
+
+    const channels = this.getChannelIds(settings.telegramChannelId);
+    for (const chatId of channels) {
+      try {
+        const params = new URLSearchParams();
+        params.append('chat_id', chatId);
+        params.append('text', message);
+        params.append('parse_mode', 'HTML');
+        await fetch(`${this.getApiUrl(settings.telegramBotToken)}/sendMessage?${params.toString()}`);
+      } catch (error) {
+        console.error(`Error posting blog to Telegram channel ${chatId}:`, error);
+      }
+    }
+  }
 }

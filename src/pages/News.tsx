@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FirestoreService, Collections } from '@/lib/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -134,17 +134,46 @@ interface Resource {
   createdAt: any;
 }
 
+interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  imageUrl: string | null;
+  author: string | null;
+  published: boolean | null;
+  createdAt: any;
+  tags: string[];
+}
+
 export default function News() {
+  const location = useLocation();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isResourcesLoading, setIsResourcesLoading] = useState(true);
+  const [isBlogsLoading, setIsBlogsLoading] = useState(true);
   const [email, setEmail] = useState("");
+  const [activeTab, setActiveTab] = useState("news");
   const { toast } = useToast();
+
+  // Handle hash navigation
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash === 'news' || hash === 'blogs' || hash === 'announcements' || hash === 'resources') {
+      setActiveTab(hash);
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     fetchPublishedNews();
     fetchResources();
+    fetchBlogs();
   }, []);
 
   const fetchPublishedNews = async () => {
@@ -183,6 +212,29 @@ export default function News() {
       console.error('Error fetching resources:', error);
     }
     setIsResourcesLoading(false);
+  };
+
+  const fetchBlogs = async () => {
+    try {
+      const data = await FirestoreService.getAll('blogs');
+      const publishedBlogs = data
+        .filter((item: any) => item.published)
+        .map((item: any) => ({
+          ...item,
+          imageUrl: item.imageUrl || item.image_url,
+          createdAt: item.createdAt || item.created_at,
+          tags: item.tags || [],
+        }))
+        .sort((a: any, b: any) => {
+          const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+          const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        });
+      setBlogs(publishedBlogs as BlogPost[]);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+    }
+    setIsBlogsLoading(false);
   };
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -234,11 +286,15 @@ export default function News() {
           </div>
           
           <div className="max-w-7xl mx-auto">
-            <Tabs defaultValue="news" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-card border border-border rounded-xl p-1 max-w-2xl mx-auto">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-card border border-border rounded-xl p-1 max-w-3xl mx-auto">
                 <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
                   <Newspaper className="w-4 h-4" />
                   News
+                </TabsTrigger>
+                <TabsTrigger value="blogs" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+                  <FileText className="w-4 h-4" />
+                  Blogs
                 </TabsTrigger>
                 <TabsTrigger value="announcements" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
                   <Bell className="w-4 h-4" />
@@ -251,7 +307,7 @@ export default function News() {
               </TabsList>
 
               {/* News Tab Content */}
-              <TabsContent value="news" className="space-y-16 py-16">
+              <TabsContent value="news" id="news" className="space-y-16 py-16">
                 {isLoading ? (
                   <div className="min-h-[40vh] flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -310,8 +366,98 @@ export default function News() {
                 )}
               </TabsContent>
 
+              {/* Blogs Tab Content */}
+              <TabsContent value="blogs" id="blogs" className="space-y-16 py-16">
+                {isBlogsLoading ? (
+                  <div className="min-h-[40vh] flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : blogs.length === 0 ? (
+                  <Card className="max-w-md mx-auto">
+                    <CardContent className="py-16 text-center">
+                      <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">No Blogs Yet</h3>
+                      <p className="text-muted-foreground">
+                        Check back soon for insightful articles and blog posts from our team.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-12">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-4">
+                        <FileText className="w-4 h-4 text-primary" />
+                        <span className="text-sm text-primary font-semibold uppercase tracking-wider">
+                          Blog Posts
+                        </span>
+                      </div>
+                      <h3 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+                        Insights & Articles
+                      </h3>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Read our latest blog posts covering ethics, anti-corruption strategies, and student leadership insights.
+                      </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {blogs.map((blog) => (
+                        <Link key={blog.id} to={`/blogs/${blog.id}`}>
+                          <Card className="h-full overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-border">
+                            {blog.imageUrl && (
+                              <div className="aspect-video overflow-hidden">
+                                <img
+                                  src={blog.imageUrl}
+                                  alt={blog.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              </div>
+                            )}
+                            <CardContent className={`p-6 ${!blog.imageUrl ? 'pt-8' : ''}`}>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                                <Calendar className="w-4 h-4" />
+                                {blog.createdAt && format(
+                                  blog.createdAt.seconds ? new Date(blog.createdAt.seconds * 1000) : new Date(blog.createdAt), 
+                                  'MMMM d, yyyy'
+                                )}
+                                {blog.author && (
+                                  <>
+                                    <span>•</span>
+                                    <span>By {blog.author}</span>
+                                  </>
+                                )}
+                              </div>
+                              <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                                {blog.title}
+                              </h3>
+                              {blog.excerpt && (
+                                <p className="text-muted-foreground line-clamp-3 mb-4">
+                                  {blog.excerpt}
+                                </p>
+                              )}
+                              {blog.tags && blog.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {blog.tags.slice(0, 3).map((tag, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                                Read Article
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
               {/* Announcements Tab Content */}
-              <TabsContent value="announcements" className="space-y-16 py-16">
+              <TabsContent value="announcements" id="announcements" className="space-y-16 py-16">
                 <div className="max-w-5xl mx-auto">
                   <div className="flex items-center gap-4 mb-10">
                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
@@ -361,7 +507,7 @@ export default function News() {
               </TabsContent>
 
               {/* Resources Tab Content */}
-              <TabsContent value="resources" className="space-y-16 py-16">
+              <TabsContent value="resources" id="resources" className="space-y-16 py-16">
                 {isResourcesLoading ? (
                   <div className="min-h-[40vh] flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />

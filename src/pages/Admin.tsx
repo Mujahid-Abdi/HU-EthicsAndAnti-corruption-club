@@ -3,6 +3,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import ReportsTab from '@/components/admin/ReportsTab';
 import EventsTab from '@/components/admin/EventsTab';
 import NewsTab from '@/components/admin/NewsTab';
+import BlogsTab from '@/components/admin/BlogsTab';
 import AnnouncementsTab from '@/components/admin/AnnouncementsTab';
 import GalleryTab from '@/components/admin/GalleryTab';
 import AchievementsTab from '@/components/admin/AchievementsTab';
@@ -13,6 +14,7 @@ import UsersTab from '@/components/admin/UsersTab';
 import ExecutivesTab from '@/components/admin/ExecutivesTab';
 import VoteManagementTab from '@/components/admin/VoteManagementTab';
 import ContentManagementTab from '@/components/admin/ContentManagementTab';
+import HomeManagementTab from '@/components/admin/HomeManagementTab';
 import SystemSettingsTab from '@/components/admin/SystemSettingsTab';
 
 export default function Admin() {
@@ -53,6 +55,8 @@ export default function Admin() {
         return <EventsTab />;
       case 'news':
         return <NewsTab />;
+      case 'blogs':
+        return <BlogsTab />;
       case 'announcements':
         return <AnnouncementsTab />;
       case 'gallery':
@@ -71,6 +75,8 @@ export default function Admin() {
         return <ExecutivesTab />;
       case 'users':
         return <UsersTab />;
+      case 'home-management':
+        return <HomeManagementTab />;
       case 'settings':
         return <SystemSettingsTab />;
       default:

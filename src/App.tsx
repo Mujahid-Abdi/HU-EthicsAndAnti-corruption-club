@@ -12,12 +12,12 @@ import { Layout } from "@/components/layout/Layout";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import About from "./pages/About";
+import Events from "./pages/Events";
 import Achievements from "./pages/Achievements";
-import Programs from "./pages/Programs";
 import Report from "./pages/Report";
 import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
-import Announcements from "./pages/Announcements";
+import BlogDetail from "./pages/BlogDetail";
 import Gallery from "./pages/Gallery";
 import Join from "./pages/Join";
 import Contact from "./pages/Contact";
@@ -65,10 +65,10 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/achievements" element={<Achievements />} />
-                    <Route path="/programs" element={<Programs />} />
+                    <Route path="/events" element={<Events />} />
                     <Route path="/news" element={<News />} />
                     <Route path="/news/:id" element={<NewsDetail />} />
-                    <Route path="/announcements" element={<Announcements />} />
+                    <Route path="/blogs/:id" element={<BlogDetail />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/report" element={<Report />} />
                     <Route path="/vote" element={

@@ -5,9 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Save, X, Users, User, Mail, Phone, FileText, Info, MessageSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, User, Mail, Phone, FileText, Info, MessageSquare, Upload, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { FirestoreService, Collections } from '@/lib/firestore';
+import { compressImage } from '@/lib/utils';
 
 interface AboutContent {
   id: string;
@@ -94,6 +95,7 @@ export default function ContentManagementTab() {
   const [editingExecutive, setEditingExecutive] = useState<string | null>(null);
   const [isAddingExecutive, setIsAddingExecutive] = useState(false);
   const [executiveForm, setExecutiveForm] = useState<Partial<ExecutiveMember>>({});
+  const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url');
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
@@ -464,12 +466,74 @@ export default function ContentManagementTab() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Photo URL</label>
-                    <Input
-                      value={executiveForm.imageUrl || ''}
-                      onChange={(e) => setExecutiveForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                      placeholder="Enter photo URL"
-                    />
+                    <label className="text-sm font-medium">Photo</label>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={imageInputType === 'url' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setImageInputType('url')}
+                        >
+                          <LinkIcon className="w-4 h-4 mr-2" />
+                          URL
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={imageInputType === 'file' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setImageInputType('file')}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload
+                        </Button>
+                      </div>
+
+                      {imageInputType === 'url' ? (
+                        <Input
+                          value={executiveForm.imageUrl || ''}
+                          onChange={(e) => setExecutiveForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                          placeholder="Enter photo URL"
+                        />
+                      ) : (
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = async (e) => {
+                                const base64 = e.target?.result as string;
+                                if (base64) {
+                                  try {
+                                    const toastId = toast.loading('Compressing image...');
+                                    const compressed = await compressImage(base64);
+                                    setExecutiveForm(prev => ({ ...prev, imageUrl: compressed }));
+                                    toast.dismiss(toastId);
+                                    toast.success('Image compressed and ready');
+                                  } catch (err) {
+                                    console.error('Compression failed:', err);
+                                    toast.error('Failed to process image');
+                                  }
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      )}
+
+                      {executiveForm.imageUrl && (
+                        <div className="mt-2 h-20 w-20 rounded-lg overflow-hidden border">
+                          <img 
+                            src={executiveForm.imageUrl} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Display Order</label>

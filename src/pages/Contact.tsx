@@ -25,14 +25,14 @@ const officeHours = [
 
 interface ExecutiveMember {
   id: string;
-  fullName: string;
+  full_name: string;
   position: string;
   email: string | null;
   phone: string | null;
   bio: string | null;
-  imageUrl: string | null;
-  displayOrder: number;
-  isActive: boolean;
+  image_url: string | null;
+  display_order: number;
+  is_active: boolean;
 }
 
 const Contact = () => {
@@ -58,8 +58,8 @@ const Contact = () => {
       if (data) {
         // Sort by display order
         const sortedData = (data as ExecutiveMember[])
-          .filter(exec => exec.isActive !== false)
-          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          .filter(exec => exec.is_active !== false)
+          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
         setExecutives(sortedData);
       }
     } catch (error) {
@@ -347,10 +347,10 @@ const Contact = () => {
                 className="bg-card rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-border text-center"
               >
                 <div className="mb-4">
-                  {member.imageUrl ? (
+                  {member.image_url ? (
                     <img
-                      src={member.imageUrl}
-                      alt={member.fullName}
+                      src={member.image_url}
+                      alt={member.full_name}
                       className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-primary/10"
                     />
                   ) : (
@@ -360,7 +360,7 @@ const Contact = () => {
                   )}
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                  {member.fullName}
+                  {member.full_name}
                 </h3>
                 <p className="text-sm text-primary font-medium mb-3">
                   {member.position}
