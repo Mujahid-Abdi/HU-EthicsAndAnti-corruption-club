@@ -29,14 +29,14 @@ import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 interface LeadershipMember {
   id: string;
-  full_name: string;
+  fullName: string;
   position: string;
   email: string | null;
   phone: string | null;
-  image_url: string | null;
+  imageUrl: string | null;
   bio: string | null;
-  display_order: number;
-  is_active: boolean;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 interface HomePageContent {
@@ -67,30 +67,36 @@ const defaultContent: HomePageContent = {
   leadership: [
     {
       id: "1",
-      name: "John Doe",
+      fullName: "John Doe",
       position: "President",
       email: "president@huec.edu.et",
       phone: "+251-911-123456",
-      image: "",
-      bio: "Leading the fight against corruption with passion and dedication."
+      imageUrl: "",
+      bio: "Leading the fight against corruption with passion and dedication.",
+      displayOrder: 1,
+      isActive: true
     },
     {
       id: "2", 
-      name: "Jane Smith",
+      fullName: "Jane Smith",
       position: "Vice President",
       email: "vicepresident@huec.edu.et",
       phone: "+251-911-123457",
-      image: "",
-      bio: "Supporting ethical initiatives and student engagement programs."
+      imageUrl: "",
+      bio: "Supporting ethical initiatives and student engagement programs.",
+      displayOrder: 2,
+      isActive: true
     },
     {
       id: "3",
-      name: "Mike Johnson", 
+      fullName: "Mike Johnson", 
       position: "Secretary",
       email: "secretary@huec.edu.et",
       phone: "+251-911-123458",
-      image: "",
-      bio: "Managing communications and organizational activities."
+      imageUrl: "",
+      bio: "Managing communications and organizational activities.",
+      displayOrder: 3,
+      isActive: true
     }
   ]
 };
@@ -217,10 +223,24 @@ export default function HomePage() {
       setIsExecutivesLoading(true);
       try {
         const data = await FirestoreService.getAll('executives');
-        const activeExecutives = data
-          .filter((exec: any) => exec.is_active)
-          .filter((exec: any) => ['President', 'Vice President', 'Secretary'].includes(exec.position))
-          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+        
+        // Map data to ensure consistency and handle potential legacy fields
+        const mappedExecutives = data
+          .map((exec: any) => ({
+            id: exec.id,
+            fullName: exec.fullName || exec.full_name || exec.name,
+            position: exec.position,
+            email: exec.email,
+            phone: exec.phone,
+            imageUrl: exec.imageUrl || exec.image_url || exec.image,
+            bio: exec.bio,
+            displayOrder: exec.displayOrder || exec.display_order || 0,
+            isActive: exec.isActive !== undefined ? exec.isActive : (exec.is_active !== undefined ? exec.is_active : true)
+          }));
+
+        const activeExecutives = mappedExecutives
+          .filter((exec) => exec.isActive)
+          .sort((a, b) => a.displayOrder - b.displayOrder)
           .slice(0, 3); // Only show top 3 key positions on home page
         
         setExecutives(activeExecutives as LeadershipMember[]);
@@ -713,10 +733,10 @@ export default function HomePage() {
                 >
                   <div className="mb-6 relative">
                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    {member.image_url ? (
+                    {member.imageUrl ? (
                       <img
-                        src={member.image_url}
-                        alt={member.full_name}
+                        src={member.imageUrl}
+                        alt={member.fullName}
                         className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-primary/20 relative z-10"
                       />
                     ) : (
@@ -727,7 +747,7 @@ export default function HomePage() {
                   </div>
 
                   <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                    {member.full_name}
+                    {member.fullName}
                   </h3>
                   <p className="text-primary font-medium mb-3">
                     {member.position}
